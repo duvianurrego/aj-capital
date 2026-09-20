@@ -67,9 +67,7 @@
     </header>
 
 
-    <!-- =====================================================
-         INICIO
-    ====================================================== -->
+    <!-- INICIO -->
 
     <section id="inicio" class="page">
 
@@ -143,7 +141,7 @@
           </div>
 
           <div class="metric">
-            <span>Deuda con Andrés</span>
+            <span>Deuda histórica con Andrés</span>
             <b>$729.200</b>
           </div>
 
@@ -178,9 +176,7 @@
     </section>
 
 
-    <!-- =====================================================
-         CLIENTES
-    ====================================================== -->
+    <!-- CLIENTES -->
 
     <section id="clientes" class="page hidden">
 
@@ -269,9 +265,7 @@
     </section>
 
 
-    <!-- =====================================================
-         PRÉSTAMOS
-    ====================================================== -->
+    <!-- PRÉSTAMOS -->
 
     <section id="prestamos" class="page hidden">
 
@@ -378,9 +372,7 @@
     </section>
 
 
-    <!-- =====================================================
-         PAGOS
-    ====================================================== -->
+    <!-- PAGOS -->
 
     <section id="pagos" class="page hidden">
 
@@ -514,9 +506,7 @@
     </section>
 
 
-    <!-- =====================================================
-         CAJA
-    ====================================================== -->
+    <!-- CAJA -->
 
     <section id="caja" class="page hidden">
 
@@ -524,8 +514,8 @@
         <div>
           <h2>Caja</h2>
           <p>
-            Control del dinero empresarial y conciliación
-            del dinero de terceros.
+            Control del dinero empresarial, obligaciones con socios
+            y conciliación del dinero de terceros.
           </p>
         </div>
       </div>
@@ -540,15 +530,32 @@
         </article>
 
         <article>
-          <span>Terceros — Andrés</span>
-          <strong id="tercerosAndres">$0</strong>
-          <small>Dinero ajeno en custodia</small>
-        </article>
-
-        <article>
           <span>Caja A&J — Juan</span>
           <strong id="cajaJuan">$0</strong>
           <small>Dinero empresarial</small>
+        </article>
+
+        <article>
+          <span>A&J debe a Andrés</span>
+          <strong id="deudaAndres">$0</strong>
+          <small>Cuenta por pagar al socio</small>
+        </article>
+
+        <article>
+          <span>A&J debe a Juan</span>
+          <strong id="deudaJuan">$0</strong>
+          <small>Cuenta por pagar al socio</small>
+        </article>
+
+      </div>
+
+
+      <div class="cards">
+
+        <article>
+          <span>Terceros — Andrés</span>
+          <strong id="tercerosAndres">$0</strong>
+          <small>Dinero ajeno en custodia</small>
         </article>
 
         <article>
@@ -571,6 +578,11 @@
           </div>
 
           <div class="metric">
+            <span>Total A&J debe a socios</span>
+            <b id="deudaTotalSocios">$0</b>
+          </div>
+
+          <div class="metric">
             <span>Total dinero de terceros</span>
             <b id="cajaTotalTerceros">$0</b>
           </div>
@@ -581,8 +593,8 @@
           </div>
 
           <p class="help-text">
-            El total físico explicado sirve para conciliación.
-            El dinero de terceros no pertenece a A&J CAPITAL.
+            Las cuentas por pagar a socios no forman parte de la Caja A&J.
+            El dinero de terceros tampoco pertenece a A&J CAPITAL.
           </p>
         </section>
 
@@ -599,6 +611,11 @@
             <span>Juan — físico explicado</span>
             <b id="fisicoJuan">$0</b>
           </div>
+
+          <p class="help-text">
+            El físico explicado corresponde a Caja A&J más dinero
+            de terceros bajo responsabilidad de cada socio.
+          </p>
         </section>
 
       </div>
@@ -612,7 +629,8 @@
 
         <p class="help-text">
           Registre únicamente una cuota realmente pagada.
-          Este movimiento afecta el resultado del ciclo.
+          Si sale del dinero personal del socio, A&J reconocerá
+          automáticamente una cuenta por pagar a ese socio.
         </p>
 
         <form id="cuotaBancoForm" class="form-grid">
@@ -634,6 +652,15 @@
           <div>
             <label>Valor *</label>
             <input id="cuotaBancoValor" type="number" min="1" step="1" required>
+          </div>
+
+          <div>
+            <label>Origen del pago *</label>
+            <select id="cuotaBancoOrigen" required>
+              <option value="">Seleccione</option>
+              <option value="CAJA_AJ">Caja A&J</option>
+              <option value="DINERO_PERSONAL_SOCIO">Dinero personal del socio</option>
+            </select>
           </div>
 
           <div class="full">
@@ -881,9 +908,7 @@
     </section>
 
 
-    <!-- =====================================================
-         HISTORIAL
-    ====================================================== -->
+    <!-- HISTORIAL -->
 
     <section id="historial" class="page hidden">
 
@@ -995,9 +1020,7 @@
     </section>
 
 
-    <!-- =====================================================
-         PLACEHOLDER CARTERA / CIERRES
-    ====================================================== -->
+    <!-- PLACEHOLDER CARTERA / CIERRES -->
 
     <section id="placeholder" class="page hidden">
       <section class="panel">
