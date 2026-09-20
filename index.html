@@ -2,7 +2,6 @@
 <html lang="es">
 
 <head>
-
   <meta charset="utf-8">
 
   <meta
@@ -13,19 +12,15 @@
     name="theme-color"
     content="#172033">
 
-  <title>
-    A&J CAPITAL
-  </title>
+  <title>A&J CAPITAL</title>
 
   <link
     rel="stylesheet"
     href="styles.css">
-
 </head>
 
 
 <body>
-
 
   <!-- =====================================================
        LOGIN
@@ -35,32 +30,23 @@
     id="loginView"
     class="login-shell">
 
-
     <div class="login-card">
-
 
       <div class="brand-mark">
         A&J
       </div>
 
-
-      <h1>
-        A&J CAPITAL
-      </h1>
-
+      <h1>A&J CAPITAL</h1>
 
       <p>
         Gestión inteligente de cartera
       </p>
 
-
       <form id="loginForm">
-
 
         <label for="email">
           Correo
         </label>
-
 
         <input
           id="email"
@@ -69,11 +55,9 @@
           placeholder="correo@ejemplo.com"
           required>
 
-
         <label for="password">
           Contraseña
         </label>
-
 
         <input
           id="password"
@@ -82,23 +66,18 @@
           placeholder="••••••••"
           required>
 
-
         <button type="submit">
           Ingresar
         </button>
 
-
       </form>
-
 
       <div
         id="loginMsg"
         class="msg">
       </div>
 
-
     </div>
-
 
   </section>
 
@@ -113,124 +92,87 @@
     class="app hidden">
 
 
-
     <!-- ===================================================
          MENÚ LATERAL
     ==================================================== -->
 
     <aside class="sidebar">
 
-
       <div>
 
-
         <div class="brand-row">
-
 
           <span class="brand-small">
             A&J
           </span>
 
-
           <strong>
             A&J CAPITAL
           </strong>
 
-
         </div>
-
 
 
         <nav>
 
-
           <button
             class="nav active"
             data-page="inicio">
-
             Inicio
-
           </button>
-
 
           <button
             class="nav"
             data-page="clientes">
-
             Clientes
-
           </button>
-
 
           <button
             class="nav"
             data-page="prestamos">
-
             Préstamos
-
           </button>
-
 
           <button
             class="nav"
             data-page="pagos">
-
             Registrar pago
-
           </button>
-
 
           <button
             class="nav"
             data-page="cartera">
-
             Cartera
-
           </button>
-
 
           <button
             class="nav"
             data-page="caja">
-
             Caja
-
           </button>
-
 
           <button
             class="nav"
             data-page="cierres">
-
             Cierres
-
           </button>
-
 
           <button
             class="nav"
             data-page="historial">
-
             Historial
-
           </button>
-
 
         </nav>
 
-
       </div>
-
 
 
       <button
         id="logoutBtn"
         class="logout">
-
         Cerrar sesión
-
       </button>
-
 
     </aside>
 
@@ -243,36 +185,29 @@
     <main>
 
 
-
       <!-- =================================================
            CABECERA
       ================================================== -->
 
       <header>
 
-
         <div>
-
 
           <h2>
             Panel principal
           </h2>
 
-
           <p id="cycleText">
             Cargando ciclo...
           </p>
 
-
         </div>
-
 
 
         <div
           class="user-chip"
           id="userChip">
         </div>
-
 
       </header>
 
@@ -287,364 +222,272 @@
         class="page">
 
 
-
-        <!-- INDICADORES PRINCIPALES -->
+        <!-- INDICADORES -->
 
         <div class="cards">
 
-
           <article>
-
 
             <span>
               Capital actualmente prestado
             </span>
 
-
             <strong id="capitalPrestado">
               $0
             </strong>
-
 
             <small id="clientesSaldo">
               Punto Cero
             </small>
 
-
           </article>
 
 
-
           <article>
-
 
             <span>
               Intereses del ciclo
             </span>
 
-
             <strong id="interesesCiclo">
               $0
             </strong>
-
 
             <small>
               Realmente cobrados
             </small>
 
-
           </article>
 
 
-
           <article>
-
 
             <span>
               Cartera vencida
             </span>
 
-
             <strong id="capitalVencido">
               $0
             </strong>
-
 
             <small>
               Desde el nuevo control
             </small>
 
-
           </article>
 
 
-
           <article>
-
 
             <span>
               Resultado del ciclo
             </span>
 
-
             <strong id="resultadoCiclo">
               $0
             </strong>
-
 
             <small>
               Antes del reparto
             </small>
 
-
           </article>
-
 
         </div>
 
 
 
-        <!-- =================================================
-             CICLO ACTUAL + PUNTO CERO
-        ================================================== -->
+        <!-- CICLO + PUNTO CERO -->
 
         <div class="grid2">
 
 
-
-          <!-- CICLO ACTUAL -->
-
           <section class="panel">
-
 
             <h3>
               Ciclo actual 20 → 20
             </h3>
 
-
-
             <div class="metric">
-
 
               <span>
                 Cuota bancaria pagada
               </span>
 
-
               <b id="cuotaCiclo">
                 $0
               </b>
 
-
             </div>
 
 
-
             <div class="metric">
-
 
               <span>
                 Andrés — provisional
               </span>
 
-
               <b id="andresProv">
                 $0
               </b>
 
-
             </div>
 
 
-
             <div class="metric">
-
 
               <span>
                 Juan — provisional
               </span>
 
-
               <b id="juanProv">
                 $0
               </b>
 
-
             </div>
-
 
           </section>
 
 
 
-          <!-- PUNTO CERO -->
-
           <section class="panel">
-
 
             <h3>
               Punto Cero
             </h3>
 
-
-
             <div class="metric">
-
 
               <span>
                 Capital prestado
               </span>
 
-
               <b>
                 $23.457.000
               </b>
 
-
             </div>
 
 
-
             <div class="metric">
-
 
               <span>
                 Mamá Yaneth por cobrar
               </span>
 
-
               <b>
                 $100.000
               </b>
 
-
             </div>
 
 
-
             <div class="metric">
-
 
               <span>
                 Caja Juan inicial
               </span>
 
-
               <b>
                 $285.200
               </b>
 
-
             </div>
 
 
-
             <div class="metric">
-
 
               <span>
                 Deuda con Andrés
               </span>
 
-
               <b>
                 $729.200
               </b>
 
-
             </div>
 
 
-
             <div class="metric muted">
-
 
               <span>
                 Andrés fuera de operación
               </span>
 
-
               <b>
                 $6.000.000
               </b>
 
-
             </div>
 
-
           </section>
-
 
         </div>
 
 
 
-        <!-- =================================================
-             SEGUIMIENTO DE CARTERA
-        ================================================== -->
+        <!-- SEGUIMIENTO CARTERA -->
 
         <section class="panel">
 
-
           <div class="page-head">
 
-
             <div>
-
 
               <h3>
                 Seguimiento de cartera — nuevo control
               </h3>
 
-
               <p>
                 Capital individual y fecha original de cada préstamo.
               </p>
 
-
             </div>
-
 
           </div>
 
 
-
           <div class="table-wrap">
-
 
             <table>
 
-
               <thead>
 
-
                 <tr>
-
 
                   <th>
                     Cliente
                   </th>
 
-
                   <th>
                     Capital actual
                   </th>
-
 
                   <th>
                     Fecha préstamo
                   </th>
 
-
                   <th>
                     Estado
                   </th>
-
 
                   <th>
                     Días mora
                   </th>
 
-
                 </tr>
 
-
               </thead>
-
 
 
               <tbody id="carteraBody">
               </tbody>
 
-
             </table>
-
 
           </div>
 
-
         </section>
-
 
       </section>
 
@@ -659,51 +502,38 @@
         class="page hidden">
 
 
-
         <div class="page-head">
 
-
           <div>
-
 
             <h2>
               Clientes
             </h2>
 
-
             <p>
               Consulta y registro de clientes de A&J Capital.
             </p>
 
-
           </div>
-
 
 
           <button
             id="nuevoClienteBtn"
             class="primary">
-
             + Nuevo cliente
-
           </button>
-
 
         </div>
 
 
 
-        <!-- FORMULARIO NUEVO CLIENTE -->
-
         <section
           id="clienteFormPanel"
           class="panel hidden">
 
-
           <h3>
             Nuevo cliente
           </h3>
-
 
 
           <form
@@ -711,115 +541,85 @@
             class="form-grid">
 
 
-
             <div>
-
 
               <label for="clienteNombre">
                 Nombre completo *
               </label>
 
-
               <input
                 id="clienteNombre"
                 required>
 
-
             </div>
 
 
-
             <div>
-
 
               <label for="clienteDocumento">
                 Documento
               </label>
 
-
               <input
                 id="clienteDocumento">
-
 
             </div>
 
 
-
             <div>
-
 
               <label for="clienteTelefono">
                 Teléfono
               </label>
 
-
               <input
                 id="clienteTelefono">
-
 
             </div>
 
 
-
             <div>
-
 
               <label for="clienteDireccion">
                 Dirección
               </label>
 
-
               <input
                 id="clienteDireccion">
-
 
             </div>
 
 
-
             <div class="full">
-
 
               <label for="clienteObs">
                 Observaciones
               </label>
 
-
               <input
                 id="clienteObs">
-
 
             </div>
 
 
-
             <div class="full form-actions">
-
 
               <button
                 type="button"
                 id="cancelarClienteBtn"
                 class="secondary">
-
                 Cancelar
-
               </button>
-
 
               <button
                 type="submit"
                 class="primary">
-
                 Guardar cliente
-
               </button>
-
 
             </div>
 
-
           </form>
-
 
 
           <div
@@ -827,89 +627,66 @@
             class="msg">
           </div>
 
-
         </section>
 
 
 
-        <!-- LISTADO DE CLIENTES -->
-
         <section class="panel">
 
-
           <div class="search-row">
-
 
             <h3>
               Listado de clientes
             </h3>
 
-
             <input
               id="buscarCliente"
               placeholder="Buscar por nombre o documento">
 
-
           </div>
-
 
 
           <div class="table-wrap">
 
-
             <table>
-
 
               <thead>
 
-
                 <tr>
-
 
                   <th>
                     Nombre
                   </th>
 
-
                   <th>
                     Documento
                   </th>
-
 
                   <th>
                     Teléfono
                   </th>
 
-
                   <th>
                     Registro
                   </th>
-
 
                   <th>
                     Estado
                   </th>
 
-
                 </tr>
 
-
               </thead>
-
 
 
               <tbody id="clientesBody">
               </tbody>
 
-
             </table>
-
 
           </div>
 
-
         </section>
-
 
       </section>
 
@@ -924,25 +701,19 @@
         class="page hidden">
 
 
-
         <div class="page-head">
 
-
           <div>
-
 
             <h2>
               Registrar pago
             </h2>
 
-
             <p>
               Registro de intereses y abonos a capital.
             </p>
 
-
           </div>
-
 
         </div>
 
@@ -950,11 +721,9 @@
 
         <section class="panel">
 
-
           <h3>
             Nuevo pago
           </h3>
-
 
 
           <form
@@ -962,128 +731,91 @@
             class="form-grid">
 
 
-
-            <!-- CLIENTE -->
-
             <div class="full">
-
 
               <label for="pagoCliente">
                 Cliente *
               </label>
 
-
               <select
                 id="pagoCliente"
                 required>
-
 
                 <option value="">
                   Seleccione un cliente
                 </option>
 
-
               </select>
-
 
             </div>
 
 
-
-            <!-- PRÉSTAMO -->
-
             <div class="full">
-
 
               <label for="pagoPrestamo">
                 Préstamo *
               </label>
-
 
               <select
                 id="pagoPrestamo"
                 required
                 disabled>
 
-
                 <option value="">
                   Primero seleccione un cliente
                 </option>
 
-
               </select>
-
 
             </div>
 
 
-
-            <!-- FECHA -->
-
             <div>
-
 
               <label for="pagoFecha">
                 Fecha del pago *
               </label>
-
 
               <input
                 id="pagoFecha"
                 type="date"
                 required>
 
-
             </div>
 
 
-
-            <!-- RECIBIDO POR -->
-
             <div>
-
 
               <label for="pagoReceptor">
                 Recibido por *
               </label>
 
-
               <select
                 id="pagoReceptor"
                 required>
-
 
                 <option value="">
                   Seleccione
                 </option>
 
-
                 <option value="1">
                   Andrés Urrego
                 </option>
-
 
                 <option value="2">
                   Juan
                 </option>
 
-
               </select>
-
 
             </div>
 
 
-
-            <!-- INTERÉS -->
-
             <div>
-
 
               <label for="pagoInteres">
                 Interés pagado
               </label>
-
 
               <input
                 id="pagoInteres"
@@ -1093,20 +825,14 @@
                 value="0"
                 inputmode="numeric">
 
-
             </div>
 
 
-
-            <!-- CAPITAL -->
-
             <div>
-
 
               <label for="pagoCapital">
                 Abono a capital
               </label>
-
 
               <input
                 id="pagoCapital"
@@ -1116,105 +842,74 @@
                 value="0"
                 inputmode="numeric">
 
-
             </div>
 
 
-
-            <!-- MEDIO DE PAGO -->
-
             <div>
-
 
               <label for="pagoMedio">
                 Medio de pago
               </label>
 
-
               <select id="pagoMedio">
-
 
                 <option value="EFECTIVO">
                   Efectivo
                 </option>
 
-
                 <option value="TRANSFERENCIA">
                   Transferencia
                 </option>
-
 
                 <option value="NEQUI">
                   Nequi
                 </option>
 
-
                 <option value="DAVIPLATA">
                   Daviplata
                 </option>
-
 
                 <option value="BANCOLOMBIA">
                   Bancolombia
                 </option>
 
-
                 <option value="OTRO">
                   Otro
                 </option>
 
-
               </select>
-
 
             </div>
 
 
-
-            <!-- TOTAL -->
-
             <div>
-
 
               <label>
                 Total recibido
               </label>
 
-
               <div
                 id="pagoTotal"
                 class="total-pago">
-
                 $0
-
               </div>
-
 
             </div>
 
 
-
-            <!-- OBSERVACIONES -->
-
             <div class="full">
-
 
               <label for="pagoObservaciones">
                 Observaciones
               </label>
-
 
               <textarea
                 id="pagoObservaciones"
                 rows="3"
                 placeholder="Información adicional del pago"></textarea>
 
-
             </div>
 
-
-
-            <!-- ADVERTENCIA -->
 
             <div
               id="pagoAdvertencia"
@@ -1222,37 +917,25 @@
             </div>
 
 
-
-            <!-- BOTONES -->
-
             <div class="full form-actions">
-
 
               <button
                 type="button"
                 id="limpiarPagoBtn"
                 class="secondary">
-
                 Limpiar
-
               </button>
-
 
               <button
                 type="submit"
                 id="guardarPagoBtn"
                 class="primary">
-
                 Registrar pago
-
               </button>
-
 
             </div>
 
-
           </form>
-
 
 
           <div
@@ -1260,64 +943,351 @@
             class="msg">
           </div>
 
-
         </section>
 
 
-
         <section class="panel">
-
 
           <h3>
             Control del registro
           </h3>
 
-
           <p class="help-text">
-
             Los intereses registrados alimentan el ciclo correspondiente.
             Los abonos a capital reducen el capital actualmente prestado.
             Cada movimiento queda registrado para control y auditoría.
-
           </p>
 
-
         </section>
-
 
       </section>
 
 
 
       <!-- =================================================
-           OTROS MÓDULOS
+           HISTORIAL
+      ================================================== -->
+
+      <section
+        id="historial"
+        class="page hidden">
+
+
+        <div class="page-head">
+
+          <div>
+
+            <h2>
+              Historial
+            </h2>
+
+            <p>
+              Consulta de pagos, intereses y recuperación de capital.
+            </p>
+
+          </div>
+
+        </div>
+
+
+
+        <!-- FILTROS -->
+
+        <section class="panel">
+
+          <h3>
+            Consultar movimientos
+          </h3>
+
+
+          <div class="form-grid">
+
+
+            <div>
+
+              <label for="historialDesde">
+                Desde
+              </label>
+
+              <input
+                id="historialDesde"
+                type="date">
+
+            </div>
+
+
+            <div>
+
+              <label for="historialHasta">
+                Hasta
+              </label>
+
+              <input
+                id="historialHasta"
+                type="date">
+
+            </div>
+
+
+            <div>
+
+              <label for="historialCliente">
+                Cliente
+              </label>
+
+              <select id="historialCliente">
+
+                <option value="">
+                  Todos los clientes
+                </option>
+
+              </select>
+
+            </div>
+
+
+            <div>
+
+              <label for="historialReceptor">
+                Recibido por
+              </label>
+
+              <select id="historialReceptor">
+
+                <option value="">
+                  Todos
+                </option>
+
+                <option value="1">
+                  Andrés Urrego
+                </option>
+
+                <option value="2">
+                  Juan
+                </option>
+
+              </select>
+
+            </div>
+
+
+            <div class="full form-actions">
+
+              <button
+                type="button"
+                id="limpiarHistorialBtn"
+                class="secondary">
+                Limpiar filtros
+              </button>
+
+              <button
+                type="button"
+                id="consultarHistorialBtn"
+                class="primary">
+                Consultar
+              </button>
+
+            </div>
+
+          </div>
+
+
+          <div
+            id="historialMsg"
+            class="msg">
+          </div>
+
+        </section>
+
+
+
+        <!-- TOTALES -->
+
+        <div class="cards">
+
+
+          <article>
+
+            <span>
+              Intereses cobrados
+            </span>
+
+            <strong id="historialIntereses">
+              $0
+            </strong>
+
+            <small>
+              Pagos válidos consultados
+            </small>
+
+          </article>
+
+
+          <article>
+
+            <span>
+              Capital recuperado
+            </span>
+
+            <strong id="historialCapital">
+              $0
+            </strong>
+
+            <small>
+              Abonos a capital
+            </small>
+
+          </article>
+
+
+          <article>
+
+            <span>
+              Total recibido
+            </span>
+
+            <strong id="historialTotal">
+              $0
+            </strong>
+
+            <small>
+              Interés + capital
+            </small>
+
+          </article>
+
+
+          <article>
+
+            <span>
+              Movimientos
+            </span>
+
+            <strong id="historialCantidad">
+              0
+            </strong>
+
+            <small>
+              Registros encontrados
+            </small>
+
+          </article>
+
+        </div>
+
+
+
+        <!-- TABLA HISTORIAL -->
+
+        <section class="panel">
+
+          <div class="page-head">
+
+            <div>
+
+              <h3>
+                Movimientos registrados
+              </h3>
+
+              <p>
+                Los registros anulados se conservan para auditoría,
+                pero no se incluyen en los totales.
+              </p>
+
+            </div>
+
+          </div>
+
+
+          <div class="table-wrap">
+
+            <table>
+
+              <thead>
+
+                <tr>
+
+                  <th>
+                    Fecha
+                  </th>
+
+                  <th>
+                    Cliente
+                  </th>
+
+                  <th>
+                    Interés
+                  </th>
+
+                  <th>
+                    Capital
+                  </th>
+
+                  <th>
+                    Total
+                  </th>
+
+                  <th>
+                    Recibido por
+                  </th>
+
+                  <th>
+                    Medio
+                  </th>
+
+                  <th>
+                    Estado
+                  </th>
+
+                </tr>
+
+              </thead>
+
+
+              <tbody id="historialBody">
+
+                <tr>
+
+                  <td colspan="8">
+                    Consulte el historial para ver los movimientos.
+                  </td>
+
+                </tr>
+
+              </tbody>
+
+            </table>
+
+          </div>
+
+        </section>
+
+      </section>
+
+
+
+      <!-- =================================================
+           MÓDULOS PENDIENTES
       ================================================== -->
 
       <section
         id="placeholder"
         class="page hidden">
 
-
         <section class="panel">
-
 
           <h3 id="placeholderTitle">
           </h3>
-
 
           <p>
             Este módulo será conectado en el siguiente bloque.
           </p>
 
-
         </section>
-
 
       </section>
 
-
     </main>
-
 
   </div>
 
@@ -1331,7 +1301,6 @@
     type="module"
     src="app.js">
   </script>
-
 
 </body>
 
