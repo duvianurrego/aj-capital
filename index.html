@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>A&J CAPITAL</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <section id="loginView" class="login-shell">
+    <div class="login-card">
+      <div class="brand-mark">A&J</div>
+      <h1>A&J CAPITAL</h1>
+      <p>Gestión inteligente de cartera</p>
+      <form id="loginForm">
+        <label>Correo</label>
+        <input id="email" type="email" autocomplete="username" required placeholder="correo@ejemplo.com">
+        <label>Contraseña</label>
+        <input id="password" type="password" autocomplete="current-password" required placeholder="••••••••">
+        <button type="submit">Ingresar</button>
+      </form>
+      <div id="loginMsg" class="msg"></div>
+    </div>
+  </section>
+
+  <div id="appView" class="app hidden">
+    <aside class="sidebar">
+      <div>
+        <div class="brand-row"><span class="brand-small">A&J</span><strong>A&J CAPITAL</strong></div>
+        <nav>
+          <button class="nav active" data-page="inicio">Inicio</button>
+          <button class="nav" data-page="clientes">Clientes</button>
+          <button class="nav" data-page="prestamos">Préstamos</button>
+          <button class="nav" data-page="pagos">Registrar pago</button>
+          <button class="nav" data-page="cartera">Cartera</button>
+          <button class="nav" data-page="caja">Caja</button>
+          <button class="nav" data-page="cierres">Cierres</button>
+          <button class="nav" data-page="historial">Historial</button>
+        </nav>
+      </div>
+      <button id="logoutBtn" class="logout">Cerrar sesión</button>
+    </aside>
+
+    <main>
+      <header>
+        <div><h2>Panel principal</h2><p id="cycleText">Cargando ciclo...</p></div>
+        <div class="user-chip" id="userChip"></div>
+      </header>
+
+      <section id="inicio" class="page">
+        <div class="cards">
+          <article><span>Capital prestado</span><strong id="capitalPrestado">$0</strong><small id="clientesSaldo">0 clientes con saldo</small></article>
+          <article><span>Intereses del ciclo</span><strong id="interesesCiclo">$0</strong><small>Realmente cobrados</small></article>
+          <article><span>Cartera vencida</span><strong id="capitalVencido">$0</strong><small>Requiere seguimiento</small></article>
+          <article><span>Resultado del ciclo</span><strong id="resultadoCiclo">$0</strong><small>Antes del reparto</small></article>
+        </div>
+        <div class="grid2">
+          <section class="panel">
+            <h3>Ciclo actual 20 → 20</h3>
+            <div class="metric"><span>Cuota bancaria pagada</span><b id="cuotaCiclo">$0</b></div>
+            <div class="metric"><span>Andrés — provisional</span><b id="andresProv">$0</b></div>
+            <div class="metric"><span>Juan — provisional</span><b id="juanProv">$0</b></div>
+          </section>
+          <section class="panel">
+            <h3>Punto Cero</h3>
+            <div class="metric"><span>Mamá Yaneth por cobrar</span><b>$100.000</b></div>
+            <div class="metric"><span>Caja Juan inicial</span><b>$285.200</b></div>
+            <div class="metric"><span>Deuda con Andrés</span><b>$729.200</b></div>
+            <div class="metric muted"><span>Andrés fuera de operación</span><b>$6.000.000</b></div>
+          </section>
+        </div>
+        <section class="panel">
+          <h3>Cartera vigente</h3>
+          <div class="table-wrap">
+            <table><thead><tr><th>Cliente</th><th>Capital pendiente</th><th>Estado</th><th>Días mora</th></tr></thead>
+            <tbody id="carteraBody"></tbody></table>
+          </div>
+        </section>
+      </section>
+
+      <section id="placeholder" class="page hidden">
+        <section class="panel"><h3 id="placeholderTitle"></h3><p>Este módulo será conectado en el siguiente bloque.</p></section>
+      </section>
+    </main>
+  </div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
