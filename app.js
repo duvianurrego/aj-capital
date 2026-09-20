@@ -28,17 +28,30 @@ const {data:{session}} = await supabase.auth.getSession();
 showSession(session);
 
 async function loadDashboard(){
-  const [capRes, cycleRes, carteraRes] = await Promise.all([
-    supabase.from('resumen_capital_prestado').select('*').single(),
+  const [capitalRes, cycleRes, semaforoRes] = await Promise.all([
+    supabase.from('capital_operativo_aj').select('*').single(),
     supabase.from('ciclo_actual_aj').select('*').single(),
-    supabase.from('cartera_operativa').select('nombre,capital_pendiente,estado_calculado,dias_mora').gt('capital_pendiente',0).order('dias_mora',{ascending:false}).limit(30)
+    supabase.from('semaforo_operativo_aj')
+      .select('nombre,capital_inicial,saldo_historico_referencia,semaforo,dias_mora_control_nuevo')
+      .order('nombre',{ascending:true})
   ]);
 
-  if(capRes.data){
-    $('capitalPrestado').textContent=money(capRes.data.capital_total_prestado);
-    $('capitalVencido').textContent=money(capRes.data.capital_vencido);
-    $('clientesSaldo').textContent=`${capRes.data.clientes_con_saldo||0} clientes con saldo`;
+  if(capitalRes.error) console.error('Capital:',capitalRes.error);
+  if(cycleRes.error) console.error('Ciclo:',cycleRes.error);
+  if(semaforoRes.error) console.error('Semáforo:',semaforoRes.error);
+
+  if(capitalRes.data){
+    $('capitalPrestado').textContent=money(capitalRes.data.capital_actual_prestado);
+    $('clientesSaldo').textContent='Punto Cero: $23.457.000';
   }
+
+  // Desde el Punto Cero no heredamos la mora histórica.
+  const carteraNueva = semaforoRes.data || [];
+  const vencidaNueva = carteraNueva
+    .filter(r => ['VENCIDO','MORA_PROLONGADA'].includes(r.semaforo))
+    .reduce((a,r)=>a+Number(r.saldo_historico_referencia||0),0);
+  $('capitalVencido').textContent=money(vencidaNueva);
+
   if(cycleRes.data){
     const c=cycleRes.data;
     $('interesesCiclo').textContent=money(c.intereses_cobrados);
@@ -48,15 +61,24 @@ async function loadDashboard(){
     $('juanProv').textContent=money(c.participacion_juan_provisional);
     $('cycleText').textContent=`Ciclo actual: ${c.fecha_inicio} → ${c.fecha_fin}`;
   }
+
   $('carteraBody').innerHTML='';
-  (carteraRes.data||[]).forEach(r=>{
-    const d=Number(r.dias_mora||0);
-    const cls=d>60?'black':d>0?'red':'green';
-    const estado=d>60?'MORA PROLONGADA':(r.estado_calculado||'ACTIVO');
-    $('carteraBody').insertAdjacentHTML('beforeend',`<tr><td>${escapeHtml(r.nombre)}</td><td>${money(r.capital_pendiente)}</td><td><span class="badge ${cls}">${estado}</span></td><td>${d}</td></tr>`);
+  carteraNueva.forEach(r=>{
+    const estado=r.semaforo||'INICIO_CONTROL';
+    const d=Number(r.dias_mora_control_nuevo||0);
+    const cls=estado==='MORA_PROLONGADA'?'black':
+              estado==='VENCIDO'?'red':
+              estado==='PROXIMO'?'yellow':'green';
+    const etiqueta=estado==='INICIO_CONTROL'?'INICIO NUEVO CONTROL':
+                   estado==='AL_DIA'?'AL DÍA':
+                   estado==='PROXIMO'?'PRÓXIMO A VENCER':
+                   estado==='MORA_PROLONGADA'?'MORA PROLONGADA':estado;
+    $('carteraBody').insertAdjacentHTML(
+      'beforeend',
+      `<tr><td>${escapeHtml(r.nombre)}</td><td>${money(r.saldo_historico_referencia)}</td><td><span class="badge ${cls}">${etiqueta}</span></td><td>${d}</td></tr>`
+    );
   });
 }
-
 function escapeHtml(s=''){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));}
 
 document.querySelectorAll('.nav').forEach(b=>b.addEventListener('click',()=>{
