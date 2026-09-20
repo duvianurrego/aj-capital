@@ -1,257 +1,132 @@
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+import { createClient } from
+'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
-
-/* =========================================================
-   SUPABASE
-========================================================= */
 
 const SUPABASE_URL =
-  'https://lrvomkktjsticqkivxqr.supabase.co';
+'https://lrvomkktjsticqkivxqr.supabase.co';
 
 const SUPABASE_KEY =
-  'sb_publishable_XhC5tLhFJdePJG8TZkB9uA_2fT_hLLl';
-
+'sb_publishable_XhC5tLhFJdePJG8TZkB9uA_2fT_hLLl';
 
 const supabase =
-  createClient(
-    SUPABASE_URL,
-    SUPABASE_KEY
-  );
+createClient(SUPABASE_URL, SUPABASE_KEY);
 
 
 /* =========================================================
    UTILIDADES
 ========================================================= */
 
-const $ = id =>
-  document.getElementById(id);
-
+const $ = id => document.getElementById(id);
 
 const money = valor =>
-  new Intl.NumberFormat(
-    'es-CO',
-    {
-      style: 'currency',
-      currency: 'COP',
-      maximumFractionDigits: 0
-    }
-  ).format(
-    Number(valor || 0)
-  );
+new Intl.NumberFormat('es-CO', {
+  style: 'currency',
+  currency: 'COP',
+  maximumFractionDigits: 0
+}).format(Number(valor || 0));
 
 
 function escapeHtml(texto = '') {
-
-  return String(texto).replace(
-    /[&<>"']/g,
-    caracter => ({
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      '"': '&quot;',
-      "'": '&#039;'
-    })[caracter]
-  );
-
+  return String(texto).replace(/[&<>"']/g, c => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#039;'
+  })[c]);
 }
 
 
 function fechaHoyLocal() {
+  const d = new Date();
 
-  const ahora =
-    new Date();
-
-  const year =
-    ahora.getFullYear();
-
-  const month =
-    String(
-      ahora.getMonth() + 1
-    ).padStart(
-      2,
-      '0'
-    );
-
-  const day =
-    String(
-      ahora.getDate()
-    ).padStart(
-      2,
-      '0'
-    );
-
-
-  return `${year}-${month}-${day}`;
-
+  return [
+    d.getFullYear(),
+    String(d.getMonth() + 1).padStart(2, '0'),
+    String(d.getDate()).padStart(2, '0')
+  ].join('-');
 }
 
 
 function mostrarFecha(fecha) {
+  if (!fecha) return '—';
 
-  if (!fecha) {
-    return '—';
-  }
+  const p = String(fecha).split('-');
 
-
-  const partes =
-    String(fecha)
-      .split('-');
-
-
-  if (partes.length !== 3) {
-    return fecha;
-  }
-
-
-  return `${partes[2]}/${partes[1]}/${partes[0]}`;
-
+  return p.length === 3
+    ? `${p[2]}/${p[1]}/${p[0]}`
+    : fecha;
 }
 
 
-/* =========================================================
-   VARIABLES
-========================================================= */
+function nombreSocio(id) {
+  if (Number(id) === 1) return 'Andrés Urrego';
+  if (Number(id) === 2) return 'Juan';
+  return 'Sin identificar';
+}
+
 
 let clientesCache = [];
-
 let prestamosPagoCache = [];
-
-
-/* =========================================================
-   SESIÓN
-========================================================= */
-
-async function mostrarSesion(session) {
-
-  if (!session) {
-
-    $('loginView')
-      .classList
-      .remove('hidden');
-
-
-    $('appView')
-      .classList
-      .add('hidden');
-
-
-    return;
-  }
-
-
-  $('loginView')
-    .classList
-    .add('hidden');
-
-
-  $('appView')
-    .classList
-    .remove('hidden');
-
-
-  $('userChip')
-    .textContent =
-    session.user.email ||
-    'Usuario';
-
-
-  await cargarDashboard();
-
-}
 
 
 /* =========================================================
    LOGIN
 ========================================================= */
 
-$('loginForm')
-  .addEventListener(
-    'submit',
-    async event => {
+async function mostrarSesion(session) {
 
-      event.preventDefault();
+  if (!session) {
+    $('loginView').classList.remove('hidden');
+    $('appView').classList.add('hidden');
+    return;
+  }
 
+  $('loginView').classList.add('hidden');
+  $('appView').classList.remove('hidden');
 
-      $('loginMsg')
-        .textContent =
-        'Ingresando...';
+  $('userChip').textContent =
+    session.user.email || 'Usuario';
 
-
-      const email =
-        $('email')
-          .value
-          .trim();
-
-
-      const password =
-        $('password')
-          .value;
+  await cargarDashboard();
+}
 
 
-      const { error } =
-        await supabase.auth
-          .signInWithPassword({
-            email,
-            password
-          });
+$('loginForm').addEventListener('submit', async e => {
+
+  e.preventDefault();
+
+  $('loginMsg').textContent = 'Ingresando...';
+
+  const { error } =
+  await supabase.auth.signInWithPassword({
+    email: $('email').value.trim(),
+    password: $('password').value
+  });
+
+  if (error) {
+    $('loginMsg').textContent =
+      'No fue posible ingresar: ' + error.message;
+    return;
+  }
+
+  $('loginMsg').textContent = '';
+});
 
 
-      if (error) {
-
-        $('loginMsg')
-          .textContent =
-          'No fue posible ingresar: ' +
-          error.message;
-
-        return;
-      }
+$('logoutBtn').addEventListener('click', async () => {
+  await supabase.auth.signOut();
+});
 
 
-      $('loginMsg')
-        .textContent = '';
-
-    }
-  );
-
-
-/* =========================================================
-   CERRAR SESIÓN
-========================================================= */
-
-$('logoutBtn')
-  .addEventListener(
-    'click',
-    async () => {
-
-      await supabase.auth
-        .signOut();
-
-    }
-  );
-
-
-/* =========================================================
-   CONTROL DE SESIÓN
-========================================================= */
-
-supabase.auth
-  .onAuthStateChange(
-    (_event, session) => {
-
-      mostrarSesion(session);
-
-    }
-  );
+supabase.auth.onAuthStateChange((_event, session) => {
+  mostrarSesion(session);
+});
 
 
 const {
-  data: {
-    session
-  }
-} =
-await supabase.auth
-  .getSession();
-
+  data: { session }
+} = await supabase.auth.getSession();
 
 mostrarSesion(session);
 
@@ -267,8 +142,7 @@ async function cargarDashboard() {
     cicloRes,
     prestamosRes,
     semaforoRes
-  ] =
-  await Promise.all([
+  ] = await Promise.all([
 
     supabase
       .from('capital_operativo_aj')
@@ -290,24 +164,11 @@ async function cargarDashboard() {
         capital_pendiente,
         estado,
         control_nuevo,
-        clientes (
-          nombre
-        )
+        clientes(nombre)
       `)
-      .gt(
-        'capital_pendiente',
-        0
-      )
-      .neq(
-        'estado',
-        'CANCELADO'
-      )
-      .order(
-        'fecha_prestamo',
-        {
-          ascending: true
-        }
-      ),
+      .gt('capital_pendiente', 0)
+      .neq('estado', 'CANCELADO')
+      .order('fecha_prestamo'),
 
     supabase
       .from('semaforo_operativo_aj')
@@ -316,355 +177,137 @@ async function cargarDashboard() {
   ]);
 
 
-  if (capitalRes.error) {
-
-    console.error(
-      'Error capital:',
-      capitalRes.error
-    );
-
-  }
-
-
   if (capitalRes.data) {
+    $('capitalPrestado').textContent =
+      money(capitalRes.data.capital_actual_prestado);
 
-    $('capitalPrestado')
-      .textContent =
-      money(
-        capitalRes.data
-          .capital_actual_prestado
-      );
-
-
-    $('clientesSaldo')
-      .textContent =
+    $('clientesSaldo').textContent =
       'Punto Cero: $23.457.000';
-
-  }
-
-
-  if (cicloRes.error) {
-
-    console.error(
-      'Error ciclo:',
-      cicloRes.error
-    );
-
   }
 
 
   if (cicloRes.data) {
 
-    const ciclo =
-      cicloRes.data;
+    const c = cicloRes.data;
 
+    $('interesesCiclo').textContent =
+      money(c.intereses_cobrados);
 
-    $('interesesCiclo')
-      .textContent =
-      money(
-        ciclo.intereses_cobrados
-      );
+    $('resultadoCiclo').textContent =
+      money(c.resultado_actual);
 
+    $('cuotaCiclo').textContent =
+      money(c.cuota_bancaria_pagada);
 
-    $('resultadoCiclo')
-      .textContent =
-      money(
-        ciclo.resultado_actual
-      );
+    $('andresProv').textContent =
+      money(c.participacion_andres_provisional);
 
+    $('juanProv').textContent =
+      money(c.participacion_juan_provisional);
 
-    $('cuotaCiclo')
-      .textContent =
-      money(
-        ciclo.cuota_bancaria_pagada
-      );
-
-
-    $('andresProv')
-      .textContent =
-      money(
-        ciclo
-          .participacion_andres_provisional
-      );
-
-
-    $('juanProv')
-      .textContent =
-      money(
-        ciclo
-          .participacion_juan_provisional
-      );
-
-
-    $('cycleText')
-      .textContent =
-      `Ciclo actual: ${mostrarFecha(ciclo.fecha_inicio)} → ${mostrarFecha(ciclo.fecha_fin)}`;
-
+    $('cycleText').textContent =
+      `Ciclo actual: ${mostrarFecha(c.fecha_inicio)} → ${mostrarFecha(c.fecha_fin)}`;
   }
 
 
-  if (prestamosRes.error) {
-
-    console.error(
-      'Error préstamos dashboard:',
-      prestamosRes.error
-    );
-
-  }
+  const prestamos = prestamosRes.data || [];
+  const semaforos = semaforoRes.data || [];
 
 
-  if (semaforoRes.error) {
+  let vencido = 0;
 
-    console.error(
-      'Error semáforo:',
-      semaforoRes.error
-    );
+  semaforos.forEach(s => {
 
-  }
+    if (
+      s.semaforo === 'VENCIDO' ||
+      s.semaforo === 'MORA_PROLONGADA'
+    ) {
 
+      const p =
+        prestamos.find(x =>
+          Number(x.id) === Number(s.prestamo_id)
+        );
 
-  const prestamos =
-    prestamosRes.data ||
-    [];
-
-
-  const semaforos =
-    semaforoRes.data ||
-    [];
-
-
-  const capitalVencido =
-    semaforos
-      .filter(
-        registro =>
-          registro.semaforo ===
-            'VENCIDO' ||
-          registro.semaforo ===
-            'MORA_PROLONGADA'
-      )
-      .reduce(
-        (total, registro) => {
-
-          const prestamo =
-            prestamos.find(
-              item =>
-                Number(item.id) ===
-                Number(registro.prestamo_id)
-            );
+      vencido +=
+        Number(p?.capital_pendiente || 0);
+    }
+  });
 
 
-          return total +
-            Number(
-              prestamo
-                ?.capital_pendiente ||
-              0
-            );
+  $('capitalVencido').textContent =
+    money(vencido);
 
-        },
-        0
-      );
-
-
-  $('capitalVencido')
-    .textContent =
-    money(
-      capitalVencido
-    );
-
-
-  $('carteraBody')
-    .innerHTML = '';
+  $('carteraBody').innerHTML = '';
 
 
   if (!prestamos.length) {
-
-    $('carteraBody')
-      .innerHTML =
-      `
-      <tr>
-        <td colspan="5">
-          No hay cartera pendiente.
-        </td>
-      </tr>
-      `;
-
+    $('carteraBody').innerHTML =
+      `<tr><td colspan="5">No hay cartera pendiente.</td></tr>`;
     return;
   }
 
 
-  prestamos.forEach(
-    prestamo => {
+  prestamos.forEach(p => {
 
-      const semaforo =
-        semaforos.find(
-          item =>
-            Number(item.prestamo_id) ===
-            Number(prestamo.id)
-        );
+    const s =
+      semaforos.find(x =>
+        Number(x.prestamo_id) === Number(p.id)
+      );
 
 
-      let estado =
-        semaforo?.semaforo ||
-        'INICIO_CONTROL';
+    const estado =
+      s?.semaforo || 'INICIO_CONTROL';
+
+    const dias =
+      Number(s?.dias_mora_control_nuevo || 0);
 
 
-      let dias =
-        Number(
-          semaforo
-            ?.dias_mora_control_nuevo ||
-          0
-        );
+    let clase = 'green';
+    let etiqueta = 'INICIO NUEVO CONTROL';
 
 
-      let clase =
-        'green';
-
-
-      let etiqueta =
-        'INICIO NUEVO CONTROL';
-
-
-      if (
-        estado ===
-        'MORA_PROLONGADA'
-      ) {
-
-        clase =
-          'black';
-
-        etiqueta =
-          'MORA PROLONGADA';
-
-      }
-
-      else if (
-        estado ===
-        'VENCIDO'
-      ) {
-
-        clase =
-          'red';
-
-        etiqueta =
-          'VENCIDO';
-
-      }
-
-      else if (
-        estado ===
-        'PROXIMO'
-      ) {
-
-        clase =
-          'yellow';
-
-        etiqueta =
-          'PRÓXIMO A VENCER';
-
-      }
-
-      else if (
-        estado ===
-        'AL_DIA'
-      ) {
-
-        clase =
-          'green';
-
-        etiqueta =
-          'AL DÍA';
-
-      }
-
-      else if (
-        estado ===
-        'PAGADO'
-      ) {
-
-        clase =
-          'green';
-
-        etiqueta =
-          'PAGADO';
-
-      }
-
-      else if (
-        estado ===
-        'SIN_FECHA'
-      ) {
-
-        clase =
-          'yellow';
-
-        etiqueta =
-          'SIN FECHA';
-
-      }
-
-      else {
-
-        clase =
-          'green';
-
-        etiqueta =
-          'INICIO NUEVO CONTROL';
-
-        dias =
-          0;
-
-      }
-
-
-      const nombre =
-        prestamo.clientes
-          ?.nombre ||
-        'Cliente';
-
-
-      $('carteraBody')
-        .insertAdjacentHTML(
-          'beforeend',
-          `
-          <tr>
-
-            <td>
-              <strong>
-                ${escapeHtml(nombre)}
-              </strong>
-            </td>
-
-            <td>
-              <strong>
-                ${money(
-                  prestamo.capital_pendiente
-                )}
-              </strong>
-            </td>
-
-            <td>
-              ${mostrarFecha(
-                prestamo.fecha_prestamo
-              )}
-            </td>
-
-            <td>
-              <span class="badge ${clase}">
-                ${etiqueta}
-              </span>
-            </td>
-
-            <td>
-              ${dias}
-            </td>
-
-          </tr>
-          `
-        );
-
+    if (estado === 'MORA_PROLONGADA') {
+      clase = 'black';
+      etiqueta = 'MORA PROLONGADA';
     }
-  );
 
+    else if (estado === 'VENCIDO') {
+      clase = 'red';
+      etiqueta = 'VENCIDO';
+    }
+
+    else if (estado === 'PROXIMO') {
+      clase = 'yellow';
+      etiqueta = 'PRÓXIMO A VENCER';
+    }
+
+    else if (estado === 'AL_DIA') {
+      etiqueta = 'AL DÍA';
+    }
+
+    else if (estado === 'PAGADO') {
+      etiqueta = 'PAGADO';
+    }
+
+    else if (estado === 'SIN_FECHA') {
+      clase = 'yellow';
+      etiqueta = 'SIN FECHA';
+    }
+
+
+    $('carteraBody').insertAdjacentHTML(
+      'beforeend',
+      `
+      <tr>
+        <td><strong>${escapeHtml(p.clientes?.nombre || 'Cliente')}</strong></td>
+        <td><strong>${money(p.capital_pendiente)}</strong></td>
+        <td>${mostrarFecha(p.fecha_prestamo)}</td>
+        <td><span class="badge ${clase}">${etiqueta}</span></td>
+        <td>${estado === 'INICIO_CONTROL' ? 0 : dias}</td>
+      </tr>
+      `
+    );
+  });
 }
 
 
@@ -674,431 +317,143 @@ async function cargarDashboard() {
 
 async function cargarClientes() {
 
-  $('clientesBody')
-    .innerHTML =
-    `
-    <tr>
-      <td colspan="5">
-        Cargando clientes...
-      </td>
-    </tr>
-    `;
-
-
-  const {
-    data,
-    error
-  } =
+  const { data, error } =
   await supabase
     .from('clientes')
-    .select(`
-      id,
-      nombre,
-      documento,
-      telefono,
-      direccion,
-      fecha_registro,
-      activo,
-      observaciones
-    `)
-    .order(
-      'nombre',
-      {
-        ascending: true
-      }
-    );
+    .select('*')
+    .order('nombre');
 
 
   if (error) {
+    $('clientesBody').innerHTML =
+      `<tr><td colspan="5">${escapeHtml(error.message)}</td></tr>`;
+    return;
+  }
 
-    console.error(
-      'Error clientes:',
-      error
+
+  clientesCache = data || [];
+
+  renderClientes(clientesCache);
+}
+
+
+function renderClientes(lista) {
+
+  $('clientesBody').innerHTML = '';
+
+  if (!lista.length) {
+    $('clientesBody').innerHTML =
+      `<tr><td colspan="5">No hay clientes.</td></tr>`;
+    return;
+  }
+
+
+  lista.forEach(c => {
+
+    $('clientesBody').insertAdjacentHTML(
+      'beforeend',
+      `
+      <tr>
+        <td><strong>${escapeHtml(c.nombre)}</strong></td>
+        <td>${escapeHtml(c.documento || '—')}</td>
+        <td>${escapeHtml(c.telefono || '—')}</td>
+        <td>${mostrarFecha(c.fecha_registro)}</td>
+        <td>
+          <span class="badge ${c.activo ? 'green' : 'black'}">
+            ${c.activo ? 'ACTIVO' : 'INACTIVO'}
+          </span>
+        </td>
+      </tr>
+      `
+    );
+  });
+}
+
+
+$('nuevoClienteBtn').onclick = () => {
+  $('clienteFormPanel').classList.remove('hidden');
+  $('clienteNombre').focus();
+};
+
+
+$('cancelarClienteBtn').onclick = () => {
+  $('clienteFormPanel').classList.add('hidden');
+  $('clienteForm').reset();
+  $('clienteMsg').textContent = '';
+};
+
+
+$('buscarCliente').addEventListener('input', e => {
+
+  const q =
+    e.target.value.trim().toLowerCase();
+
+  renderClientes(
+    clientesCache.filter(c =>
+      String(c.nombre || '').toLowerCase().includes(q) ||
+      String(c.documento || '').toLowerCase().includes(q)
+    )
+  );
+});
+
+
+$('clienteForm').addEventListener('submit', async e => {
+
+  e.preventDefault();
+
+  const nombre =
+    $('clienteNombre').value.trim();
+
+  if (!nombre) return;
+
+
+  const duplicado =
+    clientesCache.find(c =>
+      String(c.nombre).trim().toLowerCase() ===
+      nombre.toLowerCase()
     );
 
 
-    $('clientesBody')
-      .innerHTML =
-      `
-      <tr>
-        <td colspan="5">
-          Error cargando clientes:
-          ${escapeHtml(error.message)}
-        </td>
-      </tr>
-      `;
+  if (
+    duplicado &&
+    !confirm(
+      `Ya existe ${duplicado.nombre}.\n\n¿Registrar de todas formas?`
+    )
+  ) return;
 
 
+  $('clienteMsg').textContent =
+    'Guardando...';
+
+
+  const { error } =
+  await supabase
+    .from('clientes')
+    .insert({
+      nombre,
+      documento: $('clienteDocumento').value.trim() || null,
+      telefono: $('clienteTelefono').value.trim() || null,
+      direccion: $('clienteDireccion').value.trim() || null,
+      observaciones: $('clienteObs').value.trim() || null,
+      activo: true,
+      migrado_desde_excel: false
+    });
+
+
+  if (error) {
+    $('clienteMsg').textContent =
+      error.message;
     return;
   }
 
 
-  clientesCache =
-    data ||
-    [];
+  $('clienteMsg').textContent =
+    'Cliente guardado correctamente.';
 
+  $('clienteForm').reset();
 
-  renderClientes(
-    clientesCache
-  );
-
-}
-
-
-function renderClientes(clientes) {
-
-  $('clientesBody')
-    .innerHTML = '';
-
-
-  if (!clientes.length) {
-
-    $('clientesBody')
-      .innerHTML =
-      `
-      <tr>
-        <td colspan="5">
-          No hay clientes para mostrar.
-        </td>
-      </tr>
-      `;
-
-    return;
-  }
-
-
-  clientes.forEach(
-    cliente => {
-
-      const estado =
-        cliente.activo
-          ? 'ACTIVO'
-          : 'INACTIVO';
-
-
-      const clase =
-        cliente.activo
-          ? 'green'
-          : 'black';
-
-
-      $('clientesBody')
-        .insertAdjacentHTML(
-          'beforeend',
-          `
-          <tr>
-
-            <td>
-              <strong>
-                ${escapeHtml(
-                  cliente.nombre
-                )}
-              </strong>
-            </td>
-
-            <td>
-              ${escapeHtml(
-                cliente.documento ||
-                '—'
-              )}
-            </td>
-
-            <td>
-              ${escapeHtml(
-                cliente.telefono ||
-                '—'
-              )}
-            </td>
-
-            <td>
-              ${mostrarFecha(
-                cliente.fecha_registro
-              )}
-            </td>
-
-            <td>
-              <span class="badge ${clase}">
-                ${estado}
-              </span>
-            </td>
-
-          </tr>
-          `
-        );
-
-    }
-  );
-
-}
-
-
-$('nuevoClienteBtn')
-  .addEventListener(
-    'click',
-    () => {
-
-      $('clienteFormPanel')
-        .classList
-        .remove('hidden');
-
-
-      $('clienteNombre')
-        .focus();
-
-    }
-  );
-
-
-$('cancelarClienteBtn')
-  .addEventListener(
-    'click',
-    () => {
-
-      $('clienteFormPanel')
-        .classList
-        .add('hidden');
-
-
-      $('clienteForm')
-        .reset();
-
-
-      $('clienteMsg')
-        .textContent = '';
-
-    }
-  );
-
-
-$('buscarCliente')
-  .addEventListener(
-    'input',
-    event => {
-
-      const busqueda =
-        event.target
-          .value
-          .trim()
-          .toLowerCase();
-
-
-      const filtrados =
-        clientesCache.filter(
-          cliente => {
-
-            const nombre =
-              (
-                cliente.nombre ||
-                ''
-              ).toLowerCase();
-
-
-            const documento =
-              (
-                cliente.documento ||
-                ''
-              ).toLowerCase();
-
-
-            return (
-              nombre.includes(
-                busqueda
-              ) ||
-              documento.includes(
-                busqueda
-              )
-            );
-
-          }
-        );
-
-
-      renderClientes(
-        filtrados
-      );
-
-    }
-  );
-
-
-$('clienteForm')
-  .addEventListener(
-    'submit',
-    async event => {
-
-      event.preventDefault();
-
-
-      $('clienteMsg')
-        .textContent =
-        'Guardando cliente...';
-
-
-      const nuevoCliente = {
-
-        nombre:
-          $('clienteNombre')
-            .value
-            .trim(),
-
-        documento:
-          $('clienteDocumento')
-            .value
-            .trim() ||
-          null,
-
-        telefono:
-          $('clienteTelefono')
-            .value
-            .trim() ||
-          null,
-
-        direccion:
-          $('clienteDireccion')
-            .value
-            .trim() ||
-          null,
-
-        observaciones:
-          $('clienteObs')
-            .value
-            .trim() ||
-          null,
-
-        activo:
-          true,
-
-        migrado_desde_excel:
-          false
-
-      };
-
-
-      if (
-        !nuevoCliente.nombre
-      ) {
-
-        $('clienteMsg')
-          .textContent =
-          'El nombre es obligatorio.';
-
-        return;
-      }
-
-
-      const posibleDuplicado =
-        clientesCache.find(
-          cliente => {
-
-            const mismoDocumento =
-              nuevoCliente.documento &&
-              cliente.documento ===
-                nuevoCliente.documento;
-
-
-            const mismoNombre =
-              (
-                cliente.nombre ||
-                ''
-              )
-                .trim()
-                .toLowerCase() ===
-              nuevoCliente.nombre
-                .toLowerCase();
-
-
-            return (
-              mismoDocumento ||
-              mismoNombre
-            );
-
-          }
-        );
-
-
-      if (
-        posibleDuplicado
-      ) {
-
-        const continuar =
-          confirm(
-            `Ya existe un cliente similar: ${posibleDuplicado.nombre}.\n\n¿Desea registrarlo de todas formas?`
-          );
-
-
-        if (
-          !continuar
-        ) {
-
-          $('clienteMsg')
-            .textContent =
-            'Registro cancelado para evitar duplicados.';
-
-          return;
-        }
-
-      }
-
-
-      const {
-        error
-      } =
-      await supabase
-        .from('clientes')
-        .insert(
-          nuevoCliente
-        );
-
-
-      if (
-        error
-      ) {
-
-        console.error(
-          'Error guardando cliente:',
-          error
-        );
-
-
-        $('clienteMsg')
-          .textContent =
-          'No fue posible guardar: ' +
-          error.message;
-
-
-        return;
-      }
-
-
-      $('clienteMsg')
-        .textContent =
-        'Cliente guardado correctamente.';
-
-
-      $('clienteForm')
-        .reset();
-
-
-      await cargarClientes();
-
-
-      setTimeout(
-        () => {
-
-          $('clienteFormPanel')
-            .classList
-            .add('hidden');
-
-
-          $('clienteMsg')
-            .textContent = '';
-
-        },
-        800
-      );
-
-    }
-  );
+  await cargarClientes();
+});
 
 
 /* =========================================================
@@ -1107,1649 +462,1083 @@ $('clienteForm')
 
 async function prepararModuloPrestamos() {
 
-  $('prestamoMsg')
-    .textContent = '';
-
-
-  $('prestamoFecha')
-    .value =
+  $('prestamoFecha').value =
     fechaHoyLocal();
 
+  $('prestamoMsg').textContent = '';
 
-  $('prestamoAdvertencia')
-    .classList
-    .add('hidden');
-
-
-  actualizarResumenPrestamo();
-
-
-  const {
-    data,
-    error
-  } =
+  const { data, error } =
   await supabase
     .from('clientes')
-    .select(`
-      id,
-      nombre,
-      activo
-    `)
-    .eq(
-      'activo',
-      true
-    )
-    .order(
-      'nombre',
-      {
-        ascending: true
-      }
-    );
+    .select('id,nombre,activo')
+    .eq('activo', true)
+    .order('nombre');
 
 
-  if (
-    error
-  ) {
-
-    console.error(
-      'Error clientes préstamos:',
-      error
-    );
-
-
-    $('prestamoMsg')
-      .textContent =
-      'No fue posible cargar los clientes: ' +
+  if (error) {
+    $('prestamoMsg').textContent =
       error.message;
-
-
     return;
   }
 
 
-  $('prestamoCliente')
-    .innerHTML =
-    `
-    <option value="">
-      Seleccione un cliente
-    </option>
-    `;
+  $('prestamoCliente').innerHTML =
+    `<option value="">Seleccione un cliente</option>`;
 
 
-  (data || [])
-    .forEach(
-      cliente => {
+  (data || []).forEach(c => {
 
-        const option =
-          document.createElement(
-            'option'
-          );
+    const o =
+      document.createElement('option');
 
+    o.value = c.id;
+    o.textContent = c.nombre;
 
-        option.value =
-          cliente.id;
+    $('prestamoCliente').appendChild(o);
+  });
 
 
-        option.textContent =
-          cliente.nombre;
-
-
-        $('prestamoCliente')
-          .appendChild(
-            option
-          );
-
-      }
-    );
-
+  actualizarResumenPrestamo();
 }
 
 
-/* =========================================================
-   VERIFICAR DEUDA DEL CLIENTE
-========================================================= */
+$('prestamoCliente').addEventListener('change', async e => {
 
-$('prestamoCliente')
-  .addEventListener(
-    'change',
-    async event => {
+  const id = Number(e.target.value);
 
-      const clienteId =
-        Number(
-          event.target.value
-        );
+  $('prestamoAdvertencia').classList.add('hidden');
+
+  if (!id) return;
 
 
-      $('prestamoAdvertencia')
-        .classList
-        .add('hidden');
+  const { data } =
+  await supabase
+    .from('prestamos')
+    .select('id,capital_pendiente')
+    .eq('cliente_id', id)
+    .gt('capital_pendiente', 0)
+    .neq('estado', 'CANCELADO');
 
 
-      $('prestamoAdvertencia')
-        .textContent = '';
+  if (data?.length) {
 
+    const deuda =
+      data.reduce(
+        (a, p) =>
+          a + Number(p.capital_pendiente || 0),
+        0
+      );
 
-      if (
-        !clienteId
-      ) {
-        return;
-      }
+    $('prestamoAdvertencia').textContent =
+      `ATENCIÓN: este cliente ya tiene ${data.length} préstamo(s) con ${money(deuda)} pendientes.`;
 
+    $('prestamoAdvertencia').classList.remove('hidden');
+  }
+});
 
-      const {
-        data,
-        error
-      } =
-      await supabase
-        .from('prestamos')
-        .select(`
-          id,
-          capital_pendiente,
-          fecha_prestamo,
-          control_nuevo,
-          estado
-        `)
-        .eq(
-          'cliente_id',
-          clienteId
-        )
-        .gt(
-          'capital_pendiente',
-          0
-        )
-        .neq(
-          'estado',
-          'CANCELADO'
-        );
-
-
-      if (
-        error
-      ) {
-
-        console.error(
-          'Error verificando deuda:',
-          error
-        );
-
-        return;
-      }
-
-
-      const pendientes =
-        data ||
-        [];
-
-
-      if (
-        !pendientes.length
-      ) {
-        return;
-      }
-
-
-      const deuda =
-        pendientes.reduce(
-          (
-            total,
-            prestamo
-          ) =>
-            total +
-            Number(
-              prestamo
-                .capital_pendiente ||
-              0
-            ),
-          0
-        );
-
-
-      $('prestamoAdvertencia')
-        .textContent =
-        `ATENCIÓN: este cliente ya tiene ${pendientes.length} préstamo(s) con capital pendiente por ${money(deuda)}. El sistema permite registrar otro préstamo si corresponde.`;
-
-
-      $('prestamoAdvertencia')
-        .classList
-        .remove('hidden');
-
-    }
-  );
-
-
-/* =========================================================
-   CÁLCULO DEL PRÉSTAMO
-========================================================= */
 
 function actualizarResumenPrestamo() {
 
   const capital =
-    Number(
-      $('prestamoCapital')
-        .value ||
-      0
-    );
-
+    Number($('prestamoCapital').value || 0);
 
   const tasa =
-    Number(
-      $('prestamoTasa')
-        .value ||
-      0
-    );
-
+    Number($('prestamoTasa').value || 0);
 
   const interes =
-    capital *
-    (
-      tasa /
-      100
-    );
+    capital * tasa / 100;
 
 
-  const total =
-    capital +
-    interes;
+  $('prestamoInteresEstimado').textContent =
+    money(interes);
 
+  $('prestamoResumenCapital').textContent =
+    money(capital);
 
-  $('prestamoInteresEstimado')
-    .textContent =
-    money(
-      interes
-    );
+  $('prestamoResumenInteres').textContent =
+    money(interes);
 
-
-  $('prestamoResumenCapital')
-    .textContent =
-    money(
-      capital
-    );
-
-
-  $('prestamoResumenInteres')
-    .textContent =
-    money(
-      interes
-    );
-
-
-  $('prestamoResumenTotal')
-    .textContent =
-    money(
-      total
-    );
-
+  $('prestamoResumenTotal').textContent =
+    money(capital + interes);
 }
 
 
-$('prestamoCapital')
-  .addEventListener(
-    'input',
-    actualizarResumenPrestamo
-  );
+$('prestamoCapital').oninput =
+  actualizarResumenPrestamo;
+
+$('prestamoTasa').oninput =
+  actualizarResumenPrestamo;
 
 
-$('prestamoTasa')
-  .addEventListener(
-    'input',
-    actualizarResumenPrestamo
-  );
+$('limpiarPrestamoBtn').onclick = () => {
+  $('prestamoForm').reset();
+  $('prestamoFecha').value = fechaHoyLocal();
+  actualizarResumenPrestamo();
+};
 
 
-$('limpiarPrestamoBtn')
-  .addEventListener(
-    'click',
-    () => {
+$('prestamoForm').addEventListener('submit', async e => {
 
-      $('prestamoForm')
-        .reset();
+  e.preventDefault();
 
 
-      $('prestamoFecha')
-        .value =
-        fechaHoyLocal();
+  const cliente =
+    Number($('prestamoCliente').value);
+
+  const socio =
+    Number($('prestamoSocio').value);
+
+  const fecha =
+    $('prestamoFecha').value;
+
+  const capital =
+    Number($('prestamoCapital').value || 0);
+
+  const tasa =
+    Number($('prestamoTasa').value || 0);
+
+  const proximo =
+    $('prestamoProximoPago').value;
 
 
-      $('prestamoAdvertencia')
-        .classList
-        .add('hidden');
+  if (!cliente || !socio || !fecha || !proximo || capital <= 0) {
+    $('prestamoMsg').textContent =
+      'Complete correctamente los datos.';
+    return;
+  }
 
 
-      $('prestamoAdvertencia')
-        .textContent = '';
+  if (fecha < '2026-09-20') {
+    $('prestamoMsg').textContent =
+      'El nuevo control inicia el 20/09/2026.';
+    return;
+  }
 
 
-      $('prestamoMsg')
-        .textContent = '';
+  if (proximo < fecha) {
+    $('prestamoMsg').textContent =
+      'La próxima fecha de pago no puede ser anterior al préstamo.';
+    return;
+  }
 
 
-      actualizarResumenPrestamo();
+  if (!confirm(
+    `Confirmar préstamo por ${money(capital)}.\n\n¿Continuar?`
+  )) return;
 
+
+  $('guardarPrestamoBtn').disabled = true;
+
+
+  const { error } =
+  await supabase.rpc(
+    'crear_prestamo_aj',
+    {
+      p_cliente_id: cliente,
+      p_socio_desembolso_id: socio,
+      p_fecha_prestamo: fecha,
+      p_capital: capital,
+      p_tasa_mensual: tasa,
+      p_fecha_proximo_pago: proximo,
+      p_observaciones:
+        $('prestamoObservaciones').value.trim() || null
     }
   );
 
 
-/* =========================================================
-   GUARDAR PRÉSTAMO
-========================================================= */
+  $('guardarPrestamoBtn').disabled = false;
 
-$('prestamoForm')
-  .addEventListener(
-    'submit',
-    async event => {
 
-      event.preventDefault();
+  if (error) {
+    $('prestamoMsg').textContent =
+      error.message;
+    return;
+  }
 
 
-      const clienteId =
-        Number(
-          $('prestamoCliente')
-            .value
-        );
+  $('prestamoMsg').textContent =
+    'Préstamo registrado correctamente.';
 
+  $('prestamoForm').reset();
 
-      const socioId =
-        Number(
-          $('prestamoSocio')
-            .value
-        );
-
-
-      const fechaPrestamo =
-        $('prestamoFecha')
-          .value;
-
-
-      const capital =
-        Number(
-          $('prestamoCapital')
-            .value ||
-          0
-        );
-
-
-      const tasa =
-        Number(
-          $('prestamoTasa')
-            .value ||
-          0
-        );
-
-
-      const fechaProximoPago =
-        $('prestamoProximoPago')
-          .value;
-
-
-      const observaciones =
-        $('prestamoObservaciones')
-          .value
-          .trim() ||
-        null;
-
-
-      if (
-        !clienteId ||
-        !socioId ||
-        !fechaPrestamo ||
-        !fechaProximoPago
-      ) {
-
-        $('prestamoMsg')
-          .textContent =
-          'Complete cliente, fecha, socio que entrega el dinero y próxima fecha de pago.';
-
-        return;
-      }
-
-
-      if (
-        !Number.isFinite(
-          capital
-        ) ||
-        capital <= 0
-      ) {
-
-        $('prestamoMsg')
-          .textContent =
-          'El capital debe ser mayor que cero.';
-
-        return;
-      }
-
-
-      if (
-        !Number.isFinite(
-          tasa
-        ) ||
-        tasa < 0
-      ) {
-
-        $('prestamoMsg')
-          .textContent =
-          'La tasa mensual no puede ser negativa.';
-
-        return;
-      }
-
-
-      if (
-        fechaPrestamo <
-        '2026-09-20'
-      ) {
-
-        $('prestamoMsg')
-          .textContent =
-          'Los nuevos préstamos de este módulo corresponden al control iniciado el 20/09/2026.';
-
-        return;
-      }
-
-
-      if (
-        fechaProximoPago <
-        fechaPrestamo
-      ) {
-
-        $('prestamoMsg')
-          .textContent =
-          'La próxima fecha de pago no puede ser anterior a la fecha del préstamo.';
-
-        return;
-      }
-
-
-      const cliente =
-        $('prestamoCliente')
-          .options[
-            $('prestamoCliente')
-              .selectedIndex
-          ]
-          .text;
-
-
-      const socio =
-        socioId === 1
-          ? 'Andrés Urrego'
-          : 'Juan';
-
-
-      const interes =
-        capital *
-        (
-          tasa /
-          100
-        );
-
-
-      const confirmar =
-        confirm(
-          `CONFIRMAR NUEVO PRÉSTAMO\n\n` +
-          `Cliente: ${cliente}\n` +
-          `Fecha: ${mostrarFecha(fechaPrestamo)}\n` +
-          `Capital: ${money(capital)}\n` +
-          `Tasa mensual: ${tasa}%\n` +
-          `Interés mensual estimado: ${money(interes)}\n` +
-          `Próximo pago: ${mostrarFecha(fechaProximoPago)}\n` +
-          `Dinero entregado por: ${socio}\n\n` +
-          `Este movimiento aumentará el capital actualmente prestado.\n\n` +
-          `¿Los datos son correctos?`
-        );
-
-
-      if (
-        !confirmar
-      ) {
-
-        $('prestamoMsg')
-          .textContent =
-          'Registro cancelado. Revise los datos.';
-
-        return;
-      }
-
-
-      $('guardarPrestamoBtn')
-        .disabled =
-        true;
-
-
-      $('prestamoMsg')
-        .textContent =
-        'Registrando préstamo...';
-
-
-      const {
-        data,
-        error
-      } =
-      await supabase
-        .rpc(
-          'crear_prestamo_aj',
-          {
-
-            p_cliente_id:
-              clienteId,
-
-            p_socio_desembolso_id:
-              socioId,
-
-            p_fecha_prestamo:
-              fechaPrestamo,
-
-            p_capital:
-              capital,
-
-            p_tasa_mensual:
-              tasa,
-
-            p_fecha_proximo_pago:
-              fechaProximoPago,
-
-            p_observaciones:
-              observaciones
-
-          }
-        );
-
-
-      $('guardarPrestamoBtn')
-        .disabled =
-        false;
-
-
-      if (
-        error
-      ) {
-
-        console.error(
-          'Error registrando préstamo:',
-          error
-        );
-
-
-        $('prestamoMsg')
-          .textContent =
-          'No fue posible registrar el préstamo: ' +
-          error.message;
-
-
-        return;
-      }
-
-
-      console.log(
-        'Préstamo creado:',
-        data
-      );
-
-
-      $('prestamoMsg')
-        .textContent =
-        `Préstamo registrado correctamente. Capital desembolsado: ${money(capital)}.`;
-
-
-      $('prestamoForm')
-        .reset();
-
-
-      $('prestamoFecha')
-        .value =
-        fechaHoyLocal();
-
-
-      $('prestamoAdvertencia')
-        .classList
-        .add('hidden');
-
-
-      actualizarResumenPrestamo();
-
-
-      await cargarDashboard();
-
-    }
-  );
+  await cargarDashboard();
+});
 
 
 /* =========================================================
-   REGISTRAR PAGO
+   PAGOS
 ========================================================= */
 
 async function prepararModuloPagos() {
 
-  $('pagoMsg')
-    .textContent = '';
-
-
-  $('pagoFecha')
-    .value =
+  $('pagoFecha').value =
     fechaHoyLocal();
-
-
-  $('pagoInteres')
-    .value =
-    '0';
-
-
-  $('pagoCapital')
-    .value =
-    '0';
-
-
-  $('pagoTerceros')
-    .value =
-    '0';
-
-
-  $('pagoReferenciaTercero')
-    .value =
-    '';
-
 
   actualizarTotalesPago();
 
 
-  $('pagoAdvertencia')
-    .classList
-    .add('hidden');
-
-
-  const {
-    data,
-    error
-  } =
+  const { data, error } =
   await supabase
     .from('clientes')
-    .select(`
-      id,
-      nombre,
-      documento,
-      activo
-    `)
-    .eq(
-      'activo',
-      true
-    )
-    .order(
-      'nombre',
-      {
-        ascending: true
-      }
+    .select('id,nombre')
+    .eq('activo', true)
+    .order('nombre');
+
+
+  if (error) {
+    $('pagoMsg').textContent =
+      error.message;
+    return;
+  }
+
+
+  $('pagoCliente').innerHTML =
+    `<option value="">Seleccione un cliente</option>`;
+
+
+  (data || []).forEach(c => {
+
+    const o =
+      document.createElement('option');
+
+    o.value = c.id;
+    o.textContent = c.nombre;
+
+    $('pagoCliente').appendChild(o);
+  });
+}
+
+
+$('pagoCliente').addEventListener('change', async e => {
+
+  const clienteId =
+    Number(e.target.value);
+
+  prestamosPagoCache = [];
+
+  $('pagoPrestamo').disabled = true;
+
+
+  if (!clienteId) return;
+
+
+  const { data, error } =
+  await supabase
+    .from('prestamos')
+    .select('*')
+    .eq('cliente_id', clienteId)
+    .gt('capital_pendiente', 0)
+    .neq('estado', 'CANCELADO')
+    .order('fecha_prestamo', { ascending: false });
+
+
+  if (error) {
+    $('pagoMsg').textContent =
+      error.message;
+    return;
+  }
+
+
+  prestamosPagoCache =
+    data || [];
+
+
+  $('pagoPrestamo').innerHTML =
+    `<option value="">Seleccione un préstamo</option>`;
+
+
+  prestamosPagoCache.forEach(p => {
+
+    const o =
+      document.createElement('option');
+
+    o.value = p.id;
+
+    o.textContent =
+      `${mostrarFecha(p.fecha_prestamo)} · ${money(p.capital_pendiente)} · ${p.control_nuevo ? 'NUEVO CONTROL' : 'PUNTO CERO'}`;
+
+    $('pagoPrestamo').appendChild(o);
+  });
+
+
+  $('pagoPrestamo').disabled =
+    !prestamosPagoCache.length;
+});
+
+
+$('pagoPrestamo').addEventListener('change', () => {
+
+  const id =
+    Number($('pagoPrestamo').value);
+
+  const p =
+    prestamosPagoCache.find(x =>
+      Number(x.id) === id
+    );
+
+
+  $('pagoAdvertencia').classList.add('hidden');
+
+
+  if (p && !p.control_nuevo) {
+
+    $('pagoAdvertencia').textContent =
+      `Préstamo Punto Cero. Capital pendiente: ${money(p.capital_pendiente)}.`;
+
+    $('pagoAdvertencia').classList.remove('hidden');
+  }
+});
+
+
+function actualizarTotalesPago() {
+
+  const interes =
+    Number($('pagoInteres').value || 0);
+
+  const capital =
+    Number($('pagoCapital').value || 0);
+
+  const terceros =
+    Number($('pagoTerceros').value || 0);
+
+  const empresa =
+    interes + capital;
+
+
+  $('pagoTotal').textContent =
+    money(empresa);
+
+  $('pagoTotalEmpresa').textContent =
+    money(empresa);
+
+  $('pagoTotalTerceros').textContent =
+    money(terceros);
+
+  $('pagoTotalFisico').textContent =
+    money(empresa + terceros);
+}
+
+
+$('pagoInteres').oninput =
+  actualizarTotalesPago;
+
+$('pagoCapital').oninput =
+  actualizarTotalesPago;
+
+$('pagoTerceros').oninput =
+  actualizarTotalesPago;
+
+
+$('limpiarPagoBtn').onclick = () => {
+
+  $('pagoForm').reset();
+
+  $('pagoFecha').value =
+    fechaHoyLocal();
+
+  $('pagoInteres').value = 0;
+  $('pagoCapital').value = 0;
+  $('pagoTerceros').value = 0;
+
+  actualizarTotalesPago();
+};
+
+
+$('pagoForm').addEventListener('submit', async e => {
+
+  e.preventDefault();
+
+
+  const clienteId =
+    Number($('pagoCliente').value);
+
+  const prestamoId =
+    Number($('pagoPrestamo').value);
+
+  const receptor =
+    Number($('pagoReceptor').value);
+
+  const fecha =
+    $('pagoFecha').value;
+
+  const interes =
+    Number($('pagoInteres').value || 0);
+
+  const capital =
+    Number($('pagoCapital').value || 0);
+
+  const terceros =
+    Number($('pagoTerceros').value || 0);
+
+  const referencia =
+    $('pagoReferenciaTercero').value.trim() || null;
+
+
+  if (!clienteId || !prestamoId || !receptor || !fecha) {
+    $('pagoMsg').textContent =
+      'Complete los datos obligatorios.';
+    return;
+  }
+
+
+  if (interes + capital <= 0) {
+    $('pagoMsg').textContent =
+      'El pago A&J debe ser mayor que cero.';
+    return;
+  }
+
+
+  const prestamo =
+    prestamosPagoCache.find(p =>
+      Number(p.id) === prestamoId
     );
 
 
   if (
-    error
+    capital >
+    Number(prestamo?.capital_pendiente || 0)
   ) {
+    $('pagoMsg').textContent =
+      'El abono supera el capital pendiente.';
+    return;
+  }
 
-    console.error(
-      'Error clientes pagos:',
-      error
-    );
+
+  const totalEmpresa =
+    interes + capital;
+
+  const totalFisico =
+    totalEmpresa + terceros;
 
 
-    $('pagoMsg')
-      .textContent =
-      'No fue posible cargar los clientes: ' +
-      error.message;
+  let confirmacion =
+    `CONFIRMAR PAGO\n\n` +
+    `A&J: ${money(totalEmpresa)}\n` +
+    `Terceros: ${money(terceros)}\n` +
+    `Total físico recibido: ${money(totalFisico)}\n\n` +
+    `¿Continuar?`;
 
+
+  if (!confirm(confirmacion)) return;
+
+
+  $('guardarPagoBtn').disabled = true;
+
+
+  const {
+    data: pagoId,
+    error: errorPago
+  } =
+  await supabase.rpc(
+    'registrar_pago_aj',
+    {
+      p_prestamo_id: prestamoId,
+      p_socio_receptor_id: receptor,
+      p_fecha: fecha,
+      p_interes: interes,
+      p_capital: capital,
+      p_medio_pago: $('pagoMedio').value,
+      p_observaciones:
+        $('pagoObservaciones').value.trim() || null
+    }
+  );
+
+
+  if (errorPago) {
+
+    $('guardarPagoBtn').disabled = false;
+
+    $('pagoMsg').textContent =
+      errorPago.message;
 
     return;
   }
 
 
-  $('pagoCliente')
-    .innerHTML =
-    `
-    <option value="">
-      Seleccione un cliente
-    </option>
-    `;
+  if (terceros > 0) {
 
-
-  (data || [])
-    .forEach(
-      cliente => {
-
-        const option =
-          document.createElement(
-            'option'
-          );
-
-
-        option.value =
-          cliente.id;
-
-
-        option.textContent =
-          cliente.nombre;
-
-
-        $('pagoCliente')
-          .appendChild(
-            option
-          );
-
+    const { error } =
+    await supabase.rpc(
+      'registrar_dinero_tercero_aj',
+      {
+        p_socio_id: receptor,
+        p_fecha: fecha,
+        p_valor: terceros,
+        p_cliente_id: clienteId,
+        p_pago_id: Number(pagoId),
+        p_referencia: referencia,
+        p_observaciones:
+          $('pagoObservaciones').value.trim() || null
       }
     );
 
+
+    if (error) {
+
+      $('guardarPagoBtn').disabled = false;
+
+      $('pagoMsg').textContent =
+        `ATENCIÓN: el pago A&J #${pagoId} quedó registrado, pero el dinero de terceros NO. No repita el pago. Error: ${error.message}`;
+
+      await cargarDashboard();
+
+      return;
+    }
+  }
+
+
+  $('guardarPagoBtn').disabled = false;
+
+  $('pagoMsg').textContent =
+    `Registro correcto. A&J ${money(totalEmpresa)} · Terceros ${money(terceros)} · Total físico ${money(totalFisico)}.`;
+
+
+  $('pagoInteres').value = 0;
+  $('pagoCapital').value = 0;
+  $('pagoTerceros').value = 0;
+  $('pagoReferenciaTercero').value = '';
+  $('pagoObservaciones').value = '';
+
+  actualizarTotalesPago();
+
+  await cargarDashboard();
 }
 
 
 /* =========================================================
-   CLIENTE DEL PAGO
+   CAJA
 ========================================================= */
 
-$('pagoCliente')
-  .addEventListener(
-    'change',
-    async event => {
-
-      const clienteId =
-        Number(
-          event.target.value
-        );
-
-
-      prestamosPagoCache =
-        [];
-
-
-      $('pagoPrestamo')
-        .disabled =
-        true;
-
-
-      $('pagoAdvertencia')
-        .classList
-        .add('hidden');
-
-
-      if (
-        !clienteId
-      ) {
-
-        $('pagoPrestamo')
-          .innerHTML =
-          `
-          <option value="">
-            Primero seleccione un cliente
-          </option>
-          `;
-
-
-        return;
-      }
-
-
-      $('pagoPrestamo')
-        .innerHTML =
-        `
-        <option value="">
-          Cargando préstamos...
-        </option>
-        `;
-
-
-      const {
-        data,
-        error
-      } =
-      await supabase
-        .from('prestamos')
-        .select(`
-          id,
-          cliente_id,
-          fecha_prestamo,
-          capital_inicial,
-          capital_pendiente,
-          tasa_mensual,
-          fecha_proximo_pago,
-          estado,
-          origen,
-          control_nuevo
-        `)
-        .eq(
-          'cliente_id',
-          clienteId
-        )
-        .gt(
-          'capital_pendiente',
-          0
-        )
-        .neq(
-          'estado',
-          'CANCELADO'
-        )
-        .order(
-          'fecha_prestamo',
-          {
-            ascending: false
-          }
-        );
+async function prepararCaja() {
 
+  $('cuotaBancoFecha').value =
+    fechaHoyLocal();
 
-      if (
-        error
-      ) {
+  $('transferenciaFecha').value =
+    fechaHoyLocal();
 
-        console.error(
-          'Error préstamos:',
-          error
-        );
+  $('retiroFecha').value =
+    fechaHoyLocal();
 
+  $('salidaTercerosFecha').value =
+    fechaHoyLocal();
 
-        $('pagoPrestamo')
-          .innerHTML =
-          `
-          <option value="">
-            Error cargando préstamos
-          </option>
-          `;
 
+  await cargarCaja();
+}
 
-        $('pagoMsg')
-          .textContent =
-          'No fue posible consultar los préstamos: ' +
-          error.message;
 
+async function cargarCaja() {
 
-        return;
-      }
+  const [
+    cajaRes,
+    tercerosRes,
+    movimientosRes,
+    movimientosTercerosRes
+  ] =
+  await Promise.all([
 
+    supabase
+      .from('resumen_caja_socios')
+      .select('*'),
 
-      prestamosPagoCache =
-        data ||
-        [];
+    supabase
+      .from('resumen_dinero_terceros')
+      .select('*'),
 
+    supabase
+      .from('movimientos_caja')
+      .select('*')
+      .order('fecha', { ascending: false })
+      .order('id', { ascending: false })
+      .limit(100),
 
-      $('pagoPrestamo')
-        .innerHTML =
-        `
-        <option value="">
-          Seleccione un préstamo
-        </option>
-        `;
+    supabase
+      .from('dinero_terceros')
+      .select('*')
+      .order('fecha', { ascending: false })
+      .order('id', { ascending: false })
+      .limit(100)
 
+  ]);
 
-      if (
-        !prestamosPagoCache.length
-      ) {
 
-        $('pagoPrestamo')
-          .innerHTML =
-          `
-          <option value="">
-            No tiene préstamos pendientes
-          </option>
-          `;
+  if (cajaRes.error) {
+    console.error(cajaRes.error);
+  }
 
+  if (tercerosRes.error) {
+    console.error(tercerosRes.error);
+  }
 
-        $('pagoMsg')
-          .textContent =
-          'El cliente seleccionado no tiene capital pendiente.';
+  if (movimientosRes.error) {
+    console.error(movimientosRes.error);
+  }
 
+  if (movimientosTercerosRes.error) {
+    console.error(movimientosTercerosRes.error);
+  }
 
-        return;
-      }
 
-
-      prestamosPagoCache
-        .forEach(
-          prestamo => {
-
-            const option =
-              document.createElement(
-                'option'
-              );
-
-
-            option.value =
-              prestamo.id;
-
-
-            const tipo =
-              prestamo.control_nuevo
-                ? 'NUEVO CONTROL'
-                : 'PUNTO CERO';
-
-
-            option.textContent =
-              `${mostrarFecha(prestamo.fecha_prestamo)} · ${money(prestamo.capital_pendiente)} · ${tipo}`;
-
-
-            $('pagoPrestamo')
-              .appendChild(
-                option
-              );
-
-          }
-        );
-
-
-      $('pagoPrestamo')
-        .disabled =
-        false;
-
-
-      $('pagoMsg')
-        .textContent = '';
-
-    }
-  );
-
-
-/* =========================================================
-   INFORMACIÓN DEL PRÉSTAMO SELECCIONADO
-========================================================= */
-
-$('pagoPrestamo')
-  .addEventListener(
-    'change',
-    () => {
-
-      const prestamoId =
-        Number(
-          $('pagoPrestamo')
-            .value
-        );
-
-
-      const prestamo =
-        prestamosPagoCache.find(
-          item =>
-            Number(item.id) ===
-            prestamoId
-        );
-
-
-      if (
-        !prestamo
-      ) {
-
-        $('pagoAdvertencia')
-          .classList
-          .add('hidden');
-
-
-        return;
-      }
-
-
-      if (
-        !prestamo.control_nuevo
-      ) {
-
-        $('pagoAdvertencia')
-          .textContent =
-          `Préstamo del Punto Cero. Fecha original: ${mostrarFecha(prestamo.fecha_prestamo)}. Capital actual registrado: ${money(prestamo.capital_pendiente)}.`;
-
-
-        $('pagoAdvertencia')
-          .classList
-          .remove('hidden');
-
-      }
-
-      else {
-
-        $('pagoAdvertencia')
-          .classList
-          .add('hidden');
-
-      }
-
-    }
-  );
-
-
-/* =========================================================
-   TOTALES DEL PAGO
-========================================================= */
-
-function actualizarTotalesPago() {
-
-  const interes =
-    Number(
-      $('pagoInteres')
-        .value ||
-      0
-    );
-
-
-  const capital =
-    Number(
-      $('pagoCapital')
-        .value ||
-      0
-    );
-
+  const caja =
+    cajaRes.data || [];
 
   const terceros =
+    tercerosRes.data || [];
+
+
+  const cajaAndres =
     Number(
-      $('pagoTerceros')
-        .value ||
-      0
+      caja.find(x =>
+        Number(x.socio_id) === 1
+      )?.saldo_calculado || 0
+    );
+
+
+  const cajaJuan =
+    Number(
+      caja.find(x =>
+        Number(x.socio_id) === 2
+      )?.saldo_calculado || 0
+    );
+
+
+  const tercerosAndres =
+    Number(
+      terceros.find(x =>
+        Number(x.socio_id) === 1
+      )?.saldo_terceros || 0
+    );
+
+
+  const tercerosJuan =
+    Number(
+      terceros.find(x =>
+        Number(x.socio_id) === 2
+      )?.saldo_terceros || 0
     );
 
 
   const totalEmpresa =
-    interes +
-    capital;
+    cajaAndres + cajaJuan;
+
+  const totalTerceros =
+    tercerosAndres + tercerosJuan;
 
 
-  const totalFisico =
-    totalEmpresa +
-    terceros;
+  $('cajaAndres').textContent =
+    money(cajaAndres);
+
+  $('cajaJuan').textContent =
+    money(cajaJuan);
+
+  $('tercerosAndres').textContent =
+    money(tercerosAndres);
+
+  $('tercerosJuan').textContent =
+    money(tercerosJuan);
+
+  $('cajaTotalEmpresa').textContent =
+    money(totalEmpresa);
+
+  $('cajaTotalTerceros').textContent =
+    money(totalTerceros);
+
+  $('cajaTotalFisico').textContent =
+    money(totalEmpresa + totalTerceros);
+
+  $('fisicoAndres').textContent =
+    money(cajaAndres + tercerosAndres);
+
+  $('fisicoJuan').textContent =
+    money(cajaJuan + tercerosJuan);
 
 
-  $('pagoTotal')
-    .textContent =
-    money(
-      totalEmpresa
-    );
+  renderMovimientosCaja(
+    movimientosRes.data || []
+  );
 
-
-  $('pagoTotalEmpresa')
-    .textContent =
-    money(
-      totalEmpresa
-    );
-
-
-  $('pagoTotalTerceros')
-    .textContent =
-    money(
-      terceros
-    );
-
-
-  $('pagoTotalFisico')
-    .textContent =
-    money(
-      totalFisico
-    );
-
+  renderDineroTerceros(
+    movimientosTercerosRes.data || []
+  );
 }
 
 
-$('pagoInteres')
-  .addEventListener(
-    'input',
-    actualizarTotalesPago
-  );
+function renderMovimientosCaja(lista) {
+
+  $('cajaMovimientosBody').innerHTML = '';
 
 
-$('pagoCapital')
-  .addEventListener(
-    'input',
-    actualizarTotalesPago
-  );
+  if (!lista.length) {
+
+    $('cajaMovimientosBody').innerHTML =
+      `<tr><td colspan="6">No hay movimientos de Caja A&J.</td></tr>`;
+
+    return;
+  }
 
 
-$('pagoTerceros')
-  .addEventListener(
-    'input',
-    actualizarTotalesPago
-  );
+  lista.forEach(m => {
+
+    $('cajaMovimientosBody').insertAdjacentHTML(
+      'beforeend',
+      `
+      <tr>
+        <td>${mostrarFecha(m.fecha)}</td>
+        <td>${escapeHtml(nombreSocio(m.socio_id))}</td>
+        <td>${escapeHtml(m.tipo || '—')}</td>
+        <td><strong>${money(m.valor)}</strong></td>
+        <td>${escapeHtml(m.referencia || '—')}</td>
+        <td>${escapeHtml(m.observaciones || '—')}</td>
+      </tr>
+      `
+    );
+  });
+}
+
+
+function renderDineroTerceros(lista) {
+
+  $('tercerosBody').innerHTML = '';
+
+
+  if (!lista.length) {
+
+    $('tercerosBody').innerHTML =
+      `<tr><td colspan="6">No hay dinero de terceros registrado.</td></tr>`;
+
+    return;
+  }
+
+
+  lista.forEach(m => {
+
+    const clase =
+      m.tipo === 'ENTRADA'
+        ? 'green'
+        : 'red';
+
+
+    $('tercerosBody').insertAdjacentHTML(
+      'beforeend',
+      `
+      <tr>
+        <td>${mostrarFecha(m.fecha)}</td>
+        <td>${escapeHtml(nombreSocio(m.socio_id))}</td>
+        <td>
+          <span class="badge ${clase}">
+            ${escapeHtml(m.tipo)}
+          </span>
+        </td>
+        <td><strong>${money(m.valor)}</strong></td>
+        <td>${escapeHtml(m.referencia || '—')}</td>
+        <td>${escapeHtml(m.observaciones || '—')}</td>
+      </tr>
+      `
+    );
+  });
+}
 
 
 /* =========================================================
-   LIMPIAR PAGO
+   CUOTA BANCARIA
 ========================================================= */
 
-$('limpiarPagoBtn')
-  .addEventListener(
-    'click',
-    () => {
+$('cuotaBancoForm').addEventListener('submit', async e => {
 
-      $('pagoForm')
-        .reset();
+  e.preventDefault();
 
 
-      $('pagoFecha')
-        .value =
-        fechaHoyLocal();
+  const socio =
+    Number($('cuotaBancoSocio').value);
+
+  const fecha =
+    $('cuotaBancoFecha').value;
+
+  const valor =
+    Number($('cuotaBancoValor').value || 0);
 
 
-      $('pagoInteres')
-        .value =
-        '0';
+  if (!socio || !fecha || valor <= 0) {
+    $('cuotaBancoMsg').textContent =
+      'Complete correctamente los datos.';
+    return;
+  }
 
 
-      $('pagoCapital')
-        .value =
-        '0';
+  if (!confirm(
+    `Registrar cuota bancaria por ${money(valor)} pagada por ${nombreSocio(socio)}?\n\nEste movimiento afectará el resultado del ciclo.`
+  )) return;
 
 
-      $('pagoTerceros')
-        .value =
-        '0';
+  $('guardarCuotaBancoBtn').disabled = true;
 
 
-      $('pagoReferenciaTercero')
-        .value =
-        '';
-
-
-      $('pagoPrestamo')
-        .innerHTML =
-        `
-        <option value="">
-          Primero seleccione un cliente
-        </option>
-        `;
-
-
-      $('pagoPrestamo')
-        .disabled =
-        true;
-
-
-      prestamosPagoCache =
-        [];
-
-
-      actualizarTotalesPago();
-
-
-      $('pagoAdvertencia')
-        .classList
-        .add('hidden');
-
-
-      $('pagoMsg')
-        .textContent = '';
-
+  const { error } =
+  await supabase.rpc(
+    'registrar_cuota_banco_aj',
+    {
+      p_socio_pagador_id: socio,
+      p_fecha: fecha,
+      p_valor: valor,
+      p_observaciones:
+        $('cuotaBancoObservaciones').value.trim() || null
     }
   );
 
 
+  $('guardarCuotaBancoBtn').disabled = false;
+
+
+  if (error) {
+    $('cuotaBancoMsg').textContent =
+      error.message;
+    return;
+  }
+
+
+  $('cuotaBancoMsg').textContent =
+    `Cuota bancaria registrada correctamente por ${money(valor)}.`;
+
+  $('cuotaBancoForm').reset();
+  $('cuotaBancoFecha').value = fechaHoyLocal();
+
+  await cargarCaja();
+  await cargarDashboard();
+});
+
+
 /* =========================================================
-   GUARDAR PAGO
+   TRANSFERENCIA ENTRE SOCIOS
 ========================================================= */
 
-$('pagoForm')
-  .addEventListener(
-    'submit',
-    async event => {
+$('transferenciaForm').addEventListener('submit', async e => {
 
-      event.preventDefault();
+  e.preventDefault();
 
 
-      const clienteId =
-        Number(
-          $('pagoCliente')
-            .value
-        );
+  const origen =
+    Number($('transferenciaOrigen').value);
 
+  const destino =
+    Number($('transferenciaDestino').value);
 
-      const prestamoId =
-        Number(
-          $('pagoPrestamo')
-            .value
-        );
+  const fecha =
+    $('transferenciaFecha').value;
 
+  const valor =
+    Number($('transferenciaValor').value || 0);
 
-      const receptorId =
-        Number(
-          $('pagoReceptor')
-            .value
-        );
 
+  if (!origen || !destino || !fecha || valor <= 0) {
+    $('transferenciaMsg').textContent =
+      'Complete correctamente los datos.';
+    return;
+  }
 
-      const fecha =
-        $('pagoFecha')
-          .value;
 
+  if (origen === destino) {
+    $('transferenciaMsg').textContent =
+      'El origen y el destino deben ser socios diferentes.';
+    return;
+  }
 
-      const interes =
-        Number(
-          $('pagoInteres')
-            .value ||
-          0
-        );
 
+  if (!confirm(
+    `TRANSFERENCIA A&J\n\n` +
+    `Sale de: ${nombreSocio(origen)}\n` +
+    `Llega a: ${nombreSocio(destino)}\n` +
+    `Valor: ${money(valor)}\n\n` +
+    `¿Registrar transferencia?`
+  )) return;
 
-      const capital =
-        Number(
-          $('pagoCapital')
-            .value ||
-          0
-        );
 
+  $('guardarTransferenciaBtn').disabled = true;
 
-      const terceros =
-        Number(
-          $('pagoTerceros')
-            .value ||
-          0
-        );
 
-
-      const medio =
-        $('pagoMedio')
-          .value;
-
-
-      const referenciaTercero =
-        $('pagoReferenciaTercero')
-          .value
-          .trim() ||
-        null;
-
-
-      const observaciones =
-        $('pagoObservaciones')
-          .value
-          .trim() ||
-        null;
-
-
-      if (
-        !clienteId ||
-        !prestamoId ||
-        !receptorId ||
-        !fecha
-      ) {
-
-        $('pagoMsg')
-          .textContent =
-          'Complete cliente, préstamo, fecha y quién recibió el dinero.';
-
-
-        return;
-      }
-
-
-      if (
-        interes < 0 ||
-        capital < 0 ||
-        terceros < 0
-      ) {
-
-        $('pagoMsg')
-          .textContent =
-          'Los valores no pueden ser negativos.';
-
-
-        return;
-      }
-
-
-      if (
-        interes === 0 &&
-        capital === 0
-      ) {
-
-        $('pagoMsg')
-          .textContent =
-          'El pago de A&J debe contener interés, capital o ambos. El dinero de terceros no reemplaza el pago del cliente.';
-
-
-        return;
-      }
-
-
-      if (
-        terceros > 0 &&
-        !referenciaTercero
-      ) {
-
-        const continuarSinReferencia =
-          confirm(
-            'Registró dinero de terceros pero no indicó de quién es.\n\n¿Desea continuar y dejar la referencia sin identificar?'
-          );
-
-
-        if (
-          !continuarSinReferencia
-        ) {
-
-          $('pagoReferenciaTercero')
-            .focus();
-
-
-          return;
-        }
-
-      }
-
-
-      const prestamo =
-        prestamosPagoCache.find(
-          item =>
-            Number(item.id) ===
-            prestamoId
-        );
-
-
-      if (
-        !prestamo
-      ) {
-
-        $('pagoMsg')
-          .textContent =
-          'No se pudo validar el préstamo seleccionado.';
-
-
-        return;
-      }
-
-
-      if (
-        capital >
-        Number(
-          prestamo
-            .capital_pendiente ||
-          0
-        )
-      ) {
-
-        $('pagoMsg')
-          .textContent =
-          'El abono a capital supera el capital pendiente del préstamo.';
-
-
-        return;
-      }
-
-
-      const totalEmpresa =
-        interes +
-        capital;
-
-
-      const totalFisico =
-        totalEmpresa +
-        terceros;
-
-
-      const cliente =
-        $('pagoCliente')
-          .options[
-            $('pagoCliente')
-              .selectedIndex
-          ]
-          .text;
-
-
-      const receptor =
-        receptorId === 1
-          ? 'Andrés Urrego'
-          : 'Juan';
-
-
-      let mensajeConfirmacion =
-        `CONFIRMAR PAGO\n\n` +
-        `Cliente: ${cliente}\n` +
-        `Fecha: ${mostrarFecha(fecha)}\n\n` +
-        `A&J CAPITAL\n` +
-        `Interés: ${money(interes)}\n` +
-        `Capital: ${money(capital)}\n` +
-        `Total A&J: ${money(totalEmpresa)}\n\n`;
-
-
-      if (
-        terceros > 0
-      ) {
-
-        mensajeConfirmacion +=
-          `DINERO DE TERCEROS\n` +
-          `Valor adicional: ${money(terceros)}\n` +
-          `Referencia: ${referenciaTercero || 'Sin identificar'}\n\n`;
-
-      }
-
-
-      mensajeConfirmacion +=
-        `TOTAL QUE ENTRÓ A LA CUENTA: ${money(totalFisico)}\n` +
-        `Recibido por: ${receptor}\n\n` +
-        `¿Los datos son correctos?`;
-
-
-      const confirmar =
-        confirm(
-          mensajeConfirmacion
-        );
-
-
-      if (
-        !confirmar
-      ) {
-
-        $('pagoMsg')
-          .textContent =
-          'Registro cancelado. Revise los datos.';
-
-
-        return;
-      }
-
-
-      $('guardarPagoBtn')
-        .disabled =
-        true;
-
-
-      $('pagoMsg')
-        .textContent =
-        'Registrando pago de A&J...';
-
-
-      /*
-       * PASO 1
-       * Registrar exclusivamente el dinero que pertenece
-       * a A&J CAPITAL.
-       */
-
-      const {
-        data: pagoId,
-        error: errorPago
-      } =
-      await supabase
-        .rpc(
-          'registrar_pago_aj',
-          {
-
-            p_prestamo_id:
-              prestamoId,
-
-            p_socio_receptor_id:
-              receptorId,
-
-            p_fecha:
-              fecha,
-
-            p_interes:
-              interes,
-
-            p_capital:
-              capital,
-
-            p_medio_pago:
-              medio,
-
-            p_observaciones:
-              observaciones
-
-          }
-        );
-
-
-      if (
-        errorPago
-      ) {
-
-        $('guardarPagoBtn')
-          .disabled =
-          false;
-
-
-        console.error(
-          'Error registrando pago:',
-          errorPago
-        );
-
-
-        $('pagoMsg')
-          .textContent =
-          'No fue posible registrar el pago: ' +
-          errorPago.message;
-
-
-        return;
-      }
-
-
-      /*
-       * PASO 2
-       * Si existe dinero adicional de terceros,
-       * registrarlo en la cuenta auxiliar.
-       */
-
-      let terceroRegistrado =
-        false;
-
-
-      if (
-        terceros > 0
-      ) {
-
-        $('pagoMsg')
-          .textContent =
-          'Pago A&J registrado. Guardando dinero de terceros...';
-
-
-        const {
-          error: errorTercero
-        } =
-        await supabase
-          .rpc(
-            'registrar_dinero_tercero_aj',
-            {
-
-              p_socio_id:
-                receptorId,
-
-              p_fecha:
-                fecha,
-
-              p_valor:
-                terceros,
-
-              p_cliente_id:
-                clienteId,
-
-              p_pago_id:
-                Number(pagoId),
-
-              p_referencia:
-                referenciaTercero,
-
-              p_observaciones:
-                observaciones
-
-            }
-          );
-
-
-        if (
-          errorTercero
-        ) {
-
-          $('guardarPagoBtn')
-            .disabled =
-            false;
-
-
-          console.error(
-            'Pago A&J registrado, pero error en dinero de terceros:',
-            errorTercero
-          );
-
-
-          $('pagoMsg')
-            .textContent =
-            `ATENCIÓN: el pago A&J #${pagoId} sí quedó registrado por ${money(totalEmpresa)}, pero el dinero adicional de terceros por ${money(terceros)} NO pudo registrarse. No vuelva a registrar el pago del cliente. Revise el movimiento de terceros. Error: ${errorTercero.message}`;
-
-
-          await cargarDashboard();
-
-
-          return;
-        }
-
-
-        terceroRegistrado =
-          true;
-
-      }
-
-
-      $('guardarPagoBtn')
-        .disabled =
-        false;
-
-
-      if (
-        terceroRegistrado
-      ) {
-
-        $('pagoMsg')
-          .textContent =
-          `Registro correcto. A&J: ${money(totalEmpresa)}. Dinero de terceros: ${money(terceros)}. Total físico recibido: ${money(totalFisico)}.`;
-
-      }
-
-      else {
-
-        $('pagoMsg')
-          .textContent =
-          `Pago registrado correctamente. Total A&J recibido: ${money(totalEmpresa)}.`;
-
-      }
-
-
-      /*
-       * LIMPIAR SOLO VALORES.
-       * Se conserva cliente/préstamo para facilitar
-       * registros consecutivos si fueran necesarios.
-       */
-
-      $('pagoInteres')
-        .value =
-        '0';
-
-
-      $('pagoCapital')
-        .value =
-        '0';
-
-
-      $('pagoTerceros')
-        .value =
-        '0';
-
-
-      $('pagoReferenciaTercero')
-        .value =
-        '';
-
-
-      $('pagoObservaciones')
-        .value =
-        '';
-
-
-      actualizarTotalesPago();
-
-
-      await cargarDashboard();
-
+  const { error } =
+  await supabase.rpc(
+    'transferir_caja_aj',
+    {
+      p_socio_origen_id: origen,
+      p_socio_destino_id: destino,
+      p_fecha: fecha,
+      p_valor: valor,
+      p_observaciones:
+        $('transferenciaObservaciones').value.trim() || null
     }
   );
+
+
+  $('guardarTransferenciaBtn').disabled = false;
+
+
+  if (error) {
+    $('transferenciaMsg').textContent =
+      error.message;
+    return;
+  }
+
+
+  $('transferenciaMsg').textContent =
+    'Transferencia registrada correctamente.';
+
+  $('transferenciaForm').reset();
+  $('transferenciaFecha').value = fechaHoyLocal();
+
+  await cargarCaja();
+});
+
+
+/* =========================================================
+   RETIRO DE UTILIDAD
+========================================================= */
+
+$('retiroUtilidadForm').addEventListener('submit', async e => {
+
+  e.preventDefault();
+
+
+  const socio =
+    Number($('retiroSocio').value);
+
+  const fecha =
+    $('retiroFecha').value;
+
+  const valor =
+    Number($('retiroValor').value || 0);
+
+
+  if (!socio || !fecha || valor <= 0) {
+    $('retiroMsg').textContent =
+      'Complete correctamente los datos.';
+    return;
+  }
+
+
+  if (!confirm(
+    `RETIRO DE UTILIDAD\n\n` +
+    `Socio: ${nombreSocio(socio)}\n` +
+    `Valor: ${money(valor)}\n\n` +
+    `Confirme que este dinero corresponde realmente a utilidad disponible.`
+  )) return;
+
+
+  $('guardarRetiroBtn').disabled = true;
+
+
+  const { error } =
+  await supabase.rpc(
+    'retirar_utilidad_aj',
+    {
+      p_socio_id: socio,
+      p_fecha: fecha,
+      p_valor: valor,
+      p_observaciones:
+        $('retiroObservaciones').value.trim() || null
+    }
+  );
+
+
+  $('guardarRetiroBtn').disabled = false;
+
+
+  if (error) {
+    $('retiroMsg').textContent =
+      error.message;
+    return;
+  }
+
+
+  $('retiroMsg').textContent =
+    `Retiro registrado correctamente por ${money(valor)}.`;
+
+  $('retiroUtilidadForm').reset();
+  $('retiroFecha').value = fechaHoyLocal();
+
+  await cargarCaja();
+});
+
+
+/* =========================================================
+   DEVOLUCIÓN DINERO DE TERCEROS
+========================================================= */
+
+$('salidaTercerosForm').addEventListener('submit', async e => {
+
+  e.preventDefault();
+
+
+  const socio =
+    Number($('salidaTercerosSocio').value);
+
+  const fecha =
+    $('salidaTercerosFecha').value;
+
+  const valor =
+    Number($('salidaTercerosValor').value || 0);
+
+  const referencia =
+    $('salidaTercerosReferencia').value.trim() || null;
+
+  const observaciones =
+    $('salidaTercerosObservaciones').value.trim() || null;
+
+
+  if (!socio || !fecha || valor <= 0) {
+    $('salidaTercerosMsg').textContent =
+      'Complete correctamente los datos.';
+    return;
+  }
+
+
+  if (!confirm(
+    `DEVOLUCIÓN DE DINERO AJENO\n\n` +
+    `Responsable: ${nombreSocio(socio)}\n` +
+    `Valor: ${money(valor)}\n` +
+    `Referencia: ${referencia || 'Sin referencia'}\n\n` +
+    `Este movimiento NO afectará Caja A&J.\n\n` +
+    `¿Registrar salida?`
+  )) return;
+
+
+  $('guardarSalidaTercerosBtn').disabled = true;
+
+
+  const { error } =
+  await supabase.rpc(
+    'retirar_dinero_tercero_aj',
+    {
+      p_socio_id: socio,
+      p_fecha: fecha,
+      p_valor: valor,
+      p_referencia: referencia,
+      p_observaciones: observaciones
+    }
+  );
+
+
+  $('guardarSalidaTercerosBtn').disabled = false;
+
+
+  if (error) {
+
+    $('salidaTercerosMsg').textContent =
+      'No fue posible registrar la devolución: ' +
+      error.message;
+
+    return;
+  }
+
+
+  $('salidaTercerosMsg').textContent =
+    `Devolución registrada correctamente por ${money(valor)}.`;
+
+  $('salidaTercerosForm').reset();
+  $('salidaTercerosFecha').value = fechaHoyLocal();
+
+  await cargarCaja();
+});
 
 
 /* =========================================================
@@ -2758,715 +1547,287 @@ $('pagoForm')
 
 async function prepararHistorial() {
 
-  $('historialMsg')
-    .textContent =
-    'Cargando historial...';
-
-
-  const {
-    data,
-    error
-  } =
+  const { data, error } =
   await supabase
     .from('clientes')
-    .select(`
-      id,
-      nombre
-    `)
-    .order(
-      'nombre',
-      {
-        ascending: true
-      }
-    );
+    .select('id,nombre')
+    .order('nombre');
 
 
-  if (
-    error
-  ) {
-
-    console.error(
-      'Error clientes historial:',
-      error
-    );
-
-
-    $('historialMsg')
-      .textContent =
-      'No fue posible cargar los clientes: ' +
+  if (error) {
+    $('historialMsg').textContent =
       error.message;
-
-
     return;
   }
 
 
-  const clienteActual =
-    $('historialCliente')
-      .value;
+  $('historialCliente').innerHTML =
+    `<option value="">Todos los clientes</option>`;
 
 
-  $('historialCliente')
-    .innerHTML =
-    `
-    <option value="">
-      Todos los clientes
-    </option>
-    `;
+  (data || []).forEach(c => {
 
+    const o =
+      document.createElement('option');
 
-  (data || [])
-    .forEach(
-      cliente => {
+    o.value = c.id;
+    o.textContent = c.nombre;
 
-        const option =
-          document.createElement(
-            'option'
-          );
-
-
-        option.value =
-          cliente.id;
-
-
-        option.textContent =
-          cliente.nombre;
-
-
-        $('historialCliente')
-          .appendChild(
-            option
-          );
-
-      }
-    );
-
-
-  if (
-    clienteActual
-  ) {
-
-    $('historialCliente')
-      .value =
-      clienteActual;
-
-  }
-
-
-  $('historialMsg')
-    .textContent = '';
+    $('historialCliente').appendChild(o);
+  });
 
 
   await cargarHistorial();
-
 }
 
 
 async function cargarHistorial() {
 
-  $('historialMsg')
-    .textContent =
-    'Consultando movimientos...';
-
-
-  $('historialBody')
-    .innerHTML =
-    `
-    <tr>
-      <td colspan="8">
-        Cargando...
-      </td>
-    </tr>
-    `;
-
-
   const desde =
-    $('historialDesde')
-      .value;
-
+    $('historialDesde').value;
 
   const hasta =
-    $('historialHasta')
-      .value;
+    $('historialHasta').value;
+
+  const cliente =
+    $('historialCliente').value;
+
+  const receptor =
+    $('historialReceptor').value;
 
 
-  const clienteId =
-    $('historialCliente')
-      .value;
-
-
-  const receptorId =
-    $('historialReceptor')
-      .value;
-
-
-  if (
-    desde &&
-    hasta &&
-    desde > hasta
-  ) {
-
-    $('historialMsg')
-      .textContent =
-      'La fecha inicial no puede ser posterior a la fecha final.';
-
-
+  if (desde && hasta && desde > hasta) {
+    $('historialMsg').textContent =
+      'La fecha inicial no puede ser posterior a la final.';
     return;
   }
 
 
-  let consulta =
+  let q =
     supabase
-      .from(
-        'historial_pagos_aj'
-      )
+      .from('historial_pagos_aj')
       .select('*')
-      .order(
-        'fecha_pago',
-        {
-          ascending: false
-        }
-      )
-      .order(
-        'pago_id',
-        {
-          ascending: false
-        }
-      );
+      .order('fecha_pago', { ascending: false })
+      .order('pago_id', { ascending: false });
 
 
-  if (
-    desde
-  ) {
+  if (desde)
+    q = q.gte('fecha_pago', desde);
 
-    consulta =
-      consulta.gte(
-        'fecha_pago',
-        desde
-      );
+  if (hasta)
+    q = q.lte('fecha_pago', hasta);
 
-  }
+  if (cliente)
+    q = q.eq('cliente_id', Number(cliente));
 
-
-  if (
-    hasta
-  ) {
-
-    consulta =
-      consulta.lte(
-        'fecha_pago',
-        hasta
-      );
-
-  }
+  if (receptor)
+    q = q.eq('socio_receptor_id', Number(receptor));
 
 
-  if (
-    clienteId
-  ) {
-
-    consulta =
-      consulta.eq(
-        'cliente_id',
-        Number(
-          clienteId
-        )
-      );
-
-  }
+  const { data, error } =
+    await q;
 
 
-  if (
-    receptorId
-  ) {
-
-    consulta =
-      consulta.eq(
-        'socio_receptor_id',
-        Number(
-          receptorId
-        )
-      );
-
-  }
-
-
-  const {
-    data,
-    error
-  } =
-  await consulta;
-
-
-  if (
-    error
-  ) {
-
-    console.error(
-      'Error historial:',
-      error
-    );
-
-
-    $('historialMsg')
-      .textContent =
-      'No fue posible consultar el historial: ' +
+  if (error) {
+    $('historialMsg').textContent =
       error.message;
-
-
     return;
   }
 
 
-  const movimientos =
-    data ||
-    [];
-
-
-  renderHistorial(
-    movimientos
-  );
-
-
-  $('historialMsg')
-    .textContent =
-    movimientos.length
-      ? `${movimientos.length} movimiento(s) encontrado(s).`
-      : 'No se encontraron movimientos con los filtros seleccionados.';
-
+  renderHistorial(data || []);
 }
 
 
-function renderHistorial(
-  movimientos
-) {
+function renderHistorial(lista) {
 
-  $('historialBody')
-    .innerHTML = '';
-
+  $('historialBody').innerHTML = '';
 
   const validos =
-    movimientos.filter(
-      movimiento =>
-        !movimiento.anulado
-    );
+    lista.filter(x => !x.anulado);
 
 
   const intereses =
     validos.reduce(
-      (
-        total,
-        movimiento
-      ) =>
-        total +
-        Number(
-          movimiento
-            .valor_interes ||
-          0
-        ),
+      (a, x) =>
+        a + Number(x.valor_interes || 0),
       0
     );
-
 
   const capital =
     validos.reduce(
-      (
-        total,
-        movimiento
-      ) =>
-        total +
-        Number(
-          movimiento
-            .valor_capital ||
-          0
-        ),
+      (a, x) =>
+        a + Number(x.valor_capital || 0),
       0
     );
-
 
   const total =
     validos.reduce(
-      (
-        suma,
-        movimiento
-      ) =>
-        suma +
-        Number(
-          movimiento
-            .valor_total ||
-          0
-        ),
+      (a, x) =>
+        a + Number(x.valor_total || 0),
       0
     );
 
 
-  $('historialIntereses')
-    .textContent =
-    money(
-      intereses
-    );
+  $('historialIntereses').textContent =
+    money(intereses);
+
+  $('historialCapital').textContent =
+    money(capital);
+
+  $('historialTotal').textContent =
+    money(total);
+
+  $('historialCantidad').textContent =
+    lista.length;
 
 
-  $('historialCapital')
-    .textContent =
-    money(
-      capital
-    );
-
-
-  $('historialTotal')
-    .textContent =
-    money(
-      total
-    );
-
-
-  $('historialCantidad')
-    .textContent =
-    String(
-      movimientos.length
-    );
-
-
-  if (
-    !movimientos.length
-  ) {
-
-    $('historialBody')
-      .innerHTML =
-      `
-      <tr>
-        <td colspan="8">
-          No hay movimientos para mostrar.
-        </td>
-      </tr>
-      `;
-
-
+  if (!lista.length) {
+    $('historialBody').innerHTML =
+      `<tr><td colspan="8">No hay movimientos.</td></tr>`;
     return;
   }
 
 
-  movimientos.forEach(
-    movimiento => {
+  lista.forEach(x => {
 
-      const anulado =
-        Boolean(
-          movimiento.anulado
-        );
+    $('historialBody').insertAdjacentHTML(
+      'beforeend',
+      `
+      <tr>
+        <td>${mostrarFecha(x.fecha_pago)}</td>
+        <td><strong>${escapeHtml(x.cliente || '—')}</strong></td>
+        <td>${money(x.valor_interes)}</td>
+        <td>${money(x.valor_capital)}</td>
+        <td><strong>${money(x.valor_total)}</strong></td>
+        <td>${escapeHtml(x.recibido_por || '—')}</td>
+        <td>${escapeHtml(x.medio_pago || '—')}</td>
+        <td>
+          <span class="badge ${x.anulado ? 'red' : 'green'}">
+            ${x.anulado ? 'ANULADO' : 'VÁLIDO'}
+          </span>
+        </td>
+      </tr>
+      `
+    );
+  });
 
 
-      const clase =
-        anulado
-          ? 'red'
-          : 'green';
-
-
-      const estado =
-        anulado
-          ? 'ANULADO'
-          : 'VÁLIDO';
-
-
-      $('historialBody')
-        .insertAdjacentHTML(
-          'beforeend',
-          `
-          <tr>
-
-            <td>
-              ${mostrarFecha(
-                movimiento.fecha_pago
-              )}
-            </td>
-
-            <td>
-              <strong>
-                ${escapeHtml(
-                  movimiento.cliente ||
-                  '—'
-                )}
-              </strong>
-            </td>
-
-            <td>
-              ${money(
-                movimiento.valor_interes
-              )}
-            </td>
-
-            <td>
-              ${money(
-                movimiento.valor_capital
-              )}
-            </td>
-
-            <td>
-              <strong>
-                ${money(
-                  movimiento.valor_total
-                )}
-              </strong>
-            </td>
-
-            <td>
-              ${escapeHtml(
-                movimiento.recibido_por ||
-                '—'
-              )}
-            </td>
-
-            <td>
-              ${escapeHtml(
-                movimiento.medio_pago ||
-                '—'
-              )}
-            </td>
-
-            <td>
-              <span class="badge ${clase}">
-                ${estado}
-              </span>
-            </td>
-
-          </tr>
-          `
-        );
-
-    }
-  );
-
+  $('historialMsg').textContent =
+    `${lista.length} movimiento(s) encontrado(s).`;
 }
 
 
-$('consultarHistorialBtn')
-  .addEventListener(
-    'click',
-    async () => {
-
-      await cargarHistorial();
-
-    }
-  );
+$('consultarHistorialBtn').onclick =
+  cargarHistorial;
 
 
-$('limpiarHistorialBtn')
-  .addEventListener(
-    'click',
-    async () => {
+$('limpiarHistorialBtn').onclick = async () => {
 
-      $('historialDesde')
-        .value =
-        '';
+  $('historialDesde').value = '';
+  $('historialHasta').value = '';
+  $('historialCliente').value = '';
+  $('historialReceptor').value = '';
 
-
-      $('historialHasta')
-        .value =
-        '';
-
-
-      $('historialCliente')
-        .value =
-        '';
-
-
-      $('historialReceptor')
-        .value =
-        '';
-
-
-      await cargarHistorial();
-
-    }
-  );
+  await cargarHistorial();
+};
 
 
 /* =========================================================
    NAVEGACIÓN
 ========================================================= */
 
+const paginasReales = [
+  'inicio',
+  'clientes',
+  'prestamos',
+  'pagos',
+  'caja',
+  'historial'
+];
+
+
 document
-  .querySelectorAll(
-    '.nav'
-  )
-  .forEach(
-    boton => {
+.querySelectorAll('.nav')
+.forEach(boton => {
 
-      boton.addEventListener(
-        'click',
-        async () => {
+  boton.addEventListener('click', async () => {
 
-
-          document
-            .querySelectorAll(
-              '.nav'
-            )
-            .forEach(
-              item =>
-                item
-                  .classList
-                  .remove(
-                    'active'
-                  )
-            );
-
-
-          boton
-            .classList
-            .add(
-              'active'
-            );
-
-
-          $('inicio')
-            .classList
-            .add(
-              'hidden'
-            );
-
-
-          $('clientes')
-            .classList
-            .add(
-              'hidden'
-            );
-
-
-          $('prestamos')
-            .classList
-            .add(
-              'hidden'
-            );
-
-
-          $('pagos')
-            .classList
-            .add(
-              'hidden'
-            );
-
-
-          $('historial')
-            .classList
-            .add(
-              'hidden'
-            );
-
-
-          $('placeholder')
-            .classList
-            .add(
-              'hidden'
-            );
-
-
-          const pagina =
-            boton.dataset.page;
-
-
-          if (
-            pagina ===
-            'inicio'
-          ) {
-
-            $('inicio')
-              .classList
-              .remove(
-                'hidden'
-              );
-
-
-            await cargarDashboard();
-
-          }
-
-
-          else if (
-            pagina ===
-            'clientes'
-          ) {
-
-            $('clientes')
-              .classList
-              .remove(
-                'hidden'
-              );
-
-
-            await cargarClientes();
-
-          }
-
-
-          else if (
-            pagina ===
-            'prestamos'
-          ) {
-
-            $('prestamos')
-              .classList
-              .remove(
-                'hidden'
-              );
-
-
-            await prepararModuloPrestamos();
-
-          }
-
-
-          else if (
-            pagina ===
-            'pagos'
-          ) {
-
-            $('pagos')
-              .classList
-              .remove(
-                'hidden'
-              );
-
-
-            await prepararModuloPagos();
-
-          }
-
-
-          else if (
-            pagina ===
-            'historial'
-          ) {
-
-            $('historial')
-              .classList
-              .remove(
-                'hidden'
-              );
-
-
-            await prepararHistorial();
-
-          }
-
-
-          else {
-
-            $('placeholder')
-              .classList
-              .remove(
-                'hidden'
-              );
-
-
-            $('placeholderTitle')
-              .textContent =
-              boton.textContent
-                .trim();
-
-          }
-
-        }
+    document
+      .querySelectorAll('.nav')
+      .forEach(b =>
+        b.classList.remove('active')
       );
 
+    boton.classList.add('active');
+
+
+    paginasReales.forEach(id => {
+      $(id).classList.add('hidden');
+    });
+
+    $('placeholder').classList.add('hidden');
+
+
+    const pagina =
+      boton.dataset.page;
+
+
+    if (pagina === 'inicio') {
+
+      $('inicio').classList.remove('hidden');
+
+      await cargarDashboard();
     }
-  );
+
+
+    else if (pagina === 'clientes') {
+
+      $('clientes').classList.remove('hidden');
+
+      await cargarClientes();
+    }
+
+
+    else if (pagina === 'prestamos') {
+
+      $('prestamos').classList.remove('hidden');
+
+      await prepararModuloPrestamos();
+    }
+
+
+    else if (pagina === 'pagos') {
+
+      $('pagos').classList.remove('hidden');
+
+      await prepararModuloPagos();
+    }
+
+
+    else if (pagina === 'caja') {
+
+      $('caja').classList.remove('hidden');
+
+      await prepararCaja();
+    }
+
+
+    else if (pagina === 'historial') {
+
+      $('historial').classList.remove('hidden');
+
+      await prepararHistorial();
+    }
+
+
+    else {
+
+      $('placeholder').classList.remove('hidden');
+
+      $('placeholderTitle').textContent =
+        boton.textContent.trim();
+    }
+
+  });
+});
