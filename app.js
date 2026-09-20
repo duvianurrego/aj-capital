@@ -1,5 +1,6 @@
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
+
 /* =========================================================
    SUPABASE
 ========================================================= */
@@ -9,6 +10,7 @@ const SUPABASE_URL =
 
 const SUPABASE_KEY =
   'sb_publishable_XhC5tLhFJdePJG8TZkB9uA_2fT_hLLl';
+
 
 const supabase =
   createClient(
@@ -33,7 +35,9 @@ const money = valor =>
       currency: 'COP',
       maximumFractionDigits: 0
     }
-  ).format(Number(valor || 0));
+  ).format(
+    Number(valor || 0)
+  );
 
 
 function escapeHtml(texto = '') {
@@ -63,12 +67,19 @@ function fechaHoyLocal() {
   const month =
     String(
       ahora.getMonth() + 1
-    ).padStart(2, '0');
+    ).padStart(
+      2,
+      '0'
+    );
 
   const day =
     String(
       ahora.getDate()
-    ).padStart(2, '0');
+    ).padStart(
+      2,
+      '0'
+    );
+
 
   return `${year}-${month}-${day}`;
 
@@ -81,12 +92,16 @@ function mostrarFecha(fecha) {
     return '—';
   }
 
+
   const partes =
-    String(fecha).split('-');
+    String(fecha)
+      .split('-');
+
 
   if (partes.length !== 3) {
     return fecha;
   }
+
 
   return `${partes[2]}/${partes[1]}/${partes[0]}`;
 
@@ -114,9 +129,11 @@ async function mostrarSesion(session) {
       .classList
       .remove('hidden');
 
+
     $('appView')
       .classList
       .add('hidden');
+
 
     return;
   }
@@ -126,12 +143,14 @@ async function mostrarSesion(session) {
     .classList
     .add('hidden');
 
+
   $('appView')
     .classList
     .remove('hidden');
 
 
-  $('userChip').textContent =
+  $('userChip')
+    .textContent =
     session.user.email ||
     'Usuario';
 
@@ -152,7 +171,9 @@ $('loginForm')
 
       event.preventDefault();
 
-      $('loginMsg').textContent =
+
+      $('loginMsg')
+        .textContent =
         'Ingresando...';
 
 
@@ -160,6 +181,7 @@ $('loginForm')
         $('email')
           .value
           .trim();
+
 
       const password =
         $('password')
@@ -176,7 +198,8 @@ $('loginForm')
 
       if (error) {
 
-        $('loginMsg').textContent =
+        $('loginMsg')
+          .textContent =
           'No fue posible ingresar: ' +
           error.message;
 
@@ -184,7 +207,8 @@ $('loginForm')
       }
 
 
-      $('loginMsg').textContent = '';
+      $('loginMsg')
+        .textContent = '';
 
     }
   );
@@ -207,7 +231,7 @@ $('logoutBtn')
 
 
 /* =========================================================
-   CONTROL SESIÓN
+   CONTROL DE SESIÓN
 ========================================================= */
 
 supabase.auth
@@ -311,6 +335,7 @@ async function cargarDashboard() {
           .capital_actual_prestado
       );
 
+
     $('clientesSaldo')
       .textContent =
       'Punto Cero: $23.457.000';
@@ -399,10 +424,13 @@ async function cargarDashboard() {
 
 
   const prestamos =
-    prestamosRes.data || [];
+    prestamosRes.data ||
+    [];
+
 
   const semaforos =
-    semaforoRes.data || [];
+    semaforoRes.data ||
+    [];
 
 
   const capitalVencido =
@@ -424,9 +452,11 @@ async function cargarDashboard() {
                 Number(registro.prestamo_id)
             );
 
+
           return total +
             Number(
-              prestamo?.capital_pendiente ||
+              prestamo
+                ?.capital_pendiente ||
               0
             );
 
@@ -437,7 +467,9 @@ async function cargarDashboard() {
 
   $('capitalVencido')
     .textContent =
-    money(capitalVencido);
+    money(
+      capitalVencido
+    );
 
 
   $('carteraBody')
@@ -475,6 +507,7 @@ async function cargarDashboard() {
         semaforo?.semaforo ||
         'INICIO_CONTROL';
 
+
       let dias =
         Number(
           semaforo
@@ -482,66 +515,110 @@ async function cargarDashboard() {
           0
         );
 
+
       let clase =
         'green';
+
 
       let etiqueta =
         'INICIO NUEVO CONTROL';
 
 
-      if (estado === 'MORA_PROLONGADA') {
+      if (
+        estado ===
+        'MORA_PROLONGADA'
+      ) {
 
-        clase = 'black';
-        etiqueta = 'MORA PROLONGADA';
+        clase =
+          'black';
 
-      }
-
-      else if (estado === 'VENCIDO') {
-
-        clase = 'red';
-        etiqueta = 'VENCIDO';
-
-      }
-
-      else if (estado === 'PROXIMO') {
-
-        clase = 'yellow';
-        etiqueta = 'PRÓXIMO A VENCER';
+        etiqueta =
+          'MORA PROLONGADA';
 
       }
 
-      else if (estado === 'AL_DIA') {
+      else if (
+        estado ===
+        'VENCIDO'
+      ) {
 
-        clase = 'green';
-        etiqueta = 'AL DÍA';
+        clase =
+          'red';
+
+        etiqueta =
+          'VENCIDO';
 
       }
 
-      else if (estado === 'PAGADO') {
+      else if (
+        estado ===
+        'PROXIMO'
+      ) {
 
-        clase = 'green';
-        etiqueta = 'PAGADO';
+        clase =
+          'yellow';
+
+        etiqueta =
+          'PRÓXIMO A VENCER';
 
       }
 
-      else if (estado === 'SIN_FECHA') {
+      else if (
+        estado ===
+        'AL_DIA'
+      ) {
 
-        clase = 'yellow';
-        etiqueta = 'SIN FECHA';
+        clase =
+          'green';
+
+        etiqueta =
+          'AL DÍA';
+
+      }
+
+      else if (
+        estado ===
+        'PAGADO'
+      ) {
+
+        clase =
+          'green';
+
+        etiqueta =
+          'PAGADO';
+
+      }
+
+      else if (
+        estado ===
+        'SIN_FECHA'
+      ) {
+
+        clase =
+          'yellow';
+
+        etiqueta =
+          'SIN FECHA';
 
       }
 
       else {
 
-        clase = 'green';
-        etiqueta = 'INICIO NUEVO CONTROL';
-        dias = 0;
+        clase =
+          'green';
+
+        etiqueta =
+          'INICIO NUEVO CONTROL';
+
+        dias =
+          0;
 
       }
 
 
       const nombre =
-        prestamo.clientes?.nombre ||
+        prestamo.clientes
+          ?.nombre ||
         'Cliente';
 
 
@@ -639,6 +716,7 @@ async function cargarClientes() {
       error
     );
 
+
     $('clientesBody')
       .innerHTML =
       `
@@ -650,12 +728,14 @@ async function cargarClientes() {
       </tr>
       `;
 
+
     return;
   }
 
 
   clientesCache =
-    data || [];
+    data ||
+    [];
 
 
   renderClientes(
@@ -695,6 +775,7 @@ function renderClientes(clientes) {
           ? 'ACTIVO'
           : 'INACTIVO';
 
+
       const clase =
         cliente.activo
           ? 'green'
@@ -709,7 +790,9 @@ function renderClientes(clientes) {
 
             <td>
               <strong>
-                ${escapeHtml(cliente.nombre)}
+                ${escapeHtml(
+                  cliente.nombre
+                )}
               </strong>
             </td>
 
@@ -758,6 +841,7 @@ $('nuevoClienteBtn')
         .classList
         .remove('hidden');
 
+
       $('clienteNombre')
         .focus();
 
@@ -774,8 +858,10 @@ $('cancelarClienteBtn')
         .classList
         .add('hidden');
 
+
       $('clienteForm')
         .reset();
+
 
       $('clienteMsg')
         .textContent = '';
@@ -806,6 +892,7 @@ $('buscarCliente')
                 ''
               ).toLowerCase();
 
+
             const documento =
               (
                 cliente.documento ||
@@ -814,8 +901,12 @@ $('buscarCliente')
 
 
             return (
-              nombre.includes(busqueda) ||
-              documento.includes(busqueda)
+              nombre.includes(
+                busqueda
+              ) ||
+              documento.includes(
+                busqueda
+              )
             );
 
           }
@@ -883,7 +974,9 @@ $('clienteForm')
       };
 
 
-      if (!nuevoCliente.nombre) {
+      if (
+        !nuevoCliente.nombre
+      ) {
 
         $('clienteMsg')
           .textContent =
@@ -901,6 +994,7 @@ $('clienteForm')
               nuevoCliente.documento &&
               cliente.documento ===
                 nuevoCliente.documento;
+
 
             const mismoNombre =
               (
@@ -922,7 +1016,9 @@ $('clienteForm')
         );
 
 
-      if (posibleDuplicado) {
+      if (
+        posibleDuplicado
+      ) {
 
         const continuar =
           confirm(
@@ -930,7 +1026,9 @@ $('clienteForm')
           );
 
 
-        if (!continuar) {
+        if (
+          !continuar
+        ) {
 
           $('clienteMsg')
             .textContent =
@@ -942,23 +1040,31 @@ $('clienteForm')
       }
 
 
-      const { error } =
-        await supabase
-          .from('clientes')
-          .insert(nuevoCliente);
+      const {
+        error
+      } =
+      await supabase
+        .from('clientes')
+        .insert(
+          nuevoCliente
+        );
 
 
-      if (error) {
+      if (
+        error
+      ) {
 
         console.error(
           'Error guardando cliente:',
           error
         );
 
+
         $('clienteMsg')
           .textContent =
           'No fue posible guardar: ' +
           error.message;
+
 
         return;
       }
@@ -982,6 +1088,7 @@ $('clienteForm')
           $('clienteFormPanel')
             .classList
             .add('hidden');
+
 
           $('clienteMsg')
             .textContent = '';
@@ -1040,17 +1147,21 @@ async function prepararModuloPrestamos() {
     );
 
 
-  if (error) {
+  if (
+    error
+  ) {
 
     console.error(
       'Error clientes préstamos:',
       error
     );
 
+
     $('prestamoMsg')
       .textContent =
       'No fue posible cargar los clientes: ' +
       error.message;
+
 
     return;
   }
@@ -1074,14 +1185,19 @@ async function prepararModuloPrestamos() {
             'option'
           );
 
+
         option.value =
           cliente.id;
+
 
         option.textContent =
           cliente.nombre;
 
+
         $('prestamoCliente')
-          .appendChild(option);
+          .appendChild(
+            option
+          );
 
       }
     );
@@ -1089,7 +1205,9 @@ async function prepararModuloPrestamos() {
 }
 
 
-/* VERIFICAR DEUDA DEL CLIENTE */
+/* =========================================================
+   VERIFICAR DEUDA DEL CLIENTE
+========================================================= */
 
 $('prestamoCliente')
   .addEventListener(
@@ -1106,11 +1224,14 @@ $('prestamoCliente')
         .classList
         .add('hidden');
 
+
       $('prestamoAdvertencia')
         .textContent = '';
 
 
-      if (!clienteId) {
+      if (
+        !clienteId
+      ) {
         return;
       }
 
@@ -1142,7 +1263,9 @@ $('prestamoCliente')
         );
 
 
-      if (error) {
+      if (
+        error
+      ) {
 
         console.error(
           'Error verificando deuda:',
@@ -1154,20 +1277,27 @@ $('prestamoCliente')
 
 
       const pendientes =
-        data || [];
+        data ||
+        [];
 
 
-      if (!pendientes.length) {
+      if (
+        !pendientes.length
+      ) {
         return;
       }
 
 
       const deuda =
         pendientes.reduce(
-          (total, prestamo) =>
+          (
+            total,
+            prestamo
+          ) =>
             total +
             Number(
-              prestamo.capital_pendiente ||
+              prestamo
+                .capital_pendiente ||
               0
             ),
           0
@@ -1187,7 +1317,9 @@ $('prestamoCliente')
   );
 
 
-/* CÁLCULO */
+/* =========================================================
+   CÁLCULO DEL PRÉSTAMO
+========================================================= */
 
 function actualizarResumenPrestamo() {
 
@@ -1197,6 +1329,7 @@ function actualizarResumenPrestamo() {
         .value ||
       0
     );
+
 
   const tasa =
     Number(
@@ -1208,7 +1341,11 @@ function actualizarResumenPrestamo() {
 
   const interes =
     capital *
-    (tasa / 100);
+    (
+      tasa /
+      100
+    );
+
 
   const total =
     capital +
@@ -1217,19 +1354,30 @@ function actualizarResumenPrestamo() {
 
   $('prestamoInteresEstimado')
     .textContent =
-    money(interes);
+    money(
+      interes
+    );
+
 
   $('prestamoResumenCapital')
     .textContent =
-    money(capital);
+    money(
+      capital
+    );
+
 
   $('prestamoResumenInteres')
     .textContent =
-    money(interes);
+    money(
+      interes
+    );
+
 
   $('prestamoResumenTotal')
     .textContent =
-    money(total);
+    money(
+      total
+    );
 
 }
 
@@ -1256,19 +1404,24 @@ $('limpiarPrestamoBtn')
       $('prestamoForm')
         .reset();
 
+
       $('prestamoFecha')
         .value =
         fechaHoyLocal();
+
 
       $('prestamoAdvertencia')
         .classList
         .add('hidden');
 
+
       $('prestamoAdvertencia')
         .textContent = '';
 
+
       $('prestamoMsg')
         .textContent = '';
+
 
       actualizarResumenPrestamo();
 
@@ -1276,7 +1429,9 @@ $('limpiarPrestamoBtn')
   );
 
 
-/* GUARDAR PRÉSTAMO */
+/* =========================================================
+   GUARDAR PRÉSTAMO
+========================================================= */
 
 $('prestamoForm')
   .addEventListener(
@@ -1292,15 +1447,18 @@ $('prestamoForm')
             .value
         );
 
+
       const socioId =
         Number(
           $('prestamoSocio')
             .value
         );
 
+
       const fechaPrestamo =
         $('prestamoFecha')
           .value;
+
 
       const capital =
         Number(
@@ -1309,6 +1467,7 @@ $('prestamoForm')
           0
         );
 
+
       const tasa =
         Number(
           $('prestamoTasa')
@@ -1316,9 +1475,11 @@ $('prestamoForm')
           0
         );
 
+
       const fechaProximoPago =
         $('prestamoProximoPago')
           .value;
+
 
       const observaciones =
         $('prestamoObservaciones')
@@ -1343,7 +1504,9 @@ $('prestamoForm')
 
 
       if (
-        !Number.isFinite(capital) ||
+        !Number.isFinite(
+          capital
+        ) ||
         capital <= 0
       ) {
 
@@ -1356,7 +1519,9 @@ $('prestamoForm')
 
 
       if (
-        !Number.isFinite(tasa) ||
+        !Number.isFinite(
+          tasa
+        ) ||
         tasa < 0
       ) {
 
@@ -1411,7 +1576,10 @@ $('prestamoForm')
 
       const interes =
         capital *
-        (tasa / 100);
+        (
+          tasa /
+          100
+        );
 
 
       const confirmar =
@@ -1429,7 +1597,9 @@ $('prestamoForm')
         );
 
 
-      if (!confirmar) {
+      if (
+        !confirmar
+      ) {
 
         $('prestamoMsg')
           .textContent =
@@ -1488,17 +1658,21 @@ $('prestamoForm')
         false;
 
 
-      if (error) {
+      if (
+        error
+      ) {
 
         console.error(
           'Error registrando préstamo:',
           error
         );
 
+
         $('prestamoMsg')
           .textContent =
           'No fue posible registrar el préstamo: ' +
           error.message;
+
 
         return;
       }
@@ -1553,9 +1727,27 @@ async function prepararModuloPagos() {
     fechaHoyLocal();
 
 
-  $('pagoTotal')
-    .textContent =
-    money(0);
+  $('pagoInteres')
+    .value =
+    '0';
+
+
+  $('pagoCapital')
+    .value =
+    '0';
+
+
+  $('pagoTerceros')
+    .value =
+    '0';
+
+
+  $('pagoReferenciaTercero')
+    .value =
+    '';
+
+
+  actualizarTotalesPago();
 
 
   $('pagoAdvertencia')
@@ -1587,17 +1779,21 @@ async function prepararModuloPagos() {
     );
 
 
-  if (error) {
+  if (
+    error
+  ) {
 
     console.error(
       'Error clientes pagos:',
       error
     );
 
+
     $('pagoMsg')
       .textContent =
       'No fue posible cargar los clientes: ' +
       error.message;
+
 
     return;
   }
@@ -1621,14 +1817,19 @@ async function prepararModuloPagos() {
             'option'
           );
 
+
         option.value =
           cliente.id;
+
 
         option.textContent =
           cliente.nombre;
 
+
         $('pagoCliente')
-          .appendChild(option);
+          .appendChild(
+            option
+          );
 
       }
     );
@@ -1636,7 +1837,9 @@ async function prepararModuloPagos() {
 }
 
 
-/* CLIENTE DEL PAGO */
+/* =========================================================
+   CLIENTE DEL PAGO
+========================================================= */
 
 $('pagoCliente')
   .addEventListener(
@@ -1649,7 +1852,8 @@ $('pagoCliente')
         );
 
 
-      prestamosPagoCache = [];
+      prestamosPagoCache =
+        [];
 
 
       $('pagoPrestamo')
@@ -1662,7 +1866,9 @@ $('pagoCliente')
         .add('hidden');
 
 
-      if (!clienteId) {
+      if (
+        !clienteId
+      ) {
 
         $('pagoPrestamo')
           .innerHTML =
@@ -1671,6 +1877,7 @@ $('pagoCliente')
             Primero seleccione un cliente
           </option>
           `;
+
 
         return;
       }
@@ -1723,12 +1930,15 @@ $('pagoCliente')
         );
 
 
-      if (error) {
+      if (
+        error
+      ) {
 
         console.error(
           'Error préstamos:',
           error
         );
+
 
         $('pagoPrestamo')
           .innerHTML =
@@ -1738,17 +1948,20 @@ $('pagoCliente')
           </option>
           `;
 
+
         $('pagoMsg')
           .textContent =
           'No fue posible consultar los préstamos: ' +
           error.message;
+
 
         return;
       }
 
 
       prestamosPagoCache =
-        data || [];
+        data ||
+        [];
 
 
       $('pagoPrestamo')
@@ -1760,7 +1973,9 @@ $('pagoCliente')
         `;
 
 
-      if (!prestamosPagoCache.length) {
+      if (
+        !prestamosPagoCache.length
+      ) {
 
         $('pagoPrestamo')
           .innerHTML =
@@ -1770,9 +1985,11 @@ $('pagoCliente')
           </option>
           `;
 
+
         $('pagoMsg')
           .textContent =
           'El cliente seleccionado no tiene capital pendiente.';
+
 
         return;
       }
@@ -1786,6 +2003,7 @@ $('pagoCliente')
               document.createElement(
                 'option'
               );
+
 
             option.value =
               prestamo.id;
@@ -1802,7 +2020,9 @@ $('pagoCliente')
 
 
             $('pagoPrestamo')
-              .appendChild(option);
+              .appendChild(
+                option
+              );
 
           }
         );
@@ -1819,6 +2039,10 @@ $('pagoCliente')
     }
   );
 
+
+/* =========================================================
+   INFORMACIÓN DEL PRÉSTAMO SELECCIONADO
+========================================================= */
 
 $('pagoPrestamo')
   .addEventListener(
@@ -1840,21 +2064,27 @@ $('pagoPrestamo')
         );
 
 
-      if (!prestamo) {
+      if (
+        !prestamo
+      ) {
 
         $('pagoAdvertencia')
           .classList
           .add('hidden');
 
+
         return;
       }
 
 
-      if (!prestamo.control_nuevo) {
+      if (
+        !prestamo.control_nuevo
+      ) {
 
         $('pagoAdvertencia')
           .textContent =
           `Préstamo del Punto Cero. Fecha original: ${mostrarFecha(prestamo.fecha_prestamo)}. Capital actual registrado: ${money(prestamo.capital_pendiente)}.`;
+
 
         $('pagoAdvertencia')
           .classList
@@ -1874,7 +2104,11 @@ $('pagoPrestamo')
   );
 
 
-function actualizarTotalPago() {
+/* =========================================================
+   TOTALES DEL PAGO
+========================================================= */
+
+function actualizarTotalesPago() {
 
   const interes =
     Number(
@@ -1882,6 +2116,7 @@ function actualizarTotalPago() {
         .value ||
       0
     );
+
 
   const capital =
     Number(
@@ -1891,11 +2126,49 @@ function actualizarTotalPago() {
     );
 
 
+  const terceros =
+    Number(
+      $('pagoTerceros')
+        .value ||
+      0
+    );
+
+
+  const totalEmpresa =
+    interes +
+    capital;
+
+
+  const totalFisico =
+    totalEmpresa +
+    terceros;
+
+
   $('pagoTotal')
     .textContent =
     money(
-      interes +
-      capital
+      totalEmpresa
+    );
+
+
+  $('pagoTotalEmpresa')
+    .textContent =
+    money(
+      totalEmpresa
+    );
+
+
+  $('pagoTotalTerceros')
+    .textContent =
+    money(
+      terceros
+    );
+
+
+  $('pagoTotalFisico')
+    .textContent =
+    money(
+      totalFisico
     );
 
 }
@@ -1904,16 +2177,27 @@ function actualizarTotalPago() {
 $('pagoInteres')
   .addEventListener(
     'input',
-    actualizarTotalPago
+    actualizarTotalesPago
   );
 
 
 $('pagoCapital')
   .addEventListener(
     'input',
-    actualizarTotalPago
+    actualizarTotalesPago
   );
 
+
+$('pagoTerceros')
+  .addEventListener(
+    'input',
+    actualizarTotalesPago
+  );
+
+
+/* =========================================================
+   LIMPIAR PAGO
+========================================================= */
 
 $('limpiarPagoBtn')
   .addEventListener(
@@ -1923,9 +2207,31 @@ $('limpiarPagoBtn')
       $('pagoForm')
         .reset();
 
+
       $('pagoFecha')
         .value =
         fechaHoyLocal();
+
+
+      $('pagoInteres')
+        .value =
+        '0';
+
+
+      $('pagoCapital')
+        .value =
+        '0';
+
+
+      $('pagoTerceros')
+        .value =
+        '0';
+
+
+      $('pagoReferenciaTercero')
+        .value =
+        '';
+
 
       $('pagoPrestamo')
         .innerHTML =
@@ -1935,19 +2241,23 @@ $('limpiarPagoBtn')
         </option>
         `;
 
+
       $('pagoPrestamo')
         .disabled =
         true;
 
-      prestamosPagoCache = [];
 
-      $('pagoTotal')
-        .textContent =
-        money(0);
+      prestamosPagoCache =
+        [];
+
+
+      actualizarTotalesPago();
+
 
       $('pagoAdvertencia')
         .classList
         .add('hidden');
+
 
       $('pagoMsg')
         .textContent = '';
@@ -1956,7 +2266,9 @@ $('limpiarPagoBtn')
   );
 
 
-/* GUARDAR PAGO */
+/* =========================================================
+   GUARDAR PAGO
+========================================================= */
 
 $('pagoForm')
   .addEventListener(
@@ -1968,36 +2280,65 @@ $('pagoForm')
 
       const clienteId =
         Number(
-          $('pagoCliente').value
+          $('pagoCliente')
+            .value
         );
+
 
       const prestamoId =
         Number(
-          $('pagoPrestamo').value
+          $('pagoPrestamo')
+            .value
         );
+
 
       const receptorId =
         Number(
-          $('pagoReceptor').value
+          $('pagoReceptor')
+            .value
         );
 
+
       const fecha =
-        $('pagoFecha').value;
+        $('pagoFecha')
+          .value;
+
 
       const interes =
         Number(
-          $('pagoInteres').value ||
+          $('pagoInteres')
+            .value ||
           0
         );
+
 
       const capital =
         Number(
-          $('pagoCapital').value ||
+          $('pagoCapital')
+            .value ||
           0
         );
 
+
+      const terceros =
+        Number(
+          $('pagoTerceros')
+            .value ||
+          0
+        );
+
+
       const medio =
-        $('pagoMedio').value;
+        $('pagoMedio')
+          .value;
+
+
+      const referenciaTercero =
+        $('pagoReferenciaTercero')
+          .value
+          .trim() ||
+        null;
+
 
       const observaciones =
         $('pagoObservaciones')
@@ -2017,18 +2358,21 @@ $('pagoForm')
           .textContent =
           'Complete cliente, préstamo, fecha y quién recibió el dinero.';
 
+
         return;
       }
 
 
       if (
         interes < 0 ||
-        capital < 0
+        capital < 0 ||
+        terceros < 0
       ) {
 
         $('pagoMsg')
           .textContent =
           'Los valores no pueden ser negativos.';
+
 
         return;
       }
@@ -2041,9 +2385,35 @@ $('pagoForm')
 
         $('pagoMsg')
           .textContent =
-          'Debe registrar un valor de interés, capital o ambos.';
+          'El pago de A&J debe contener interés, capital o ambos. El dinero de terceros no reemplaza el pago del cliente.';
+
 
         return;
+      }
+
+
+      if (
+        terceros > 0 &&
+        !referenciaTercero
+      ) {
+
+        const continuarSinReferencia =
+          confirm(
+            'Registró dinero de terceros pero no indicó de quién es.\n\n¿Desea continuar y dejar la referencia sin identificar?'
+          );
+
+
+        if (
+          !continuarSinReferencia
+        ) {
+
+          $('pagoReferenciaTercero')
+            .focus();
+
+
+          return;
+        }
+
       }
 
 
@@ -2055,11 +2425,14 @@ $('pagoForm')
         );
 
 
-      if (!prestamo) {
+      if (
+        !prestamo
+      ) {
 
         $('pagoMsg')
           .textContent =
           'No se pudo validar el préstamo seleccionado.';
+
 
         return;
       }
@@ -2068,7 +2441,8 @@ $('pagoForm')
       if (
         capital >
         Number(
-          prestamo.capital_pendiente ||
+          prestamo
+            .capital_pendiente ||
           0
         )
       ) {
@@ -2077,13 +2451,19 @@ $('pagoForm')
           .textContent =
           'El abono a capital supera el capital pendiente del préstamo.';
 
+
         return;
       }
 
 
-      const total =
+      const totalEmpresa =
         interes +
         capital;
+
+
+      const totalFisico =
+        totalEmpresa +
+        terceros;
 
 
       const cliente =
@@ -2101,24 +2481,48 @@ $('pagoForm')
           : 'Juan';
 
 
+      let mensajeConfirmacion =
+        `CONFIRMAR PAGO\n\n` +
+        `Cliente: ${cliente}\n` +
+        `Fecha: ${mostrarFecha(fecha)}\n\n` +
+        `A&J CAPITAL\n` +
+        `Interés: ${money(interes)}\n` +
+        `Capital: ${money(capital)}\n` +
+        `Total A&J: ${money(totalEmpresa)}\n\n`;
+
+
+      if (
+        terceros > 0
+      ) {
+
+        mensajeConfirmacion +=
+          `DINERO DE TERCEROS\n` +
+          `Valor adicional: ${money(terceros)}\n` +
+          `Referencia: ${referenciaTercero || 'Sin identificar'}\n\n`;
+
+      }
+
+
+      mensajeConfirmacion +=
+        `TOTAL QUE ENTRÓ A LA CUENTA: ${money(totalFisico)}\n` +
+        `Recibido por: ${receptor}\n\n` +
+        `¿Los datos son correctos?`;
+
+
       const confirmar =
         confirm(
-          `CONFIRMAR PAGO\n\n` +
-          `Cliente: ${cliente}\n` +
-          `Fecha: ${mostrarFecha(fecha)}\n` +
-          `Interés: ${money(interes)}\n` +
-          `Capital: ${money(capital)}\n` +
-          `Total recibido: ${money(total)}\n` +
-          `Recibido por: ${receptor}\n\n` +
-          `¿Los datos son correctos?`
+          mensajeConfirmacion
         );
 
 
-      if (!confirmar) {
+      if (
+        !confirmar
+      ) {
 
         $('pagoMsg')
           .textContent =
           'Registro cancelado. Revise los datos.';
+
 
         return;
       }
@@ -2131,12 +2535,18 @@ $('pagoForm')
 
       $('pagoMsg')
         .textContent =
-        'Registrando pago...';
+        'Registrando pago de A&J...';
 
+
+      /*
+       * PASO 1
+       * Registrar exclusivamente el dinero que pertenece
+       * a A&J CAPITAL.
+       */
 
       const {
-        data,
-        error
+        data: pagoId,
+        error: errorPago
       } =
       await supabase
         .rpc(
@@ -2168,50 +2578,172 @@ $('pagoForm')
         );
 
 
-      $('guardarPagoBtn')
-        .disabled =
-        false;
+      if (
+        errorPago
+      ) {
 
+        $('guardarPagoBtn')
+          .disabled =
+          false;
 
-      if (error) {
 
         console.error(
           'Error registrando pago:',
-          error
+          errorPago
         );
+
 
         $('pagoMsg')
           .textContent =
           'No fue posible registrar el pago: ' +
-          error.message;
+          errorPago.message;
+
 
         return;
       }
 
 
-      console.log(
-        'Pago registrado:',
-        data
-      );
+      /*
+       * PASO 2
+       * Si existe dinero adicional de terceros,
+       * registrarlo en la cuenta auxiliar.
+       */
+
+      let terceroRegistrado =
+        false;
 
 
-      $('pagoMsg')
-        .textContent =
-        `Pago registrado correctamente. Total recibido: ${money(total)}.`;
+      if (
+        terceros > 0
+      ) {
+
+        $('pagoMsg')
+          .textContent =
+          'Pago A&J registrado. Guardando dinero de terceros...';
 
 
-      $('pagoInteres').value =
+        const {
+          error: errorTercero
+        } =
+        await supabase
+          .rpc(
+            'registrar_dinero_tercero_aj',
+            {
+
+              p_socio_id:
+                receptorId,
+
+              p_fecha:
+                fecha,
+
+              p_valor:
+                terceros,
+
+              p_cliente_id:
+                clienteId,
+
+              p_pago_id:
+                Number(pagoId),
+
+              p_referencia:
+                referenciaTercero,
+
+              p_observaciones:
+                observaciones
+
+            }
+          );
+
+
+        if (
+          errorTercero
+        ) {
+
+          $('guardarPagoBtn')
+            .disabled =
+            false;
+
+
+          console.error(
+            'Pago A&J registrado, pero error en dinero de terceros:',
+            errorTercero
+          );
+
+
+          $('pagoMsg')
+            .textContent =
+            `ATENCIÓN: el pago A&J #${pagoId} sí quedó registrado por ${money(totalEmpresa)}, pero el dinero adicional de terceros por ${money(terceros)} NO pudo registrarse. No vuelva a registrar el pago del cliente. Revise el movimiento de terceros. Error: ${errorTercero.message}`;
+
+
+          await cargarDashboard();
+
+
+          return;
+        }
+
+
+        terceroRegistrado =
+          true;
+
+      }
+
+
+      $('guardarPagoBtn')
+        .disabled =
+        false;
+
+
+      if (
+        terceroRegistrado
+      ) {
+
+        $('pagoMsg')
+          .textContent =
+          `Registro correcto. A&J: ${money(totalEmpresa)}. Dinero de terceros: ${money(terceros)}. Total físico recibido: ${money(totalFisico)}.`;
+
+      }
+
+      else {
+
+        $('pagoMsg')
+          .textContent =
+          `Pago registrado correctamente. Total A&J recibido: ${money(totalEmpresa)}.`;
+
+      }
+
+
+      /*
+       * LIMPIAR SOLO VALORES.
+       * Se conserva cliente/préstamo para facilitar
+       * registros consecutivos si fueran necesarios.
+       */
+
+      $('pagoInteres')
+        .value =
         '0';
 
-      $('pagoCapital').value =
+
+      $('pagoCapital')
+        .value =
         '0';
 
-      $('pagoObservaciones').value =
+
+      $('pagoTerceros')
+        .value =
+        '0';
+
+
+      $('pagoReferenciaTercero')
+        .value =
         '';
 
-      $('pagoTotal')
-        .textContent =
-        money(0);
+
+      $('pagoObservaciones')
+        .value =
+        '';
+
+
+      actualizarTotalesPago();
 
 
       await cargarDashboard();
@@ -2249,24 +2781,29 @@ async function prepararHistorial() {
     );
 
 
-  if (error) {
+  if (
+    error
+  ) {
 
     console.error(
       'Error clientes historial:',
       error
     );
 
+
     $('historialMsg')
       .textContent =
       'No fue posible cargar los clientes: ' +
       error.message;
+
 
     return;
   }
 
 
   const clienteActual =
-    $('historialCliente').value;
+    $('historialCliente')
+      .value;
 
 
   $('historialCliente')
@@ -2287,22 +2824,30 @@ async function prepararHistorial() {
             'option'
           );
 
+
         option.value =
           cliente.id;
+
 
         option.textContent =
           cliente.nombre;
 
+
         $('historialCliente')
-          .appendChild(option);
+          .appendChild(
+            option
+          );
 
       }
     );
 
 
-  if (clienteActual) {
+  if (
+    clienteActual
+  ) {
 
-    $('historialCliente').value =
+    $('historialCliente')
+      .value =
       clienteActual;
 
   }
@@ -2336,16 +2881,23 @@ async function cargarHistorial() {
 
 
   const desde =
-    $('historialDesde').value;
+    $('historialDesde')
+      .value;
+
 
   const hasta =
-    $('historialHasta').value;
+    $('historialHasta')
+      .value;
+
 
   const clienteId =
-    $('historialCliente').value;
+    $('historialCliente')
+      .value;
+
 
   const receptorId =
-    $('historialReceptor').value;
+    $('historialReceptor')
+      .value;
 
 
   if (
@@ -2358,13 +2910,16 @@ async function cargarHistorial() {
       .textContent =
       'La fecha inicial no puede ser posterior a la fecha final.';
 
+
     return;
   }
 
 
   let consulta =
     supabase
-      .from('historial_pagos_aj')
+      .from(
+        'historial_pagos_aj'
+      )
       .select('*')
       .order(
         'fecha_pago',
@@ -2380,7 +2935,9 @@ async function cargarHistorial() {
       );
 
 
-  if (desde) {
+  if (
+    desde
+  ) {
 
     consulta =
       consulta.gte(
@@ -2391,7 +2948,9 @@ async function cargarHistorial() {
   }
 
 
-  if (hasta) {
+  if (
+    hasta
+  ) {
 
     consulta =
       consulta.lte(
@@ -2402,23 +2961,31 @@ async function cargarHistorial() {
   }
 
 
-  if (clienteId) {
+  if (
+    clienteId
+  ) {
 
     consulta =
       consulta.eq(
         'cliente_id',
-        Number(clienteId)
+        Number(
+          clienteId
+        )
       );
 
   }
 
 
-  if (receptorId) {
+  if (
+    receptorId
+  ) {
 
     consulta =
       consulta.eq(
         'socio_receptor_id',
-        Number(receptorId)
+        Number(
+          receptorId
+        )
       );
 
   }
@@ -2431,24 +2998,29 @@ async function cargarHistorial() {
   await consulta;
 
 
-  if (error) {
+  if (
+    error
+  ) {
 
     console.error(
       'Error historial:',
       error
     );
 
+
     $('historialMsg')
       .textContent =
       'No fue posible consultar el historial: ' +
       error.message;
+
 
     return;
   }
 
 
   const movimientos =
-    data || [];
+    data ||
+    [];
 
 
   renderHistorial(
@@ -2465,7 +3037,9 @@ async function cargarHistorial() {
 }
 
 
-function renderHistorial(movimientos) {
+function renderHistorial(
+  movimientos
+) {
 
   $('historialBody')
     .innerHTML = '';
@@ -2480,10 +3054,14 @@ function renderHistorial(movimientos) {
 
   const intereses =
     validos.reduce(
-      (total, movimiento) =>
+      (
+        total,
+        movimiento
+      ) =>
         total +
         Number(
-          movimiento.valor_interes ||
+          movimiento
+            .valor_interes ||
           0
         ),
       0
@@ -2492,10 +3070,14 @@ function renderHistorial(movimientos) {
 
   const capital =
     validos.reduce(
-      (total, movimiento) =>
+      (
+        total,
+        movimiento
+      ) =>
         total +
         Number(
-          movimiento.valor_capital ||
+          movimiento
+            .valor_capital ||
           0
         ),
       0
@@ -2504,10 +3086,14 @@ function renderHistorial(movimientos) {
 
   const total =
     validos.reduce(
-      (suma, movimiento) =>
+      (
+        suma,
+        movimiento
+      ) =>
         suma +
         Number(
-          movimiento.valor_total ||
+          movimiento
+            .valor_total ||
           0
         ),
       0
@@ -2516,15 +3102,24 @@ function renderHistorial(movimientos) {
 
   $('historialIntereses')
     .textContent =
-    money(intereses);
+    money(
+      intereses
+    );
+
 
   $('historialCapital')
     .textContent =
-    money(capital);
+    money(
+      capital
+    );
+
 
   $('historialTotal')
     .textContent =
-    money(total);
+    money(
+      total
+    );
+
 
   $('historialCantidad')
     .textContent =
@@ -2533,7 +3128,9 @@ function renderHistorial(movimientos) {
     );
 
 
-  if (!movimientos.length) {
+  if (
+    !movimientos.length
+  ) {
 
     $('historialBody')
       .innerHTML =
@@ -2544,6 +3141,7 @@ function renderHistorial(movimientos) {
         </td>
       </tr>
       `;
+
 
     return;
   }
@@ -2557,10 +3155,12 @@ function renderHistorial(movimientos) {
           movimiento.anulado
         );
 
+
       const clase =
         anulado
           ? 'red'
           : 'green';
+
 
       const estado =
         anulado
@@ -2655,10 +3255,25 @@ $('limpiarHistorialBtn')
     'click',
     async () => {
 
-      $('historialDesde').value = '';
-      $('historialHasta').value = '';
-      $('historialCliente').value = '';
-      $('historialReceptor').value = '';
+      $('historialDesde')
+        .value =
+        '';
+
+
+      $('historialHasta')
+        .value =
+        '';
+
+
+      $('historialCliente')
+        .value =
+        '';
+
+
+      $('historialReceptor')
+        .value =
+        '';
+
 
       await cargarHistorial();
 
@@ -2671,7 +3286,9 @@ $('limpiarHistorialBtn')
 ========================================================= */
 
 document
-  .querySelectorAll('.nav')
+  .querySelectorAll(
+    '.nav'
+  )
   .forEach(
     boton => {
 
@@ -2681,97 +3298,151 @@ document
 
 
           document
-            .querySelectorAll('.nav')
+            .querySelectorAll(
+              '.nav'
+            )
             .forEach(
               item =>
-                item.classList
-                  .remove('active')
+                item
+                  .classList
+                  .remove(
+                    'active'
+                  )
             );
 
 
           boton
             .classList
-            .add('active');
+            .add(
+              'active'
+            );
 
 
           $('inicio')
             .classList
-            .add('hidden');
+            .add(
+              'hidden'
+            );
+
 
           $('clientes')
             .classList
-            .add('hidden');
+            .add(
+              'hidden'
+            );
+
 
           $('prestamos')
             .classList
-            .add('hidden');
+            .add(
+              'hidden'
+            );
+
 
           $('pagos')
             .classList
-            .add('hidden');
+            .add(
+              'hidden'
+            );
+
 
           $('historial')
             .classList
-            .add('hidden');
+            .add(
+              'hidden'
+            );
+
 
           $('placeholder')
             .classList
-            .add('hidden');
+            .add(
+              'hidden'
+            );
 
 
           const pagina =
             boton.dataset.page;
 
 
-          if (pagina === 'inicio') {
+          if (
+            pagina ===
+            'inicio'
+          ) {
 
             $('inicio')
               .classList
-              .remove('hidden');
+              .remove(
+                'hidden'
+              );
+
 
             await cargarDashboard();
 
           }
 
 
-          else if (pagina === 'clientes') {
+          else if (
+            pagina ===
+            'clientes'
+          ) {
 
             $('clientes')
               .classList
-              .remove('hidden');
+              .remove(
+                'hidden'
+              );
+
 
             await cargarClientes();
 
           }
 
 
-          else if (pagina === 'prestamos') {
+          else if (
+            pagina ===
+            'prestamos'
+          ) {
 
             $('prestamos')
               .classList
-              .remove('hidden');
+              .remove(
+                'hidden'
+              );
+
 
             await prepararModuloPrestamos();
 
           }
 
 
-          else if (pagina === 'pagos') {
+          else if (
+            pagina ===
+            'pagos'
+          ) {
 
             $('pagos')
               .classList
-              .remove('hidden');
+              .remove(
+                'hidden'
+              );
+
 
             await prepararModuloPagos();
 
           }
 
 
-          else if (pagina === 'historial') {
+          else if (
+            pagina ===
+            'historial'
+          ) {
 
             $('historial')
               .classList
-              .remove('hidden');
+              .remove(
+                'hidden'
+              );
+
 
             await prepararHistorial();
 
@@ -2782,11 +3453,15 @@ document
 
             $('placeholder')
               .classList
-              .remove('hidden');
+              .remove(
+                'hidden'
+              );
+
 
             $('placeholderTitle')
               .textContent =
-              boton.textContent.trim();
+              boton.textContent
+                .trim();
 
           }
 
