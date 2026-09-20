@@ -73,8 +73,27 @@ function fechaHoyLocal() {
 }
 
 
+function mostrarFecha(fecha) {
+
+  if (!fecha) {
+    return '—';
+  }
+
+  const partes =
+    String(fecha)
+      .split('-');
+
+  if (partes.length !== 3) {
+    return fecha;
+  }
+
+  return `${partes[2]}/${partes[1]}/${partes[0]}`;
+
+}
+
+
 /* =========================================================
-   VARIABLES GENERALES
+   VARIABLES
 ========================================================= */
 
 let clientesCache = [];
@@ -131,7 +150,6 @@ $('loginForm')
     async event => {
 
       event.preventDefault();
-
 
       $('loginMsg').textContent =
         'Ingresando...';
@@ -223,6 +241,7 @@ async function cargarDashboard() {
   const [
     capitalRes,
     cicloRes,
+    prestamosRes,
     semaforoRes
   ] =
   await Promise.all([
@@ -238,19 +257,46 @@ async function cargarDashboard() {
       .single(),
 
     supabase
-      .from('semaforo_operativo_aj')
-      .select('*')
+      .from('prestamos')
+      .select(
+        `
+        id,
+        cliente_id,
+        fecha_prestamo,
+        capital_inicial,
+        capital_pendiente,
+        estado,
+        control_nuevo,
+        clientes (
+          nombre
+        )
+        `
+      )
+      .gt(
+        'capital_pendiente',
+        0
+      )
+      .neq(
+        'estado',
+        'CANCELADO'
+      )
       .order(
-        'nombre',
+        'fecha_prestamo',
         {
           ascending: true
         }
-      )
+      ),
+
+    supabase
+      .from('semaforo_operativo_aj')
+      .select('*')
 
   ]);
 
 
-  /* CAPITAL */
+  /* =======================================================
+     CAPITAL TOTAL
+  ======================================================= */
 
   if (capitalRes.error) {
 
@@ -279,7 +325,9 @@ async function cargarDashboard() {
   }
 
 
-  /* CICLO */
+  /* =======================================================
+     CICLO
+  ======================================================= */
 
   if (cicloRes.error) {
 
@@ -336,12 +384,24 @@ async function cargarDashboard() {
 
     $('cycleText')
       .textContent =
-      `Ciclo actual: ${ciclo.fecha_inicio} → ${ciclo.fecha_fin}`;
+      `Ciclo actual: ${mostrarFecha(ciclo.fecha_inicio)} → ${mostrarFecha(ciclo.fecha_fin)}`;
 
   }
 
 
-  /* SEMÁFORO */
+  /* =======================================================
+     PRÉSTAMOS
+  ======================================================= */
+
+  if (prestamosRes.error) {
+
+    console.error(
+      'Error préstamos dashboard:',
+      prestamosRes.error
+    );
+
+  }
+
 
   if (semaforoRes.error) {
 
@@ -353,12 +413,21 @@ async function cargarDashboard() {
   }
 
 
-  const cartera =
+  const prestamos =
+    prestamosRes.data || [];
+
+
+  const semaforos =
     semaforoRes.data || [];
 
 
+  /* =======================================================
+     CARTERA VENCIDA
+     SOLO DESDE EL NUEVO CONTROL
+  ======================================================= */
+
   const capitalVencido =
-    cartera
+    semaforos
       .filter(
         registro =>
           registro.semaforo ===
@@ -367,13 +436,26 @@ async function cargarDashboard() {
             'MORA_PROLONGADA'
       )
       .reduce(
-        (total, registro) =>
-          total +
-          Number(
-            registro
-              .saldo_historico_referencia ||
-            0
-          ),
+        (total, registro) => {
+
+          const prestamo =
+            prestamos.find(
+              item =>
+                Number(item.id) ===
+                Number(
+                  registro.prestamo_id
+                )
+            );
+
+
+          return total +
+            Number(
+              prestamo
+                ?.capital_pendiente ||
+              0
+            );
+
+        },
         0
       );
 
@@ -385,19 +467,25 @@ async function cargarDashboard() {
     );
 
 
+  /* =======================================================
+     TABLA DE CARTERA
+  ======================================================= */
+
   $('carteraBody')
     .innerHTML = '';
 
 
-  if (!cartera.length) {
+  if (!prestamos.length) {
 
     $('carteraBody')
       .innerHTML =
       `
       <tr>
-        <td colspan="4">
-          No hay cartera para mostrar.
+
+        <td colspan="5">
+          No hay cartera pendiente.
         </td>
+
       </tr>
       `;
 
@@ -405,18 +493,31 @@ async function cargarDashboard() {
   }
 
 
-  cartera.forEach(
-    registro => {
+  prestamos.forEach(
+    prestamo => {
 
-      const estado =
-        registro.semaforo ||
+      const semaforo =
+        semaforos.find(
+          item =>
+            Number(
+              item.prestamo_id
+            ) ===
+            Number(
+              prestamo.id
+            )
+        );
+
+
+      let estado =
+        semaforo
+          ?.semaforo ||
         'INICIO_CONTROL';
 
 
-      const dias =
+      let dias =
         Number(
-          registro
-            .dias_mora_control_nuevo ||
+          semaforo
+            ?.dias_mora_control_nuevo ||
           0
         );
 
@@ -426,7 +527,7 @@ async function cargarDashboard() {
 
 
       let etiqueta =
-        estado;
+        'INICIO NUEVO CONTROL';
 
 
       if (
@@ -507,10 +608,7 @@ async function cargarDashboard() {
 
       }
 
-      else if (
-        estado ===
-        'INICIO_CONTROL'
-      ) {
+      else {
 
         clase =
           'green';
@@ -518,7 +616,16 @@ async function cargarDashboard() {
         etiqueta =
           'INICIO NUEVO CONTROL';
 
+        dias =
+          0;
+
       }
+
+
+      const nombre =
+        prestamo.clientes
+          ?.nombre ||
+        'Cliente';
 
 
       $('carteraBody')
@@ -528,15 +635,28 @@ async function cargarDashboard() {
           <tr>
 
             <td>
-              ${escapeHtml(
-                registro.nombre
-              )}
+
+              <strong>
+                ${escapeHtml(nombre)}
+              </strong>
+
             </td>
 
             <td>
-              ${money(
-                registro
-                  .saldo_historico_referencia
+
+              <strong>
+                ${money(
+                  prestamo
+                    .capital_pendiente
+                )}
+              </strong>
+
+            </td>
+
+            <td>
+              ${mostrarFecha(
+                prestamo
+                  .fecha_prestamo
               )}
             </td>
 
@@ -620,12 +740,16 @@ async function cargarClientes() {
       .innerHTML =
       `
       <tr>
+
         <td colspan="5">
+
           Error cargando clientes:
           ${escapeHtml(
             error.message
           )}
+
         </td>
+
       </tr>
       `;
 
@@ -645,7 +769,7 @@ async function cargarClientes() {
 
 
 /* =========================================================
-   RENDER CLIENTES
+   MOSTRAR CLIENTES
 ========================================================= */
 
 function renderClientes(clientes) {
@@ -660,9 +784,11 @@ function renderClientes(clientes) {
       .innerHTML =
       `
       <tr>
+
         <td colspan="5">
           No hay clientes para mostrar.
         </td>
+
       </tr>
       `;
 
@@ -692,11 +818,13 @@ function renderClientes(clientes) {
           <tr>
 
             <td>
+
               <strong>
                 ${escapeHtml(
                   cliente.nombre
                 )}
               </strong>
+
             </td>
 
             <td>
@@ -714,9 +842,8 @@ function renderClientes(clientes) {
             </td>
 
             <td>
-              ${escapeHtml(
-                cliente.fecha_registro ||
-                '—'
+              ${mostrarFecha(
+                cliente.fecha_registro
               )}
             </td>
 
@@ -807,14 +934,16 @@ $('buscarCliente')
               (
                 cliente.nombre ||
                 ''
-              ).toLowerCase();
+              )
+                .toLowerCase();
 
 
             const documento =
               (
                 cliente.documento ||
                 ''
-              ).toLowerCase();
+              )
+                .toLowerCase();
 
 
             return (
@@ -1042,8 +1171,6 @@ async function prepararModuloPagos() {
     .add('hidden');
 
 
-  /* CARGAR CLIENTES */
-
   const {
     data,
     error
@@ -1087,10 +1214,6 @@ async function prepararModuloPagos() {
   }
 
 
-  const clientes =
-    data || [];
-
-
   $('pagoCliente')
     .innerHTML =
     `
@@ -1100,30 +1223,31 @@ async function prepararModuloPagos() {
     `;
 
 
-  clientes.forEach(
-    cliente => {
+  (data || [])
+    .forEach(
+      cliente => {
 
-      const option =
-        document.createElement(
-          'option'
-        );
-
-
-      option.value =
-        cliente.id;
+        const option =
+          document.createElement(
+            'option'
+          );
 
 
-      option.textContent =
-        cliente.nombre;
+        option.value =
+          cliente.id;
 
 
-      $('pagoCliente')
-        .appendChild(
-          option
-        );
+        option.textContent =
+          cliente.nombre;
 
-    }
-  );
+
+        $('pagoCliente')
+          .appendChild(
+            option
+          );
+
+      }
+    );
 
 }
 
@@ -1144,15 +1268,6 @@ $('pagoCliente')
 
 
       prestamosPagoCache = [];
-
-
-      $('pagoPrestamo')
-        .innerHTML =
-        `
-        <option value="">
-          Cargando préstamos...
-        </option>
-        `;
 
 
       $('pagoPrestamo')
@@ -1179,6 +1294,15 @@ $('pagoCliente')
       }
 
 
+      $('pagoPrestamo')
+        .innerHTML =
+        `
+        <option value="">
+          Cargando préstamos...
+        </option>
+        `;
+
+
       const {
         data,
         error
@@ -1202,6 +1326,10 @@ $('pagoCliente')
         .eq(
           'cliente_id',
           clienteId
+        )
+        .gt(
+          'capital_pendiente',
+          0
         )
         .neq(
           'estado',
@@ -1262,14 +1390,14 @@ $('pagoCliente')
           .innerHTML =
           `
           <option value="">
-            Este cliente no tiene préstamos registrados
+            No tiene préstamos pendientes
           </option>
           `;
 
 
         $('pagoMsg')
           .textContent =
-          'El cliente seleccionado no tiene préstamos registrados.';
+          'El cliente seleccionado no tiene capital pendiente.';
 
         return;
       }
@@ -1292,11 +1420,11 @@ $('pagoCliente')
             const tipo =
               prestamo.control_nuevo
                 ? 'NUEVO CONTROL'
-                : 'HISTÓRICO';
+                : 'PUNTO CERO';
 
 
             option.textContent =
-              `#${prestamo.id} · ${prestamo.fecha_prestamo} · ${money(prestamo.capital_pendiente)} · ${tipo}`;
+              `${mostrarFecha(prestamo.fecha_prestamo)} · ${money(prestamo.capital_pendiente)} · ${tipo}`;
 
 
             $('pagoPrestamo')
@@ -1339,9 +1467,7 @@ $('pagoPrestamo')
       const prestamo =
         prestamosPagoCache.find(
           item =>
-            Number(
-              item.id
-            ) ===
+            Number(item.id) ===
             prestamoId
         );
 
@@ -1362,8 +1488,7 @@ $('pagoPrestamo')
 
         $('pagoAdvertencia')
           .textContent =
-          'Este préstamo proviene del histórico anterior al Punto Cero. Puede registrar intereses normalmente. Si el cliente está abonando CAPITAL, verifique primero el saldo individual antes de registrar el abono.';
-
+          `Préstamo del Punto Cero. Fecha original: ${mostrarFecha(prestamo.fecha_prestamo)}. Capital actual registrado: ${money(prestamo.capital_pendiente)}.`;
 
         $('pagoAdvertencia')
           .classList
@@ -1384,7 +1509,7 @@ $('pagoPrestamo')
 
 
 /* =========================================================
-   TOTAL DEL PAGO
+   TOTAL PAGO
 ========================================================= */
 
 function actualizarTotalPago() {
@@ -1547,8 +1672,6 @@ $('pagoForm')
         null;
 
 
-      /* VALIDACIONES */
-
       if (
         !clienteId ||
         !prestamoId ||
@@ -1593,9 +1716,7 @@ $('pagoForm')
       const prestamo =
         prestamosPagoCache.find(
           item =>
-            Number(
-              item.id
-            ) ===
+            Number(item.id) ===
             prestamoId
         );
 
@@ -1610,38 +1731,12 @@ $('pagoForm')
       }
 
 
-      /*
-        PROTECCIÓN DEL PUNTO CERO
-
-        Los préstamos históricos conservan saldos
-        de referencia que no necesariamente representan
-        el saldo individual real al 20/09/2026.
-
-        Por seguridad:
-        - interés: permitido
-        - capital histórico: detenido hasta validar saldo
-      */
-
       if (
-        !prestamo.control_nuevo &&
-        capital > 0
-      ) {
-
-        $('pagoMsg')
-          .textContent =
-          'ABONO A CAPITAL DETENIDO: este préstamo es histórico y su saldo individual debe validarse antes de modificarlo. Puede registrar el interés por separado.';
-
-        return;
-      }
-
-
-      if (
-        prestamo.control_nuevo &&
         capital >
-          Number(
-            prestamo.capital_pendiente ||
-            0
-          )
+        Number(
+          prestamo.capital_pendiente ||
+          0
+        )
       ) {
 
         $('pagoMsg')
@@ -1676,10 +1771,10 @@ $('pagoForm')
         confirm(
           `CONFIRMAR PAGO\n\n` +
           `Cliente: ${clienteSeleccionado}\n` +
-          `Fecha: ${fecha}\n` +
+          `Fecha: ${mostrarFecha(fecha)}\n` +
           `Interés: ${money(interes)}\n` +
           `Capital: ${money(capital)}\n` +
-          `Total: ${money(total)}\n` +
+          `Total recibido: ${money(total)}\n` +
           `Recibido por: ${receptor}\n\n` +
           `¿Los datos son correctos?`
         );
@@ -1689,7 +1784,7 @@ $('pagoForm')
 
         $('pagoMsg')
           .textContent =
-          'Registro cancelado. Revise los datos antes de guardar.';
+          'Registro cancelado. Revise los datos.';
 
         return;
       }
@@ -1771,12 +1866,6 @@ $('pagoForm')
         .textContent =
         `Pago registrado correctamente. Total recibido: ${money(total)}.`;
 
-
-      /*
-        LIMPIAMOS VALORES,
-        PERO CONSERVAMOS CLIENTE Y PRÉSTAMO
-        POR SI HAY QUE REVISAR EL REGISTRO.
-      */
 
       $('pagoInteres')
         .value =
