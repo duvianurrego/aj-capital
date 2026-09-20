@@ -120,7 +120,6 @@ async function mostrarSesion(session) {
     return;
   }
 
-
   $('loginView')
     .classList
     .add('hidden');
@@ -129,11 +128,9 @@ async function mostrarSesion(session) {
     .classList
     .remove('hidden');
 
-
   $('userChip').textContent =
     session.user.email ||
     'Usuario';
-
 
   await cargarDashboard();
 
@@ -154,17 +151,14 @@ $('loginForm')
       $('loginMsg').textContent =
         'Ingresando...';
 
-
       const email =
         $('email')
           .value
           .trim();
 
-
       const password =
         $('password')
           .value;
-
 
       const { error } =
         await supabase.auth
@@ -172,7 +166,6 @@ $('loginForm')
             email,
             password
           });
-
 
       if (error) {
 
@@ -182,7 +175,6 @@ $('loginForm')
 
         return;
       }
-
 
       $('loginMsg').textContent = '';
 
@@ -294,10 +286,6 @@ async function cargarDashboard() {
   ]);
 
 
-  /* =======================================================
-     CAPITAL TOTAL
-  ======================================================= */
-
   if (capitalRes.error) {
 
     console.error(
@@ -317,17 +305,12 @@ async function cargarDashboard() {
           .capital_actual_prestado
       );
 
-
     $('clientesSaldo')
       .textContent =
       'Punto Cero: $23.457.000';
 
   }
 
-
-  /* =======================================================
-     CICLO
-  ======================================================= */
 
   if (cicloRes.error) {
 
@@ -344,13 +327,11 @@ async function cargarDashboard() {
     const ciclo =
       cicloRes.data;
 
-
     $('interesesCiclo')
       .textContent =
       money(
         ciclo.intereses_cobrados
       );
-
 
     $('resultadoCiclo')
       .textContent =
@@ -358,13 +339,11 @@ async function cargarDashboard() {
         ciclo.resultado_actual
       );
 
-
     $('cuotaCiclo')
       .textContent =
       money(
         ciclo.cuota_bancaria_pagada
       );
-
 
     $('andresProv')
       .textContent =
@@ -373,7 +352,6 @@ async function cargarDashboard() {
           .participacion_andres_provisional
       );
 
-
     $('juanProv')
       .textContent =
       money(
@@ -381,17 +359,12 @@ async function cargarDashboard() {
           .participacion_juan_provisional
       );
 
-
     $('cycleText')
       .textContent =
       `Ciclo actual: ${mostrarFecha(ciclo.fecha_inicio)} → ${mostrarFecha(ciclo.fecha_fin)}`;
 
   }
 
-
-  /* =======================================================
-     PRÉSTAMOS
-  ======================================================= */
 
   if (prestamosRes.error) {
 
@@ -416,15 +389,9 @@ async function cargarDashboard() {
   const prestamos =
     prestamosRes.data || [];
 
-
   const semaforos =
     semaforoRes.data || [];
 
-
-  /* =======================================================
-     CARTERA VENCIDA
-     SOLO DESDE EL NUEVO CONTROL
-  ======================================================= */
 
   const capitalVencido =
     semaforos
@@ -447,7 +414,6 @@ async function cargarDashboard() {
                 )
             );
 
-
           return total +
             Number(
               prestamo
@@ -467,10 +433,6 @@ async function cargarDashboard() {
     );
 
 
-  /* =======================================================
-     TABLA DE CARTERA
-  ======================================================= */
-
   $('carteraBody')
     .innerHTML = '';
 
@@ -481,11 +443,9 @@ async function cargarDashboard() {
       .innerHTML =
       `
       <tr>
-
         <td colspan="5">
           No hay cartera pendiente.
         </td>
-
       </tr>
       `;
 
@@ -635,22 +595,18 @@ async function cargarDashboard() {
           <tr>
 
             <td>
-
               <strong>
                 ${escapeHtml(nombre)}
               </strong>
-
             </td>
 
             <td>
-
               <strong>
                 ${money(
                   prestamo
                     .capital_pendiente
                 )}
               </strong>
-
             </td>
 
             <td>
@@ -661,14 +617,10 @@ async function cargarDashboard() {
             </td>
 
             <td>
-
               <span
                 class="badge ${clase}">
-
                 ${etiqueta}
-
               </span>
-
             </td>
 
             <td>
@@ -735,21 +687,16 @@ async function cargarClientes() {
       error
     );
 
-
     $('clientesBody')
       .innerHTML =
       `
       <tr>
-
         <td colspan="5">
-
           Error cargando clientes:
           ${escapeHtml(
             error.message
           )}
-
         </td>
-
       </tr>
       `;
 
@@ -784,11 +731,9 @@ function renderClientes(clientes) {
       .innerHTML =
       `
       <tr>
-
         <td colspan="5">
           No hay clientes para mostrar.
         </td>
-
       </tr>
       `;
 
@@ -818,13 +763,11 @@ function renderClientes(clientes) {
           <tr>
 
             <td>
-
               <strong>
                 ${escapeHtml(
                   cliente.nombre
                 )}
               </strong>
-
             </td>
 
             <td>
@@ -848,14 +791,10 @@ function renderClientes(clientes) {
             </td>
 
             <td>
-
               <span
                 class="badge ${clase}">
-
                 ${estado}
-
               </span>
-
             </td>
 
           </tr>
@@ -881,7 +820,6 @@ $('nuevoClienteBtn')
         .classList
         .remove('hidden');
 
-
       $('clienteNombre')
         .focus();
 
@@ -898,10 +836,8 @@ $('cancelarClienteBtn')
         .classList
         .add('hidden');
 
-
       $('clienteForm')
         .reset();
-
 
       $('clienteMsg')
         .textContent = '';
@@ -1134,7 +1070,6 @@ $('clienteForm')
             .classList
             .add('hidden');
 
-
           $('clienteMsg')
             .textContent = '';
 
@@ -1232,14 +1167,11 @@ async function prepararModuloPagos() {
             'option'
           );
 
-
         option.value =
           cliente.id;
 
-
         option.textContent =
           cliente.nombre;
-
 
         $('pagoCliente')
           .appendChild(
@@ -1411,7 +1343,6 @@ $('pagoCliente')
               document.createElement(
                 'option'
               );
-
 
             option.value =
               prestamo.id;
@@ -1894,6 +1825,524 @@ $('pagoForm')
 
 
 /* =========================================================
+   HISTORIAL
+========================================================= */
+
+async function prepararHistorial() {
+
+  $('historialMsg')
+    .textContent =
+    'Cargando historial...';
+
+
+  const {
+    data,
+    error
+  } =
+  await supabase
+    .from('clientes')
+    .select(
+      `
+      id,
+      nombre
+      `
+    )
+    .order(
+      'nombre',
+      {
+        ascending: true
+      }
+    );
+
+
+  if (error) {
+
+    console.error(
+      'Error clientes historial:',
+      error
+    );
+
+
+    $('historialMsg')
+      .textContent =
+      'No fue posible cargar los clientes: ' +
+      error.message;
+
+    return;
+  }
+
+
+  const clienteActual =
+    $('historialCliente')
+      .value;
+
+
+  $('historialCliente')
+    .innerHTML =
+    `
+    <option value="">
+      Todos los clientes
+    </option>
+    `;
+
+
+  (data || [])
+    .forEach(
+      cliente => {
+
+        const option =
+          document.createElement(
+            'option'
+          );
+
+        option.value =
+          cliente.id;
+
+        option.textContent =
+          cliente.nombre;
+
+        $('historialCliente')
+          .appendChild(
+            option
+          );
+
+      }
+    );
+
+
+  if (clienteActual) {
+
+    $('historialCliente')
+      .value =
+      clienteActual;
+
+  }
+
+
+  $('historialMsg')
+    .textContent = '';
+
+
+  await cargarHistorial();
+
+}
+
+
+/* =========================================================
+   CONSULTAR HISTORIAL
+========================================================= */
+
+async function cargarHistorial() {
+
+  $('historialMsg')
+    .textContent =
+    'Consultando movimientos...';
+
+
+  $('historialBody')
+    .innerHTML =
+    `
+    <tr>
+      <td colspan="8">
+        Cargando...
+      </td>
+    </tr>
+    `;
+
+
+  const desde =
+    $('historialDesde')
+      .value;
+
+
+  const hasta =
+    $('historialHasta')
+      .value;
+
+
+  const clienteId =
+    $('historialCliente')
+      .value;
+
+
+  const receptorId =
+    $('historialReceptor')
+      .value;
+
+
+  if (
+    desde &&
+    hasta &&
+    desde > hasta
+  ) {
+
+    $('historialMsg')
+      .textContent =
+      'La fecha inicial no puede ser posterior a la fecha final.';
+
+
+    $('historialBody')
+      .innerHTML =
+      `
+      <tr>
+        <td colspan="8">
+          Revise el rango de fechas.
+        </td>
+      </tr>
+      `;
+
+    return;
+  }
+
+
+  let consulta =
+    supabase
+      .from('historial_pagos_aj')
+      .select('*')
+      .order(
+        'fecha_pago',
+        {
+          ascending: false
+        }
+      )
+      .order(
+        'pago_id',
+        {
+          ascending: false
+        }
+      );
+
+
+  if (desde) {
+
+    consulta =
+      consulta.gte(
+        'fecha_pago',
+        desde
+      );
+
+  }
+
+
+  if (hasta) {
+
+    consulta =
+      consulta.lte(
+        'fecha_pago',
+        hasta
+      );
+
+  }
+
+
+  if (clienteId) {
+
+    consulta =
+      consulta.eq(
+        'cliente_id',
+        Number(clienteId)
+      );
+
+  }
+
+
+  if (receptorId) {
+
+    consulta =
+      consulta.eq(
+        'socio_receptor_id',
+        Number(receptorId)
+      );
+
+  }
+
+
+  const {
+    data,
+    error
+  } =
+  await consulta;
+
+
+  if (error) {
+
+    console.error(
+      'Error historial:',
+      error
+    );
+
+
+    $('historialMsg')
+      .textContent =
+      'No fue posible consultar el historial: ' +
+      error.message;
+
+
+    $('historialBody')
+      .innerHTML =
+      `
+      <tr>
+        <td colspan="8">
+          Error consultando movimientos.
+        </td>
+      </tr>
+      `;
+
+    return;
+  }
+
+
+  const movimientos =
+    data || [];
+
+
+  renderHistorial(
+    movimientos
+  );
+
+
+  $('historialMsg')
+    .textContent =
+    movimientos.length
+      ? `${movimientos.length} movimiento(s) encontrado(s).`
+      : 'No se encontraron movimientos con los filtros seleccionados.';
+
+}
+
+
+/* =========================================================
+   MOSTRAR HISTORIAL
+========================================================= */
+
+function renderHistorial(movimientos) {
+
+  $('historialBody')
+    .innerHTML = '';
+
+
+  const validos =
+    movimientos.filter(
+      movimiento =>
+        !movimiento.anulado
+    );
+
+
+  const totalIntereses =
+    validos.reduce(
+      (total, movimiento) =>
+        total +
+        Number(
+          movimiento.valor_interes ||
+          0
+        ),
+      0
+    );
+
+
+  const totalCapital =
+    validos.reduce(
+      (total, movimiento) =>
+        total +
+        Number(
+          movimiento.valor_capital ||
+          0
+        ),
+      0
+    );
+
+
+  const totalRecibido =
+    validos.reduce(
+      (total, movimiento) =>
+        total +
+        Number(
+          movimiento.valor_total ||
+          0
+        ),
+      0
+    );
+
+
+  $('historialIntereses')
+    .textContent =
+    money(
+      totalIntereses
+    );
+
+
+  $('historialCapital')
+    .textContent =
+    money(
+      totalCapital
+    );
+
+
+  $('historialTotal')
+    .textContent =
+    money(
+      totalRecibido
+    );
+
+
+  $('historialCantidad')
+    .textContent =
+    String(
+      movimientos.length
+    );
+
+
+  if (!movimientos.length) {
+
+    $('historialBody')
+      .innerHTML =
+      `
+      <tr>
+        <td colspan="8">
+          No hay movimientos para mostrar.
+        </td>
+      </tr>
+      `;
+
+    return;
+  }
+
+
+  movimientos.forEach(
+    movimiento => {
+
+      const anulado =
+        Boolean(
+          movimiento.anulado
+        );
+
+
+      const clase =
+        anulado
+          ? 'red'
+          : 'green';
+
+
+      const estado =
+        anulado
+          ? 'ANULADO'
+          : 'VÁLIDO';
+
+
+      $('historialBody')
+        .insertAdjacentHTML(
+          'beforeend',
+          `
+          <tr>
+
+            <td>
+              ${mostrarFecha(
+                movimiento.fecha_pago
+              )}
+            </td>
+
+            <td>
+              <strong>
+                ${escapeHtml(
+                  movimiento.cliente ||
+                  '—'
+                )}
+              </strong>
+            </td>
+
+            <td>
+              ${money(
+                movimiento.valor_interes
+              )}
+            </td>
+
+            <td>
+              ${money(
+                movimiento.valor_capital
+              )}
+            </td>
+
+            <td>
+              <strong>
+                ${money(
+                  movimiento.valor_total
+                )}
+              </strong>
+            </td>
+
+            <td>
+              ${escapeHtml(
+                movimiento.recibido_por ||
+                '—'
+              )}
+            </td>
+
+            <td>
+              ${escapeHtml(
+                movimiento.medio_pago ||
+                '—'
+              )}
+            </td>
+
+            <td>
+              <span
+                class="badge ${clase}">
+                ${estado}
+              </span>
+            </td>
+
+          </tr>
+          `
+        );
+
+    }
+  );
+
+}
+
+
+/* =========================================================
+   BOTÓN CONSULTAR HISTORIAL
+========================================================= */
+
+$('consultarHistorialBtn')
+  .addEventListener(
+    'click',
+    async () => {
+
+      await cargarHistorial();
+
+    }
+  );
+
+
+/* =========================================================
+   LIMPIAR FILTROS HISTORIAL
+========================================================= */
+
+$('limpiarHistorialBtn')
+  .addEventListener(
+    'click',
+    async () => {
+
+      $('historialDesde')
+        .value = '';
+
+      $('historialHasta')
+        .value = '';
+
+      $('historialCliente')
+        .value = '';
+
+      $('historialReceptor')
+        .value = '';
+
+      await cargarHistorial();
+
+    }
+  );
+
+
+/* =========================================================
    NAVEGACIÓN
 ========================================================= */
 
@@ -1936,6 +2385,11 @@ document
             .add('hidden');
 
 
+          $('historial')
+            .classList
+            .add('hidden');
+
+
           $('placeholder')
             .classList
             .add('hidden');
@@ -1954,7 +2408,6 @@ document
               .classList
               .remove('hidden');
 
-
             await cargarDashboard();
 
           }
@@ -1968,7 +2421,6 @@ document
             $('clientes')
               .classList
               .remove('hidden');
-
 
             await cargarClientes();
 
@@ -1984,8 +2436,21 @@ document
               .classList
               .remove('hidden');
 
-
             await prepararModuloPagos();
+
+          }
+
+
+          else if (
+            pagina ===
+            'historial'
+          ) {
+
+            $('historial')
+              .classList
+              .remove('hidden');
+
+            await prepararHistorial();
 
           }
 
