@@ -1822,7 +1822,608 @@ $('pagoForm')
 
     }
   );
+/* =========================================================
+   PRÉSTAMOS - NUEVO CONTROL
+========================================================= */
 
+async function prepararModuloPrestamos() {
+
+  $('prestamoMsg')
+    .textContent = '';
+
+  $('prestamoFecha')
+    .value =
+    fechaHoyLocal();
+
+  $('prestamoInteresEstimado')
+    .textContent =
+    money(0);
+
+  $('prestamoResumenCapital')
+    .textContent =
+    money(0);
+
+  $('prestamoResumenInteres')
+    .textContent =
+    money(0);
+
+  $('prestamoResumenTotal')
+    .textContent =
+    money(0);
+
+  $('prestamoAdvertencia')
+    .classList
+    .add('hidden');
+
+
+  const {
+    data,
+    error
+  } =
+  await supabase
+    .from('clientes')
+    .select(
+      `
+      id,
+      nombre,
+      activo
+      `
+    )
+    .eq(
+      'activo',
+      true
+    )
+    .order(
+      'nombre',
+      {
+        ascending: true
+      }
+    );
+
+
+  if (error) {
+
+    console.error(
+      'Error clientes préstamos:',
+      error
+    );
+
+    $('prestamoMsg')
+      .textContent =
+      'No fue posible cargar los clientes: ' +
+      error.message;
+
+    return;
+  }
+
+
+  $('prestamoCliente')
+    .innerHTML =
+    `
+    <option value="">
+      Seleccione un cliente
+    </option>
+    `;
+
+
+  (data || [])
+    .forEach(
+      cliente => {
+
+        const option =
+          document.createElement(
+            'option'
+          );
+
+        option.value =
+          cliente.id;
+
+        option.textContent =
+          cliente.nombre;
+
+        $('prestamoCliente')
+          .appendChild(
+            option
+          );
+
+      }
+    );
+
+}
+
+
+/* =========================================================
+   VERIFICAR DEUDA EXISTENTE DEL CLIENTE
+========================================================= */
+
+$('prestamoCliente')
+  .addEventListener(
+    'change',
+    async event => {
+
+      const clienteId =
+        Number(
+          event.target.value
+        );
+
+
+      $('prestamoAdvertencia')
+        .classList
+        .add('hidden');
+
+
+      $('prestamoAdvertencia')
+        .textContent = '';
+
+
+      if (!clienteId) {
+        return;
+      }
+
+
+      const {
+        data,
+        error
+      } =
+      await supabase
+        .from('prestamos')
+        .select(
+          `
+          id,
+          capital_pendiente,
+          fecha_prestamo,
+          control_nuevo,
+          estado
+          `
+        )
+        .eq(
+          'cliente_id',
+          clienteId
+        )
+        .gt(
+          'capital_pendiente',
+          0
+        )
+        .neq(
+          'estado',
+          'CANCELADO'
+        );
+
+
+      if (error) {
+
+        console.error(
+          'Error verificando cartera del cliente:',
+          error
+        );
+
+        return;
+      }
+
+
+      const prestamosPendientes =
+        data || [];
+
+
+      if (!prestamosPendientes.length) {
+        return;
+      }
+
+
+      const deudaActual =
+        prestamosPendientes.reduce(
+          (total, prestamo) =>
+            total +
+            Number(
+              prestamo.capital_pendiente ||
+              0
+            ),
+          0
+        );
+
+
+      $('prestamoAdvertencia')
+        .textContent =
+        `ATENCIÓN: este cliente ya tiene ${prestamosPendientes.length} préstamo(s) con capital pendiente por ${money(deudaActual)}. Puede registrar el nuevo préstamo si corresponde.`;
+
+      $('prestamoAdvertencia')
+        .classList
+        .remove('hidden');
+
+    }
+  );
+
+
+/* =========================================================
+   CÁLCULOS DEL NUEVO PRÉSTAMO
+========================================================= */
+
+function actualizarResumenPrestamo() {
+
+  const capital =
+    Number(
+      $('prestamoCapital')
+        .value ||
+      0
+    );
+
+
+  const tasa =
+    Number(
+      $('prestamoTasa')
+        .value ||
+      0
+    );
+
+
+  const interes =
+    capital *
+    (
+      tasa / 100
+    );
+
+
+  const total =
+    capital +
+    interes;
+
+
+  $('prestamoInteresEstimado')
+    .textContent =
+    money(
+      interes
+    );
+
+
+  $('prestamoResumenCapital')
+    .textContent =
+    money(
+      capital
+    );
+
+
+  $('prestamoResumenInteres')
+    .textContent =
+    money(
+      interes
+    );
+
+
+  $('prestamoResumenTotal')
+    .textContent =
+    money(
+      total
+    );
+
+}
+
+
+$('prestamoCapital')
+  .addEventListener(
+    'input',
+    actualizarResumenPrestamo
+  );
+
+
+$('prestamoTasa')
+  .addEventListener(
+    'input',
+    actualizarResumenPrestamo
+  );
+
+
+/* =========================================================
+   LIMPIAR NUEVO PRÉSTAMO
+========================================================= */
+
+$('limpiarPrestamoBtn')
+  .addEventListener(
+    'click',
+    () => {
+
+      $('prestamoForm')
+        .reset();
+
+
+      $('prestamoFecha')
+        .value =
+        fechaHoyLocal();
+
+
+      $('prestamoAdvertencia')
+        .classList
+        .add('hidden');
+
+
+      $('prestamoAdvertencia')
+        .textContent = '';
+
+
+      $('prestamoMsg')
+        .textContent = '';
+
+
+      actualizarResumenPrestamo();
+
+    }
+  );
+
+
+/* =========================================================
+   GUARDAR NUEVO PRÉSTAMO
+========================================================= */
+
+$('prestamoForm')
+  .addEventListener(
+    'submit',
+    async event => {
+
+      event.preventDefault();
+
+
+      const clienteId =
+        Number(
+          $('prestamoCliente')
+            .value
+        );
+
+
+      const socioId =
+        Number(
+          $('prestamoSocio')
+            .value
+        );
+
+
+      const fechaPrestamo =
+        $('prestamoFecha')
+          .value;
+
+
+      const capital =
+        Number(
+          $('prestamoCapital')
+            .value ||
+          0
+        );
+
+
+      const tasa =
+        Number(
+          $('prestamoTasa')
+            .value ||
+          0
+        );
+
+
+      const fechaProximoPago =
+        $('prestamoProximoPago')
+          .value;
+
+
+      const observaciones =
+        $('prestamoObservaciones')
+          .value
+          .trim() ||
+        null;
+
+
+      if (
+        !clienteId ||
+        !socioId ||
+        !fechaPrestamo ||
+        !fechaProximoPago
+      ) {
+
+        $('prestamoMsg')
+          .textContent =
+          'Complete cliente, fecha, socio que entrega el dinero y próxima fecha de pago.';
+
+        return;
+      }
+
+
+      if (
+        !Number.isFinite(capital) ||
+        capital <= 0
+      ) {
+
+        $('prestamoMsg')
+          .textContent =
+          'El capital del préstamo debe ser mayor que cero.';
+
+        return;
+      }
+
+
+      if (
+        !Number.isFinite(tasa) ||
+        tasa < 0
+      ) {
+
+        $('prestamoMsg')
+          .textContent =
+          'La tasa mensual no puede ser negativa.';
+
+        return;
+      }
+
+
+      if (
+        fechaPrestamo <
+        '2026-09-20'
+      ) {
+
+        $('prestamoMsg')
+          .textContent =
+          'Los nuevos préstamos de este módulo corresponden al control iniciado el 20/09/2026.';
+
+        return;
+      }
+
+
+      if (
+        fechaProximoPago <
+        fechaPrestamo
+      ) {
+
+        $('prestamoMsg')
+          .textContent =
+          'La próxima fecha de pago no puede ser anterior a la fecha del préstamo.';
+
+        return;
+      }
+
+
+      const cliente =
+        $('prestamoCliente')
+          .options[
+            $('prestamoCliente')
+              .selectedIndex
+          ]
+          .text;
+
+
+      const socio =
+        socioId === 1
+          ? 'Andrés Urrego'
+          : 'Juan';
+
+
+      const interesEstimado =
+        capital *
+        (
+          tasa / 100
+        );
+
+
+      const confirmar =
+        confirm(
+          `CONFIRMAR NUEVO PRÉSTAMO\n\n` +
+          `Cliente: ${cliente}\n` +
+          `Fecha: ${mostrarFecha(fechaPrestamo)}\n` +
+          `Capital: ${money(capital)}\n` +
+          `Tasa mensual: ${tasa}%\n` +
+          `Interés mensual estimado: ${money(interesEstimado)}\n` +
+          `Próximo pago: ${mostrarFecha(fechaProximoPago)}\n` +
+          `Dinero entregado por: ${socio}\n\n` +
+          `Este movimiento aumentará el capital actualmente prestado.\n\n` +
+          `¿Los datos son correctos?`
+        );
+
+
+      if (!confirmar) {
+
+        $('prestamoMsg')
+          .textContent =
+          'Registro cancelado. Revise los datos.';
+
+        return;
+      }
+
+
+      $('guardarPrestamoBtn')
+        .disabled =
+        true;
+
+
+      $('prestamoMsg')
+        .textContent =
+        'Registrando préstamo...';
+
+
+      const {
+        data,
+        error
+      } =
+      await supabase
+        .rpc(
+          'crear_prestamo_aj',
+          {
+
+            p_cliente_id:
+              clienteId,
+
+            p_socio_desembolso_id:
+              socioId,
+
+            p_fecha_prestamo:
+              fechaPrestamo,
+
+            p_capital:
+              capital,
+
+            p_tasa_mensual:
+              tasa,
+
+            p_fecha_proximo_pago:
+              fechaProximoPago,
+
+            p_observaciones:
+              observaciones
+
+          }
+        );
+
+
+      $('guardarPrestamoBtn')
+        .disabled =
+        false;
+
+
+      if (error) {
+
+        console.error(
+          'Error registrando préstamo:',
+          error
+        );
+
+
+        $('prestamoMsg')
+          .textContent =
+          'No fue posible registrar el préstamo: ' +
+          error.message;
+
+        return;
+      }
+
+
+      console.log(
+        'Nuevo préstamo creado:',
+        data
+      );
+
+
+      $('prestamoMsg')
+        .textContent =
+        `Préstamo registrado correctamente. Capital desembolsado: ${money(capital)}.`;
+
+
+      $('prestamoForm')
+        .reset();
+
+
+      $('prestamoFecha')
+        .value =
+        fechaHoyLocal();
+
+
+      $('prestamoAdvertencia')
+        .classList
+        .add('hidden');
+
+
+      $('prestamoAdvertencia')
+        .textContent = '';
+
+
+      actualizarResumenPrestamo();
+
+
+      await cargarDashboard();
+
+    }
+  );
 
 /* =========================================================
    HISTORIAL
