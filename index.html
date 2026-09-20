@@ -12,9 +12,7 @@
 
 <body>
 
-  <!-- =====================================================
-       LOGIN
-  ====================================================== -->
+  <!-- LOGIN -->
   <section id="loginView" class="login-shell">
 
     <div class="login-card">
@@ -60,15 +58,10 @@
   </section>
 
 
-  <!-- =====================================================
-       APLICACIÓN
-  ====================================================== -->
+  <!-- APLICACIÓN -->
   <div id="appView" class="app hidden">
 
-
-    <!-- ===================================================
-         MENÚ LATERAL
-    ==================================================== -->
+    <!-- MENÚ -->
     <aside class="sidebar">
 
       <div>
@@ -85,54 +78,37 @@
 
         </div>
 
-
         <nav>
 
-          <button
-            class="nav active"
-            data-page="inicio">
+          <button class="nav active" data-page="inicio">
             Inicio
           </button>
 
-          <button
-            class="nav"
-            data-page="clientes">
+          <button class="nav" data-page="clientes">
             Clientes
           </button>
 
-          <button
-            class="nav"
-            data-page="prestamos">
+          <button class="nav" data-page="prestamos">
             Préstamos
           </button>
 
-          <button
-            class="nav"
-            data-page="pagos">
+          <button class="nav" data-page="pagos">
             Registrar pago
           </button>
 
-          <button
-            class="nav"
-            data-page="cartera">
+          <button class="nav" data-page="cartera">
             Cartera
           </button>
 
-          <button
-            class="nav"
-            data-page="caja">
+          <button class="nav" data-page="caja">
             Caja
           </button>
 
-          <button
-            class="nav"
-            data-page="cierres">
+          <button class="nav" data-page="cierres">
             Cierres
           </button>
 
-          <button
-            class="nav"
-            data-page="historial">
+          <button class="nav" data-page="historial">
             Historial
           </button>
 
@@ -140,23 +116,16 @@
 
       </div>
 
-
-      <button
-        id="logoutBtn"
-        class="logout">
+      <button id="logoutBtn" class="logout">
         Cerrar sesión
       </button>
 
     </aside>
 
 
-    <!-- ===================================================
-         CONTENIDO
-    ==================================================== -->
+    <!-- CONTENIDO -->
     <main>
 
-
-      <!-- CABECERA -->
       <header>
 
         <div>
@@ -179,18 +148,12 @@
       </header>
 
 
-
       <!-- =================================================
-           INICIO / DASHBOARD
+           INICIO
       ================================================== -->
-      <section
-        id="inicio"
-        class="page">
+      <section id="inicio" class="page">
 
-
-        <!-- INDICADORES -->
         <div class="cards">
-
 
           <article>
 
@@ -207,7 +170,6 @@
             </small>
 
           </article>
-
 
 
           <article>
@@ -227,7 +189,6 @@
           </article>
 
 
-
           <article>
 
             <span>
@@ -243,7 +204,6 @@
             </small>
 
           </article>
-
 
 
           <article>
@@ -265,18 +225,13 @@
         </div>
 
 
-
-        <!-- CICLO + PUNTO CERO -->
         <div class="grid2">
 
-
-          <!-- CICLO -->
           <section class="panel">
 
             <h3>
               Ciclo actual 20 → 20
             </h3>
-
 
             <div class="metric">
 
@@ -290,7 +245,6 @@
 
             </div>
 
-
             <div class="metric">
 
               <span>
@@ -302,7 +256,6 @@
               </b>
 
             </div>
-
 
             <div class="metric">
 
@@ -319,14 +272,11 @@
           </section>
 
 
-
-          <!-- PUNTO CERO -->
           <section class="panel">
 
             <h3>
               Punto Cero
             </h3>
-
 
             <div class="metric">
 
@@ -340,7 +290,6 @@
 
             </div>
 
-
             <div class="metric">
 
               <span>
@@ -352,7 +301,6 @@
               </b>
 
             </div>
-
 
             <div class="metric">
 
@@ -366,7 +314,6 @@
 
             </div>
 
-
             <div class="metric">
 
               <span>
@@ -378,7 +325,6 @@
               </b>
 
             </div>
-
 
             <div class="metric muted">
 
@@ -397,14 +343,11 @@
         </div>
 
 
-
-        <!-- CARTERA -->
         <section class="panel">
 
           <h3>
             Seguimiento de cartera — nuevo control
           </h3>
-
 
           <div class="table-wrap">
 
@@ -413,27 +356,13 @@
               <thead>
 
                 <tr>
-
-                  <th>
-                    Cliente
-                  </th>
-
-                  <th>
-                    Capital
-                  </th>
-
-                  <th>
-                    Estado
-                  </th>
-
-                  <th>
-                    Días mora
-                  </th>
-
+                  <th>Cliente</th>
+                  <th>Capital</th>
+                  <th>Estado</th>
+                  <th>Días mora</th>
                 </tr>
 
               </thead>
-
 
               <tbody id="carteraBody">
               </tbody>
@@ -444,18 +373,13 @@
 
         </section>
 
-
       </section>
-
 
 
       <!-- =================================================
            CLIENTES
       ================================================== -->
-      <section
-        id="clientes"
-        class="page hidden">
-
+      <section id="clientes" class="page hidden">
 
         <div class="page-head">
 
@@ -471,7 +395,6 @@
 
           </div>
 
-
           <button
             id="nuevoClienteBtn"
             class="primary">
@@ -483,22 +406,17 @@
         </div>
 
 
-
-        <!-- FORMULARIO NUEVO CLIENTE -->
         <section
           id="clienteFormPanel"
           class="panel hidden">
-
 
           <h3>
             Nuevo cliente
           </h3>
 
-
           <form
             id="clienteForm"
             class="form-grid">
-
 
             <div>
 
@@ -513,18 +431,15 @@
             </div>
 
 
-
             <div>
 
               <label for="clienteDocumento">
                 Documento
               </label>
 
-              <input
-                id="clienteDocumento">
+              <input id="clienteDocumento">
 
             </div>
-
 
 
             <div>
@@ -533,11 +448,9 @@
                 Teléfono
               </label>
 
-              <input
-                id="clienteTelefono">
+              <input id="clienteTelefono">
 
             </div>
-
 
 
             <div>
@@ -546,11 +459,9 @@
                 Dirección
               </label>
 
-              <input
-                id="clienteDireccion">
+              <input id="clienteDireccion">
 
             </div>
-
 
 
             <div class="full">
@@ -559,15 +470,12 @@
                 Observaciones
               </label>
 
-              <input
-                id="clienteObs">
+              <input id="clienteObs">
 
             </div>
 
 
-
             <div class="full form-actions">
-
 
               <button
                 type="button"
@@ -578,7 +486,6 @@
 
               </button>
 
-
               <button
                 type="submit"
                 class="primary">
@@ -587,103 +494,337 @@
 
               </button>
 
-
             </div>
 
-
           </form>
-
 
           <div
             id="clienteMsg"
             class="msg">
           </div>
 
-
         </section>
 
 
-
-        <!-- LISTADO CLIENTES -->
         <section class="panel">
 
-
           <div class="search-row">
-
 
             <h3>
               Listado de clientes
             </h3>
 
-
             <input
               id="buscarCliente"
               placeholder="Buscar por nombre o documento">
 
-
           </div>
-
-
 
           <div class="table-wrap">
 
-
             <table>
-
 
               <thead>
 
                 <tr>
-
-                  <th>
-                    Nombre
-                  </th>
-
-                  <th>
-                    Documento
-                  </th>
-
-                  <th>
-                    Teléfono
-                  </th>
-
-                  <th>
-                    Registro
-                  </th>
-
-                  <th>
-                    Estado
-                  </th>
-
+                  <th>Nombre</th>
+                  <th>Documento</th>
+                  <th>Teléfono</th>
+                  <th>Registro</th>
+                  <th>Estado</th>
                 </tr>
 
               </thead>
 
-
               <tbody id="clientesBody">
               </tbody>
 
-
             </table>
-
 
           </div>
 
-
         </section>
-
 
       </section>
 
 
+      <!-- =================================================
+           REGISTRAR PAGO
+      ================================================== -->
+      <section id="pagos" class="page hidden">
+
+        <div class="page-head">
+
+          <div>
+
+            <h2>
+              Registrar pago
+            </h2>
+
+            <p>
+              Registro de intereses y abonos a capital.
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <section class="panel">
+
+          <h3>
+            Nuevo pago
+          </h3>
+
+          <form
+            id="pagoForm"
+            class="form-grid">
+
+
+            <div class="full">
+
+              <label for="pagoCliente">
+                Cliente *
+              </label>
+
+              <select
+                id="pagoCliente"
+                required>
+
+                <option value="">
+                  Seleccione un cliente
+                </option>
+
+              </select>
+
+            </div>
+
+
+            <div class="full">
+
+              <label for="pagoPrestamo">
+                Préstamo *
+              </label>
+
+              <select
+                id="pagoPrestamo"
+                required
+                disabled>
+
+                <option value="">
+                  Primero seleccione un cliente
+                </option>
+
+              </select>
+
+            </div>
+
+
+            <div>
+
+              <label for="pagoFecha">
+                Fecha del pago *
+              </label>
+
+              <input
+                id="pagoFecha"
+                type="date"
+                required>
+
+            </div>
+
+
+            <div>
+
+              <label for="pagoReceptor">
+                Recibido por *
+              </label>
+
+              <select
+                id="pagoReceptor"
+                required>
+
+                <option value="">
+                  Seleccione
+                </option>
+
+                <option value="1">
+                  Andrés Urrego
+                </option>
+
+                <option value="2">
+                  Juan
+                </option>
+
+              </select>
+
+            </div>
+
+
+            <div>
+
+              <label for="pagoInteres">
+                Interés pagado
+              </label>
+
+              <input
+                id="pagoInteres"
+                type="number"
+                min="0"
+                step="1"
+                value="0"
+                inputmode="numeric">
+
+            </div>
+
+
+            <div>
+
+              <label for="pagoCapital">
+                Abono a capital
+              </label>
+
+              <input
+                id="pagoCapital"
+                type="number"
+                min="0"
+                step="1"
+                value="0"
+                inputmode="numeric">
+
+            </div>
+
+
+            <div>
+
+              <label for="pagoMedio">
+                Medio de pago
+              </label>
+
+              <select id="pagoMedio">
+
+                <option value="EFECTIVO">
+                  Efectivo
+                </option>
+
+                <option value="TRANSFERENCIA">
+                  Transferencia
+                </option>
+
+                <option value="NEQUI">
+                  Nequi
+                </option>
+
+                <option value="DAVIPLATA">
+                  Daviplata
+                </option>
+
+                <option value="BANCOLOMBIA">
+                  Bancolombia
+                </option>
+
+                <option value="OTRO">
+                  Otro
+                </option>
+
+              </select>
+
+            </div>
+
+
+            <div>
+
+              <label>
+                Total recibido
+              </label>
+
+              <div
+                id="pagoTotal"
+                class="total-pago">
+
+                $0
+
+              </div>
+
+            </div>
+
+
+            <div class="full">
+
+              <label for="pagoObservaciones">
+                Observaciones
+              </label>
+
+              <textarea
+                id="pagoObservaciones"
+                rows="3"
+                placeholder="Información adicional del pago"></textarea>
+
+            </div>
+
+
+            <div
+              id="pagoAdvertencia"
+              class="full warning-box hidden">
+            </div>
+
+
+            <div class="full form-actions">
+
+              <button
+                type="button"
+                id="limpiarPagoBtn"
+                class="secondary">
+
+                Limpiar
+
+              </button>
+
+              <button
+                type="submit"
+                id="guardarPagoBtn"
+                class="primary">
+
+                Registrar pago
+
+              </button>
+
+            </div>
+
+          </form>
+
+
+          <div
+            id="pagoMsg"
+            class="msg">
+          </div>
+
+        </section>
+
+
+        <section class="panel">
+
+          <h3>
+            Importante
+          </h3>
+
+          <p class="help-text">
+            Los intereses registrados alimentan el ciclo correspondiente.
+            Los abonos a capital reducen el capital prestado de A&J Capital.
+            Cada movimiento queda registrado para control y auditoría.
+          </p>
+
+        </section>
+
+      </section>
+
 
       <!-- =================================================
-           MÓDULOS SIGUIENTES
+           OTROS MÓDULOS
       ================================================== -->
       <section
         id="placeholder"
         class="page hidden">
-
 
         <section class="panel">
 
@@ -696,23 +837,17 @@
 
         </section>
 
-
       </section>
-
 
     </main>
 
   </div>
 
 
-  <!-- =====================================================
-       JAVASCRIPT
-  ====================================================== -->
   <script
     type="module"
     src="app.js">
   </script>
-
 
 </body>
 </html>
