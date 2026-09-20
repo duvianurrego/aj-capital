@@ -1,399 +1,684 @@
 <!doctype html>
 <html lang="es">
+
 <head>
+
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#172033">
 
-  <title>A&J CAPITAL</title>
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1">
 
-  <link rel="stylesheet" href="styles.css">
+  <meta
+    name="theme-color"
+    content="#172033">
+
+  <title>
+    A&J CAPITAL
+  </title>
+
+  <link
+    rel="stylesheet"
+    href="styles.css">
+
 </head>
+
 
 <body>
 
-  <!-- LOGIN -->
-  <section id="loginView" class="login-shell">
+
+  <!-- =====================================================
+       LOGIN
+  ====================================================== -->
+
+  <section
+    id="loginView"
+    class="login-shell">
+
 
     <div class="login-card">
 
-      <div class="brand-mark">A&J</div>
 
-      <h1>A&J CAPITAL</h1>
+      <div class="brand-mark">
+        A&J
+      </div>
 
-      <p>Gestión inteligente de cartera</p>
+
+      <h1>
+        A&J CAPITAL
+      </h1>
+
+
+      <p>
+        Gestión inteligente de cartera
+      </p>
+
 
       <form id="loginForm">
 
-        <label for="email">Correo</label>
+
+        <label for="email">
+          Correo
+        </label>
+
 
         <input
           id="email"
           type="email"
           autocomplete="username"
           placeholder="correo@ejemplo.com"
-          required
-        >
+          required>
 
-        <label for="password">Contraseña</label>
+
+        <label for="password">
+          Contraseña
+        </label>
+
 
         <input
           id="password"
           type="password"
           autocomplete="current-password"
           placeholder="••••••••"
-          required
-        >
+          required>
+
 
         <button type="submit">
           Ingresar
         </button>
 
+
       </form>
 
-      <div id="loginMsg" class="msg"></div>
+
+      <div
+        id="loginMsg"
+        class="msg">
+      </div>
+
 
     </div>
+
 
   </section>
 
 
-  <!-- APLICACIÓN -->
-  <div id="appView" class="app hidden">
 
-    <!-- MENÚ -->
+  <!-- =====================================================
+       APLICACIÓN
+  ====================================================== -->
+
+  <div
+    id="appView"
+    class="app hidden">
+
+
+
+    <!-- ===================================================
+         MENÚ LATERAL
+    ==================================================== -->
+
     <aside class="sidebar">
+
 
       <div>
 
+
         <div class="brand-row">
+
 
           <span class="brand-small">
             A&J
           </span>
 
+
           <strong>
             A&J CAPITAL
           </strong>
 
+
         </div>
+
+
 
         <nav>
 
-          <button class="nav active" data-page="inicio">
+
+          <button
+            class="nav active"
+            data-page="inicio">
+
             Inicio
+
           </button>
 
-          <button class="nav" data-page="clientes">
+
+          <button
+            class="nav"
+            data-page="clientes">
+
             Clientes
+
           </button>
 
-          <button class="nav" data-page="prestamos">
+
+          <button
+            class="nav"
+            data-page="prestamos">
+
             Préstamos
+
           </button>
 
-          <button class="nav" data-page="pagos">
+
+          <button
+            class="nav"
+            data-page="pagos">
+
             Registrar pago
+
           </button>
 
-          <button class="nav" data-page="cartera">
+
+          <button
+            class="nav"
+            data-page="cartera">
+
             Cartera
+
           </button>
 
-          <button class="nav" data-page="caja">
+
+          <button
+            class="nav"
+            data-page="caja">
+
             Caja
+
           </button>
 
-          <button class="nav" data-page="cierres">
+
+          <button
+            class="nav"
+            data-page="cierres">
+
             Cierres
+
           </button>
 
-          <button class="nav" data-page="historial">
+
+          <button
+            class="nav"
+            data-page="historial">
+
             Historial
+
           </button>
+
 
         </nav>
 
+
       </div>
 
-      <button id="logoutBtn" class="logout">
+
+
+      <button
+        id="logoutBtn"
+        class="logout">
+
         Cerrar sesión
+
       </button>
+
 
     </aside>
 
 
-    <!-- CONTENIDO -->
+
+    <!-- ===================================================
+         CONTENIDO PRINCIPAL
+    ==================================================== -->
+
     <main>
+
+
+
+      <!-- =================================================
+           CABECERA
+      ================================================== -->
 
       <header>
 
+
         <div>
+
 
           <h2>
             Panel principal
           </h2>
 
+
           <p id="cycleText">
             Cargando ciclo...
           </p>
 
+
         </div>
+
+
 
         <div
           class="user-chip"
           id="userChip">
         </div>
 
+
       </header>
+
 
 
       <!-- =================================================
            INICIO
       ================================================== -->
-      <section id="inicio" class="page">
+
+      <section
+        id="inicio"
+        class="page">
+
+
+
+        <!-- INDICADORES PRINCIPALES -->
 
         <div class="cards">
 
+
           <article>
+
 
             <span>
               Capital actualmente prestado
             </span>
 
+
             <strong id="capitalPrestado">
               $0
             </strong>
+
 
             <small id="clientesSaldo">
               Punto Cero
             </small>
 
+
           </article>
 
 
+
           <article>
+
 
             <span>
               Intereses del ciclo
             </span>
 
+
             <strong id="interesesCiclo">
               $0
             </strong>
+
 
             <small>
               Realmente cobrados
             </small>
 
+
           </article>
 
 
+
           <article>
+
 
             <span>
               Cartera vencida
             </span>
 
+
             <strong id="capitalVencido">
               $0
             </strong>
+
 
             <small>
               Desde el nuevo control
             </small>
 
+
           </article>
 
 
+
           <article>
+
 
             <span>
               Resultado del ciclo
             </span>
 
+
             <strong id="resultadoCiclo">
               $0
             </strong>
+
 
             <small>
               Antes del reparto
             </small>
 
+
           </article>
+
 
         </div>
 
 
+
+        <!-- =================================================
+             CICLO ACTUAL + PUNTO CERO
+        ================================================== -->
+
         <div class="grid2">
 
+
+
+          <!-- CICLO ACTUAL -->
+
           <section class="panel">
+
 
             <h3>
               Ciclo actual 20 → 20
             </h3>
 
+
+
             <div class="metric">
+
 
               <span>
                 Cuota bancaria pagada
               </span>
 
+
               <b id="cuotaCiclo">
                 $0
               </b>
 
+
             </div>
 
+
+
             <div class="metric">
+
 
               <span>
                 Andrés — provisional
               </span>
 
+
               <b id="andresProv">
                 $0
               </b>
 
+
             </div>
 
+
+
             <div class="metric">
+
 
               <span>
                 Juan — provisional
               </span>
 
+
               <b id="juanProv">
                 $0
               </b>
 
+
             </div>
+
 
           </section>
 
 
+
+          <!-- PUNTO CERO -->
+
           <section class="panel">
+
 
             <h3>
               Punto Cero
             </h3>
 
+
+
             <div class="metric">
+
 
               <span>
                 Capital prestado
               </span>
 
+
               <b>
                 $23.457.000
               </b>
 
+
             </div>
 
+
+
             <div class="metric">
+
 
               <span>
                 Mamá Yaneth por cobrar
               </span>
 
+
               <b>
                 $100.000
               </b>
 
+
             </div>
 
+
+
             <div class="metric">
+
 
               <span>
                 Caja Juan inicial
               </span>
 
+
               <b>
                 $285.200
               </b>
 
+
             </div>
 
+
+
             <div class="metric">
+
 
               <span>
                 Deuda con Andrés
               </span>
 
+
               <b>
                 $729.200
               </b>
 
+
             </div>
 
+
+
             <div class="metric muted">
+
 
               <span>
                 Andrés fuera de operación
               </span>
 
+
               <b>
                 $6.000.000
               </b>
 
+
             </div>
 
+
           </section>
+
 
         </div>
 
 
+
+        <!-- =================================================
+             SEGUIMIENTO DE CARTERA
+        ================================================== -->
+
         <section class="panel">
 
-          <h3>
-            Seguimiento de cartera — nuevo control
-          </h3>
+
+          <div class="page-head">
+
+
+            <div>
+
+
+              <h3>
+                Seguimiento de cartera — nuevo control
+              </h3>
+
+
+              <p>
+                Capital individual y fecha original de cada préstamo.
+              </p>
+
+
+            </div>
+
+
+          </div>
+
+
 
           <div class="table-wrap">
 
+
             <table>
+
 
               <thead>
 
+
                 <tr>
-                  <th>Cliente</th>
-                  <th>Capital</th>
-                  <th>Estado</th>
-                  <th>Días mora</th>
+
+
+                  <th>
+                    Cliente
+                  </th>
+
+
+                  <th>
+                    Capital actual
+                  </th>
+
+
+                  <th>
+                    Fecha préstamo
+                  </th>
+
+
+                  <th>
+                    Estado
+                  </th>
+
+
+                  <th>
+                    Días mora
+                  </th>
+
+
                 </tr>
 
+
               </thead>
+
+
 
               <tbody id="carteraBody">
               </tbody>
 
+
             </table>
+
 
           </div>
 
+
         </section>
 
+
       </section>
+
 
 
       <!-- =================================================
            CLIENTES
       ================================================== -->
-      <section id="clientes" class="page hidden">
+
+      <section
+        id="clientes"
+        class="page hidden">
+
+
 
         <div class="page-head">
 
+
           <div>
+
 
             <h2>
               Clientes
             </h2>
 
+
             <p>
               Consulta y registro de clientes de A&J Capital.
             </p>
 
+
           </div>
+
+
 
           <button
             id="nuevoClienteBtn"
@@ -403,79 +688,113 @@
 
           </button>
 
+
         </div>
 
+
+
+        <!-- FORMULARIO NUEVO CLIENTE -->
 
         <section
           id="clienteFormPanel"
           class="panel hidden">
 
+
           <h3>
             Nuevo cliente
           </h3>
+
+
 
           <form
             id="clienteForm"
             class="form-grid">
 
+
+
             <div>
+
 
               <label for="clienteNombre">
                 Nombre completo *
               </label>
 
+
               <input
                 id="clienteNombre"
                 required>
 
+
             </div>
 
 
+
             <div>
+
 
               <label for="clienteDocumento">
                 Documento
               </label>
 
-              <input id="clienteDocumento">
+
+              <input
+                id="clienteDocumento">
+
 
             </div>
 
 
+
             <div>
+
 
               <label for="clienteTelefono">
                 Teléfono
               </label>
 
-              <input id="clienteTelefono">
+
+              <input
+                id="clienteTelefono">
+
 
             </div>
 
 
+
             <div>
+
 
               <label for="clienteDireccion">
                 Dirección
               </label>
 
-              <input id="clienteDireccion">
+
+              <input
+                id="clienteDireccion">
+
 
             </div>
 
 
+
             <div class="full">
+
 
               <label for="clienteObs">
                 Observaciones
               </label>
 
-              <input id="clienteObs">
+
+              <input
+                id="clienteObs">
+
 
             </div>
 
 
+
             <div class="full form-actions">
+
 
               <button
                 type="button"
@@ -486,6 +805,7 @@
 
               </button>
 
+
               <button
                 type="submit"
                 class="primary">
@@ -494,178 +814,276 @@
 
               </button>
 
+
             </div>
 
+
           </form>
+
+
 
           <div
             id="clienteMsg"
             class="msg">
           </div>
 
+
         </section>
 
 
+
+        <!-- LISTADO DE CLIENTES -->
+
         <section class="panel">
 
+
           <div class="search-row">
+
 
             <h3>
               Listado de clientes
             </h3>
 
+
             <input
               id="buscarCliente"
               placeholder="Buscar por nombre o documento">
 
+
           </div>
+
+
 
           <div class="table-wrap">
 
+
             <table>
+
 
               <thead>
 
+
                 <tr>
-                  <th>Nombre</th>
-                  <th>Documento</th>
-                  <th>Teléfono</th>
-                  <th>Registro</th>
-                  <th>Estado</th>
+
+
+                  <th>
+                    Nombre
+                  </th>
+
+
+                  <th>
+                    Documento
+                  </th>
+
+
+                  <th>
+                    Teléfono
+                  </th>
+
+
+                  <th>
+                    Registro
+                  </th>
+
+
+                  <th>
+                    Estado
+                  </th>
+
+
                 </tr>
 
+
               </thead>
+
+
 
               <tbody id="clientesBody">
               </tbody>
 
+
             </table>
+
 
           </div>
 
+
         </section>
 
+
       </section>
+
 
 
       <!-- =================================================
            REGISTRAR PAGO
       ================================================== -->
-      <section id="pagos" class="page hidden">
+
+      <section
+        id="pagos"
+        class="page hidden">
+
+
 
         <div class="page-head">
 
+
           <div>
+
 
             <h2>
               Registrar pago
             </h2>
 
+
             <p>
               Registro de intereses y abonos a capital.
             </p>
 
+
           </div>
+
 
         </div>
 
 
+
         <section class="panel">
+
 
           <h3>
             Nuevo pago
           </h3>
+
+
 
           <form
             id="pagoForm"
             class="form-grid">
 
 
+
+            <!-- CLIENTE -->
+
             <div class="full">
+
 
               <label for="pagoCliente">
                 Cliente *
               </label>
 
+
               <select
                 id="pagoCliente"
                 required>
+
 
                 <option value="">
                   Seleccione un cliente
                 </option>
 
+
               </select>
+
 
             </div>
 
 
+
+            <!-- PRÉSTAMO -->
+
             <div class="full">
+
 
               <label for="pagoPrestamo">
                 Préstamo *
               </label>
+
 
               <select
                 id="pagoPrestamo"
                 required
                 disabled>
 
+
                 <option value="">
                   Primero seleccione un cliente
                 </option>
 
+
               </select>
+
 
             </div>
 
 
+
+            <!-- FECHA -->
+
             <div>
+
 
               <label for="pagoFecha">
                 Fecha del pago *
               </label>
+
 
               <input
                 id="pagoFecha"
                 type="date"
                 required>
 
+
             </div>
 
 
+
+            <!-- RECIBIDO POR -->
+
             <div>
+
 
               <label for="pagoReceptor">
                 Recibido por *
               </label>
 
+
               <select
                 id="pagoReceptor"
                 required>
+
 
                 <option value="">
                   Seleccione
                 </option>
 
+
                 <option value="1">
                   Andrés Urrego
                 </option>
+
 
                 <option value="2">
                   Juan
                 </option>
 
+
               </select>
+
 
             </div>
 
 
+
+            <!-- INTERÉS -->
+
             <div>
+
 
               <label for="pagoInteres">
                 Interés pagado
               </label>
+
 
               <input
                 id="pagoInteres"
@@ -675,14 +1093,20 @@
                 value="0"
                 inputmode="numeric">
 
+
             </div>
 
 
+
+            <!-- CAPITAL -->
+
             <div>
+
 
               <label for="pagoCapital">
                 Abono a capital
               </label>
+
 
               <input
                 id="pagoCapital"
@@ -692,51 +1116,70 @@
                 value="0"
                 inputmode="numeric">
 
+
             </div>
 
 
+
+            <!-- MEDIO DE PAGO -->
+
             <div>
+
 
               <label for="pagoMedio">
                 Medio de pago
               </label>
 
+
               <select id="pagoMedio">
+
 
                 <option value="EFECTIVO">
                   Efectivo
                 </option>
 
+
                 <option value="TRANSFERENCIA">
                   Transferencia
                 </option>
+
 
                 <option value="NEQUI">
                   Nequi
                 </option>
 
+
                 <option value="DAVIPLATA">
                   Daviplata
                 </option>
+
 
                 <option value="BANCOLOMBIA">
                   Bancolombia
                 </option>
 
+
                 <option value="OTRO">
                   Otro
                 </option>
 
+
               </select>
+
 
             </div>
 
 
+
+            <!-- TOTAL -->
+
             <div>
+
 
               <label>
                 Total recibido
               </label>
+
 
               <div
                 id="pagoTotal"
@@ -746,22 +1189,32 @@
 
               </div>
 
+
             </div>
 
 
+
+            <!-- OBSERVACIONES -->
+
             <div class="full">
+
 
               <label for="pagoObservaciones">
                 Observaciones
               </label>
+
 
               <textarea
                 id="pagoObservaciones"
                 rows="3"
                 placeholder="Información adicional del pago"></textarea>
 
+
             </div>
 
+
+
+            <!-- ADVERTENCIA -->
 
             <div
               id="pagoAdvertencia"
@@ -769,7 +1222,11 @@
             </div>
 
 
+
+            <!-- BOTONES -->
+
             <div class="full form-actions">
+
 
               <button
                 type="button"
@@ -780,6 +1237,7 @@
 
               </button>
 
+
               <button
                 type="submit"
                 id="guardarPagoBtn"
@@ -789,9 +1247,12 @@
 
               </button>
 
+
             </div>
 
+
           </form>
+
 
 
           <div
@@ -799,55 +1260,79 @@
             class="msg">
           </div>
 
+
         </section>
+
 
 
         <section class="panel">
 
+
           <h3>
-            Importante
+            Control del registro
           </h3>
 
+
           <p class="help-text">
+
             Los intereses registrados alimentan el ciclo correspondiente.
-            Los abonos a capital reducen el capital prestado de A&J Capital.
+            Los abonos a capital reducen el capital actualmente prestado.
             Cada movimiento queda registrado para control y auditoría.
+
           </p>
+
 
         </section>
 
+
       </section>
+
 
 
       <!-- =================================================
            OTROS MÓDULOS
       ================================================== -->
+
       <section
         id="placeholder"
         class="page hidden">
 
+
         <section class="panel">
+
 
           <h3 id="placeholderTitle">
           </h3>
+
 
           <p>
             Este módulo será conectado en el siguiente bloque.
           </p>
 
+
         </section>
+
 
       </section>
 
+
     </main>
+
 
   </div>
 
+
+
+  <!-- =====================================================
+       JAVASCRIPT
+  ====================================================== -->
 
   <script
     type="module"
     src="app.js">
   </script>
 
+
 </body>
+
 </html>
