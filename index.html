@@ -962,7 +962,273 @@
 
       </section>
 
+      <!-- =================================================
+           PRÉSTAMOS
+      ================================================== -->
 
+      <section
+        id="prestamos"
+        class="page hidden">
+
+        <div class="page-head">
+
+          <div>
+
+            <h2>
+              Préstamos
+            </h2>
+
+            <p>
+              Registro de nuevos desembolsos desde el nuevo control.
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <!-- NUEVO PRÉSTAMO -->
+
+        <section class="panel">
+
+          <h3>
+            Nuevo préstamo
+          </h3>
+
+          <p class="help-text">
+            Todo préstamo registrado desde este módulo hará parte
+            del nuevo control de A&J Capital.
+          </p>
+
+
+          <form
+            id="prestamoForm"
+            class="form-grid">
+
+
+            <div class="full">
+
+              <label for="prestamoCliente">
+                Cliente *
+              </label>
+
+              <select
+                id="prestamoCliente"
+                required>
+
+                <option value="">
+                  Seleccione un cliente
+                </option>
+
+              </select>
+
+            </div>
+
+
+            <div>
+
+              <label for="prestamoFecha">
+                Fecha del préstamo *
+              </label>
+
+              <input
+                id="prestamoFecha"
+                type="date"
+                required>
+
+            </div>
+
+
+            <div>
+
+              <label for="prestamoSocio">
+                Dinero entregado por *
+              </label>
+
+              <select
+                id="prestamoSocio"
+                required>
+
+                <option value="">
+                  Seleccione
+                </option>
+
+                <option value="1">
+                  Andrés Urrego
+                </option>
+
+                <option value="2">
+                  Juan
+                </option>
+
+              </select>
+
+            </div>
+
+
+            <div>
+
+              <label for="prestamoCapital">
+                Capital entregado *
+              </label>
+
+              <input
+                id="prestamoCapital"
+                type="number"
+                min="1"
+                step="1"
+                inputmode="numeric"
+                placeholder="Ej. 500000"
+                required>
+
+            </div>
+
+
+            <div>
+
+              <label for="prestamoTasa">
+                Tasa mensual (%) *
+              </label>
+
+              <input
+                id="prestamoTasa"
+                type="number"
+                min="0"
+                step="0.01"
+                inputmode="decimal"
+                placeholder="Ej. 10"
+                required>
+
+            </div>
+
+
+            <div>
+
+              <label for="prestamoProximoPago">
+                Próxima fecha de pago *
+              </label>
+
+              <input
+                id="prestamoProximoPago"
+                type="date"
+                required>
+
+            </div>
+
+
+            <div>
+
+              <label>
+                Interés mensual estimado
+              </label>
+
+              <div
+                id="prestamoInteresEstimado"
+                class="total-pago">
+                $0
+              </div>
+
+            </div>
+
+
+            <div
+              id="prestamoAdvertencia"
+              class="full warning-box hidden">
+            </div>
+
+
+            <div class="full">
+
+              <label for="prestamoObservaciones">
+                Observaciones
+              </label>
+
+              <textarea
+                id="prestamoObservaciones"
+                rows="3"
+                placeholder="Información adicional del préstamo"></textarea>
+
+            </div>
+
+
+            <div class="full form-actions">
+
+              <button
+                type="button"
+                id="limpiarPrestamoBtn"
+                class="secondary">
+                Limpiar
+              </button>
+
+              <button
+                type="submit"
+                id="guardarPrestamoBtn"
+                class="primary">
+                Registrar préstamo
+              </button>
+
+            </div>
+
+          </form>
+
+
+          <div
+            id="prestamoMsg"
+            class="msg">
+          </div>
+
+        </section>
+
+
+        <!-- INFORMACIÓN DE CONTROL -->
+
+        <section class="panel">
+
+          <h3>
+            Control del préstamo
+          </h3>
+
+          <div class="metric">
+
+            <span>
+              Capital a desembolsar
+            </span>
+
+            <b id="prestamoResumenCapital">
+              $0
+            </b>
+
+          </div>
+
+
+          <div class="metric">
+
+            <span>
+              Interés mensual estimado
+            </span>
+
+            <b id="prestamoResumenInteres">
+              $0
+            </b>
+
+          </div>
+
+
+          <div class="metric">
+
+            <span>
+              Total esperado capital + 1 mes de interés
+            </span>
+
+            <b id="prestamoResumenTotal">
+              $0
+            </b>
+
+          </div>
+
+        </section>
+
+      </section>
 
       <!-- =================================================
            HISTORIAL
