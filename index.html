@@ -13,7 +13,10 @@
 
 <body>
 
-  <!-- LOGIN -->
+  <!-- =====================================================
+       LOGIN
+  ====================================================== -->
+
   <section id="loginView" class="login-shell">
 
     <div class="login-card">
@@ -57,10 +60,12 @@
   </section>
 
 
-  <!-- APLICACIÓN -->
+  <!-- =====================================================
+       APLICACIÓN
+  ====================================================== -->
+
   <div id="appView" class="app hidden">
 
-    <!-- MENÚ -->
     <aside class="sidebar">
 
       <div>
@@ -115,7 +120,6 @@
     </aside>
 
 
-    <!-- CONTENIDO -->
     <main>
 
       <header>
@@ -130,7 +134,10 @@
       </header>
 
 
-      <!-- INICIO -->
+      <!-- =================================================
+           INICIO
+      ================================================== -->
+
       <section id="inicio" class="page">
 
         <div class="cards">
@@ -258,7 +265,10 @@
       </section>
 
 
-      <!-- CLIENTES -->
+      <!-- =================================================
+           CLIENTES
+      ================================================== -->
+
       <section id="clientes" class="page hidden">
 
         <div class="page-head">
@@ -375,7 +385,10 @@
       </section>
 
 
-      <!-- PRÉSTAMOS -->
+      <!-- =================================================
+           PRÉSTAMOS
+      ================================================== -->
+
       <section id="prestamos" class="page hidden">
 
         <div class="page-head">
@@ -589,14 +602,20 @@
       </section>
 
 
-      <!-- REGISTRAR PAGO -->
+      <!-- =================================================
+           REGISTRAR PAGO
+      ================================================== -->
+
       <section id="pagos" class="page hidden">
 
         <div class="page-head">
 
           <div>
             <h2>Registrar pago</h2>
-            <p>Registro de intereses y abonos a capital.</p>
+            <p>
+              Registro de intereses, capital y dinero adicional
+              de terceros.
+            </p>
           </div>
 
         </div>
@@ -615,9 +634,11 @@
               </label>
 
               <select id="pagoCliente" required>
+
                 <option value="">
                   Seleccione un cliente
                 </option>
+
               </select>
 
             </div>
@@ -685,7 +706,7 @@
             <div>
 
               <label for="pagoInteres">
-                Interés pagado
+                Interés A&J
               </label>
 
               <input
@@ -702,7 +723,7 @@
             <div>
 
               <label for="pagoCapital">
-                Abono a capital
+                Abono a capital A&J
               </label>
 
               <input
@@ -755,9 +776,106 @@
 
             <div>
 
-              <label>Total recibido</label>
+              <label>
+                Total pago A&J
+              </label>
 
               <div id="pagoTotal" class="total-pago">
+                $0
+              </div>
+
+            </div>
+
+
+            <!-- DINERO DE TERCEROS -->
+
+            <div class="full">
+
+              <hr>
+
+              <h3>
+                Dinero adicional de terceros
+              </h3>
+
+              <p class="help-text">
+                Use esta sección solamente cuando junto con el pago
+                del cliente ingrese dinero que no pertenece a
+                A&J CAPITAL.
+              </p>
+
+            </div>
+
+
+            <div>
+
+              <label for="pagoTerceros">
+                Dinero adicional de terceros
+              </label>
+
+              <input
+                id="pagoTerceros"
+                type="number"
+                min="0"
+                step="1"
+                value="0"
+                inputmode="numeric">
+
+            </div>
+
+
+            <div>
+
+              <label for="pagoReferenciaTercero">
+                Referencia / propietario
+              </label>
+
+              <input
+                id="pagoReferenciaTercero"
+                type="text"
+                placeholder="Ej. Dinero de Carlos">
+
+            </div>
+
+
+            <div>
+
+              <label>
+                Total A&J
+              </label>
+
+              <div
+                id="pagoTotalEmpresa"
+                class="total-pago">
+                $0
+              </div>
+
+            </div>
+
+
+            <div>
+
+              <label>
+                Dinero de terceros
+              </label>
+
+              <div
+                id="pagoTotalTerceros"
+                class="total-pago">
+                $0
+              </div>
+
+            </div>
+
+
+            <div class="full">
+
+              <label>
+                TOTAL QUE ENTRÓ A LA CUENTA
+              </label>
+
+              <div
+                id="pagoTotalFisico"
+                class="total-pago">
                 $0
               </div>
 
@@ -767,7 +885,7 @@
             <div class="full">
 
               <label for="pagoObservaciones">
-                Observaciones
+                Observaciones del pago
               </label>
 
               <textarea
@@ -814,9 +932,10 @@
           <h3>Control del registro</h3>
 
           <p class="help-text">
-            Los intereses registrados alimentan el ciclo correspondiente.
-            Los abonos a capital reducen el capital actualmente prestado.
-            Cada movimiento queda registrado para control y auditoría.
+            El interés y el capital pertenecen a A&J CAPITAL.
+            El dinero adicional de terceros se mantiene en una
+            cuenta auxiliar independiente y no afecta intereses,
+            capital, utilidades ni reparto de socios.
           </p>
 
         </section>
@@ -824,7 +943,10 @@
       </section>
 
 
-      <!-- HISTORIAL -->
+      <!-- =================================================
+           HISTORIAL
+      ================================================== -->
+
       <section id="historial" class="page hidden">
 
         <div class="page-head">
@@ -878,9 +1000,11 @@
               </label>
 
               <select id="historialCliente">
+
                 <option value="">
                   Todos los clientes
                 </option>
+
               </select>
 
             </div>
@@ -951,7 +1075,7 @@
           </article>
 
           <article>
-            <span>Total recibido</span>
+            <span>Total recibido A&J</span>
             <strong id="historialTotal">$0</strong>
             <small>Interés + capital</small>
           </article>
@@ -985,6 +1109,7 @@
             <table>
 
               <thead>
+
                 <tr>
                   <th>Fecha</th>
                   <th>Cliente</th>
@@ -995,6 +1120,7 @@
                   <th>Medio</th>
                   <th>Estado</th>
                 </tr>
+
               </thead>
 
               <tbody id="historialBody">
@@ -1016,7 +1142,10 @@
       </section>
 
 
-      <!-- MÓDULOS PENDIENTES -->
+      <!-- =================================================
+           MÓDULOS PENDIENTES
+      ================================================== -->
+
       <section id="placeholder" class="page hidden">
 
         <section class="panel">
