@@ -3619,6 +3619,531 @@ async function prepararCartera() {
   await cargarCartera();
 }
 
+/* =========================================================
+   CUENTAS DE SOCIOS
+========================================================= */
+
+let cuentasSociosDatos = {
+  deudas: {},
+  cajas: {}
+};
+
+
+function obtenerDatoSocio(objeto, socioId) {
+  return Number(objeto?.[socioId] || 0);
+}
+
+
+function actualizarResumenPagoDeuda() {
+  const socioId = Number($('pagoDeudaSocio')?.value || 0);
+
+  const deuda = obtenerDatoSocio(
+    cuentasSociosDatos.deudas,
+    socioId
+  );
+
+  const caja = obtenerDatoSocio(
+    cuentasSociosDatos.cajas,
+    socioId
+  );
+
+  const maximo = Math.max(
+    0,
+    Math.min(deuda, caja)
+  );
+
+
+  if ($('pagoDeudaDisponible')) {
+    $('pagoDeudaDisponible').textContent = money(deuda);
+  }
+
+  if ($('pagoDeudaCajaDisponible')) {
+    $('pagoDeudaCajaDisponible').textContent = money(caja);
+  }
+
+  if ($('pagoDeudaMaximo')) {
+    $('pagoDeudaMaximo').textContent = money(maximo);
+  }
+
+
+  const advertencia = $('pagoDeudaAdvertencia');
+
+  if (!advertencia) return;
+
+
+  if (!socioId) {
+    advertencia.classList.add('hidden');
+    advertencia.textContent = '';
+    return;
+  }
+
+
+  if (deuda <= 0) {
+    advertencia.textContent =
+      'A&J CAPITAL no registra deuda pendiente con este socio.';
+
+    advertencia.classList.remove('hidden');
+    return;
+  }
+
+
+  if (caja <= 0) {
+    advertencia.textContent =
+      'No hay Caja A&J disponible bajo responsabilidad de este socio para realizar un reembolso.';
+
+    advertencia.classList.remove('hidden');
+    return;
+  }
+
+
+  if (caja < deuda) {
+    advertencia.textContent =
+      `La deuda es ${money(deuda)}, pero actualmente solo pueden reembolsarse hasta ${money(maximo)} con la Caja A&J disponible.`;
+
+    advertencia.classList.remove('hidden');
+    return;
+  }
+
+
+  advertencia.classList.add('hidden');
+  advertencia.textContent = '';
+}
+
+
+
+async function cargarCuentasSocios() {
+
+  const mensaje = $('cuentasSociosMsg');
+
+  if (mensaje) {
+    mensaje.textContent = 'Actualizando cuentas de socios...';
+  }
+
+
+  try {
+
+    const [
+      { data: deudas, error: errorDeudas },
+      { data: cajas, error: errorCajas },
+      { data: historial, error: errorHistorial }
+    ] = await Promise.all([
+
+      supabase
+        .from('resumen_cuentas_socios_aj')
+        .select('socio_id,nombre,empresa_debe_socio')
+        .order('socio_id'),
+
+      supabase
+        .from('resumen_caja_socios')
+        .select('socio_id,nombre,saldo_calculado')
+        .order('socio_id'),
+
+      supabase
+        .from('cuentas_socios_aj')
+        .select(`
+          id,
+          socio_id,
+          fecha,
+          tipo,
+          valor,
+          referencia,
+          observaciones,
+          origen,
+          movimiento_caja_id,
+          creado_en
+        `)
+        .order('fecha', { ascending: false })
+        .order('id', { ascending: false })
+
+    ]);
+
+
+    if (errorDeudas) throw errorDeudas;
+    if (errorCajas) throw errorCajas;
+    if (errorHistorial) throw errorHistorial;
+
+
+    cuentasSociosDatos = {
+      deudas: {},
+      cajas: {}
+    };
+
+
+    (deudas || []).forEach(row => {
+      cuentasSociosDatos.deudas[row.socio_id] =
+        Number(row.empresa_debe_socio || 0);
+    });
+
+
+    (cajas || []).forEach(row => {
+      cuentasSociosDatos.cajas[row.socio_id] =
+        Number(row.saldo_calculado || 0);
+    });
+
+
+    const deudaAndres =
+      obtenerDatoSocio(cuentasSociosDatos.deudas, 1);
+
+    const deudaJuan =
+      obtenerDatoSocio(cuentasSociosDatos.deudas, 2);
+
+    const cajaAndres =
+      obtenerDatoSocio(cuentasSociosDatos.cajas, 1);
+
+    const cajaJuan =
+      obtenerDatoSocio(cuentasSociosDatos.cajas, 2);
+
+
+    const deudaTotal =
+      deudaAndres + deudaJuan;
+
+    const cajaTotal =
+      cajaAndres + cajaJuan;
+
+
+    const reembolsableAndres =
+      Math.max(0, Math.min(deudaAndres, cajaAndres));
+
+    const reembolsableJuan =
+      Math.max(0, Math.min(deudaJuan, cajaJuan));
+
+
+    $('cuentasDeudaAndres').textContent =
+      money(deudaAndres);
+
+    $('cuentasDeudaJuan').textContent =
+      money(deudaJuan);
+
+    $('cuentasDeudaTotal').textContent =
+      money(deudaTotal);
+
+    $('cuentasCajaTotal').textContent =
+      money(cajaTotal);
+
+
+    $('cuentasAndresDeudaDetalle').textContent =
+      money(deudaAndres);
+
+    $('cuentasAndresCaja').textContent =
+      money(cajaAndres);
+
+    $('cuentasAndresReembolsable').textContent =
+      money(reembolsableAndres);
+
+
+    $('cuentasJuanDeudaDetalle').textContent =
+      money(deudaJuan);
+
+    $('cuentasJuanCaja').textContent =
+      money(cajaJuan);
+
+    $('cuentasJuanReembolsable').textContent =
+      money(reembolsableJuan);
+
+
+    const body = $('cuentasSociosBody');
+
+
+    if (!historial || historial.length === 0) {
+
+      body.innerHTML = `
+        <tr>
+          <td colspan="6">
+            No existen movimientos de cuentas de socios.
+          </td>
+        </tr>
+      `;
+
+    } else {
+
+      body.innerHTML = historial.map(row => {
+
+        const nombre =
+          Number(row.socio_id) === 1
+            ? 'Andrés Urrego'
+            : Number(row.socio_id) === 2
+              ? 'Juan'
+              : `Socio ${row.socio_id}`;
+
+
+        const movimiento =
+          row.tipo === 'DEUDA_EMPRESA'
+            ? 'A&J reconoce deuda'
+            : row.tipo === 'PAGO_DEUDA'
+              ? 'Reembolso al socio'
+              : row.tipo || 'Movimiento';
+
+
+        return `
+          <tr>
+
+            <td>
+              ${escapeHtml(mostrarFecha(row.fecha))}
+            </td>
+
+            <td>
+              ${escapeHtml(nombre)}
+            </td>
+
+            <td>
+              ${escapeHtml(movimiento)}
+            </td>
+
+            <td>
+              ${money(Number(row.valor || 0))}
+            </td>
+
+            <td>
+              ${escapeHtml(row.referencia || '—')}
+            </td>
+
+            <td>
+              ${escapeHtml(row.observaciones || '—')}
+            </td>
+
+          </tr>
+        `;
+
+      }).join('');
+
+    }
+
+
+    actualizarResumenPagoDeuda();
+
+
+    if (mensaje) {
+      mensaje.textContent = '';
+    }
+
+
+  } catch (error) {
+
+    console.error(
+      'Error cargando cuentas de socios:',
+      error
+    );
+
+    if (mensaje) {
+      mensaje.textContent =
+        `Error al cargar cuentas de socios: ${error.message}`;
+    }
+
+  }
+}
+
+
+
+async function prepararCuentasSocios() {
+
+  if ($('pagoDeudaFecha')) {
+    $('pagoDeudaFecha').value =
+      fechaHoyLocal();
+  }
+
+  if ($('pagoDeudaSocio')) {
+    $('pagoDeudaSocio').value = '';
+  }
+
+  if ($('pagoDeudaValor')) {
+    $('pagoDeudaValor').value = '';
+  }
+
+  if ($('pagoDeudaObservaciones')) {
+    $('pagoDeudaObservaciones').value = '';
+  }
+
+  await cargarCuentasSocios();
+}
+
+
+
+$('pagoDeudaSocio')?.addEventListener(
+  'change',
+  actualizarResumenPagoDeuda
+);
+
+
+
+$('actualizarCuentasSociosBtn')?.addEventListener(
+  'click',
+  async () => {
+    await cargarCuentasSocios();
+  }
+);
+
+
+
+$('pagoDeudaSocioForm')?.addEventListener(
+  'submit',
+  async (event) => {
+
+    event.preventDefault();
+
+
+    const mensaje = $('pagoDeudaMsg');
+
+    mensaje.textContent = '';
+
+
+    const socioId =
+      Number($('pagoDeudaSocio').value || 0);
+
+    const fecha =
+      $('pagoDeudaFecha').value;
+
+    const valor =
+      Number($('pagoDeudaValor').value || 0);
+
+    const observaciones =
+      $('pagoDeudaObservaciones').value.trim();
+
+
+    if (!socioId) {
+      mensaje.textContent =
+        'Seleccione el socio al que A&J realizará el reembolso.';
+      return;
+    }
+
+
+    if (!fecha) {
+      mensaje.textContent =
+        'Seleccione la fecha del reembolso.';
+      return;
+    }
+
+
+    if (!valor || valor <= 0) {
+      mensaje.textContent =
+        'Ingrese un valor válido.';
+      return;
+    }
+
+
+    const deuda =
+      obtenerDatoSocio(
+        cuentasSociosDatos.deudas,
+        socioId
+      );
+
+    const caja =
+      obtenerDatoSocio(
+        cuentasSociosDatos.cajas,
+        socioId
+      );
+
+    const maximo =
+      Math.max(
+        0,
+        Math.min(deuda, caja)
+      );
+
+
+    if (valor > deuda) {
+      mensaje.textContent =
+        `El valor supera la deuda pendiente de ${money(deuda)}.`;
+      return;
+    }
+
+
+    if (valor > caja) {
+      mensaje.textContent =
+        `La Caja A&J disponible es de ${money(caja)}. No puede registrar un reembolso superior.`;
+      return;
+    }
+
+
+    if (valor > maximo) {
+      mensaje.textContent =
+        `El máximo reembolsable actualmente es ${money(maximo)}.`;
+      return;
+    }
+
+
+    const nombre =
+      socioId === 1
+        ? 'Andrés Urrego'
+        : 'Juan';
+
+
+    const confirmado = window.confirm(
+      `¿Confirma que A&J CAPITAL entregó realmente ${money(valor)} a ${nombre} como pago de una deuda pendiente?\n\nEsta operación reducirá simultáneamente la Caja A&J y la deuda con el socio.`
+    );
+
+
+    if (!confirmado) {
+      return;
+    }
+
+
+    const boton =
+      $('guardarPagoDeudaBtn');
+
+
+    boton.disabled = true;
+    mensaje.textContent =
+      'Registrando reembolso...';
+
+
+    try {
+
+      const { data, error } =
+        await supabase.rpc(
+          'pagar_deuda_socio_aj',
+          {
+            p_socio_id: socioId,
+            p_fecha: fecha,
+            p_valor: valor,
+            p_observaciones:
+              observaciones || null
+          }
+        );
+
+
+      if (error) throw error;
+
+
+      mensaje.textContent =
+        `Reembolso registrado correctamente. Registro #${data}.`;
+
+
+      $('pagoDeudaValor').value = '';
+      $('pagoDeudaObservaciones').value = '';
+
+
+      await cargarCuentasSocios();
+
+
+      if (typeof cargarCaja === 'function') {
+        await cargarCaja();
+      }
+
+
+      if (typeof cargarDashboard === 'function') {
+        await cargarDashboard();
+      }
+
+
+    } catch (error) {
+
+      console.error(
+        'Error registrando reembolso:',
+        error
+      );
+
+      mensaje.textContent =
+        `No se pudo registrar el reembolso: ${error.message}`;
+
+
+    } finally {
+
+      boton.disabled = false;
+
+    }
+
+  }
+);
+
 
 /* =========================================================
    CIERRES
@@ -4877,6 +5402,7 @@ const paginasReales = [
   'pagos',
   'cartera',
   'caja',
+  'cuentas-socios',
   'cierres',
   'historial'
 ];
@@ -5009,6 +5535,11 @@ document
 
         }
 
+
+           else if (pagina === 'cuentas-socios') {
+  $('cuentas-socios').classList.remove('hidden');
+  await prepararCuentasSocios();
+}
 
         else if (
           pagina ===
