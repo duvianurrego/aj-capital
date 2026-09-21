@@ -4394,6 +4394,7 @@ const paginasReales = [
   'prestamos',
   'pagos',
   'caja',
+  'cierres',
   'historial'
 ];
 
@@ -4418,9 +4419,13 @@ document
 
         paginasReales.forEach(id => {
 
-          $(id)
-            .classList
-            .add('hidden');
+          const paginaElemento = $(id);
+
+          if (paginaElemento) {
+            paginaElemento
+              .classList
+              .add('hidden');
+          }
 
         });
 
@@ -4505,6 +4510,21 @@ document
 
 
           await prepararCaja();
+
+        }
+
+
+        else if (
+          pagina ===
+          'cierres'
+        ) {
+
+          $('cierres')
+            .classList
+            .remove('hidden');
+
+
+          await cargarCierres();
 
         }
 
