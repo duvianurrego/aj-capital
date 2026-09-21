@@ -264,19 +264,50 @@ async function cargarDashboard() {
   }
 
 
-  if (capitalRes.data) {
+if (capitalRes.data) {
 
-    $('capitalPrestado').textContent =
-      money(
-        capitalRes.data
-          .capital_actual_prestado
-      );
+  const capitalActual =
+    Number(
+      capitalRes.data
+        .capital_actual_prestado ||
+      0
+    );
+
+  const puntoCero =
+    Number(
+      capitalRes.data
+        .capital_prestado_punto_cero ||
+      0
+    );
+
+  const capitalRecuperado =
+    Number(
+      capitalRes.data
+        .capital_recuperado_desde_punto_cero ||
+      0
+    );
 
 
-    $('clientesSaldo').textContent =
-      'Punto Cero: $23.457.000';
+  $('capitalPrestado').textContent =
+    money(capitalActual);
+
+
+  if ($('inicioPuntoCero')) {
+
+    $('inicioPuntoCero').textContent =
+      money(puntoCero);
 
   }
+
+
+  if ($('inicioCapitalRecuperado')) {
+
+    $('inicioCapitalRecuperado').textContent =
+      money(capitalRecuperado);
+
+  }
+
+}
 
 
   if (cicloRes.error) {
