@@ -3610,7 +3610,7 @@ function aplicarFiltrosCartera() {
               <td>
                 ${
                   item.fecha_prestamo
-                    ? fechaISOaLocal(
+                    ? mostrarFecha(
                         item.fecha_prestamo
                       )
                     : '—'
@@ -3634,7 +3634,7 @@ function aplicarFiltrosCartera() {
               <td>
                 ${
                   item.fecha_proximo_pago
-                    ? fechaISOaLocal(
+                    ? mostrarFecha(
                         item.fecha_proximo_pago
                       )
                     : '—'
