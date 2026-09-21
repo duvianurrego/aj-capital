@@ -3139,6 +3139,488 @@ $('salidaTercerosForm').addEventListener(
 
 
 /* =========================================================
+   CARTERA
+========================================================= */
+
+let carteraOperativaDatos = [];
+let carteraResumenActual = null;
+
+
+/* ---------------------------------------------------------
+   NOMBRE VISUAL DEL SEMÁFORO
+--------------------------------------------------------- */
+
+function nombreSemaforoCartera(estado) {
+
+  const nombres = {
+    INICIO_CONTROL: 'Inicio control',
+    AL_DIA: 'Al día',
+    PROXIMO: 'Próximo',
+    VENCIDO: 'Vencido',
+    MORA_PROLONGADA: 'Mora prolongada',
+    PAGADO: 'Pagado',
+    SIN_FECHA: 'Sin fecha'
+  };
+
+  return nombres[estado] || estado || '—';
+}
+
+
+/* ---------------------------------------------------------
+   CLASE VISUAL DEL SEMÁFORO
+--------------------------------------------------------- */
+
+function claseSemaforoCartera(estado) {
+
+  const clases = {
+    INICIO_CONTROL: 'estado-inicio',
+    AL_DIA: 'estado-verde',
+    PROXIMO: 'estado-amarillo',
+    VENCIDO: 'estado-rojo',
+    MORA_PROLONGADA: 'estado-negro',
+    PAGADO: 'estado-pagado',
+    SIN_FECHA: 'estado-neutro'
+  };
+
+  return clases[estado] || 'estado-neutro';
+}
+
+
+/* ---------------------------------------------------------
+   CARGAR CARTERA DESDE SUPABASE
+--------------------------------------------------------- */
+
+async function cargarCartera() {
+
+  const body = $('carteraDetalleBody');
+  const msg = $('carteraMsg');
+
+  if (!body) {
+    return;
+  }
+
+  body.innerHTML = `
+    <tr>
+      <td colspan="7">Cargando cartera...</td>
+    </tr>
+  `;
+
+  if (msg) {
+    msg.textContent = '';
+  }
+
+  try {
+
+    /*
+      1. Resumen oficial del capital operativo.
+
+      Esta vista es la fuente oficial para:
+      - capital actual prestado
+      - Punto Cero
+      - nuevos desembolsos
+      - capital recuperado
+    */
+
+    const {
+      data: resumenData,
+      error: resumenError
+    } = await supabase
+      .from('capital_operativo_aj')
+      .select(`
+        capital_actual_prestado,
+        capital_prestado_punto_cero,
+        nuevos_desembolsos,
+        capital_recuperado_desde_punto_cero
+      `)
+      .limit(1);
+
+    if (resumenError) {
+      throw resumenError;
+    }
+
+
+    /*
+      2. Seguimiento individual de préstamos.
+    */
+
+    const {
+      data: carteraData,
+      error: carteraError
+    } = await supabase
+      .from('semaforo_operativo_aj')
+      .select(`
+        prestamo_id,
+        cliente_id,
+        nombre,
+        capital_inicial,
+        saldo_historico_referencia,
+        fecha_prestamo,
+        fecha_proximo_pago,
+        semaforo,
+        dias_mora_control_nuevo
+      `)
+      .order('nombre', {
+        ascending: true
+      });
+
+    if (carteraError) {
+      throw carteraError;
+    }
+
+
+    carteraResumenActual =
+      resumenData && resumenData.length > 0
+        ? resumenData[0]
+        : null;
+
+    carteraOperativaDatos =
+      carteraData || [];
+
+
+    /*
+      3. Tarjetas principales.
+    */
+
+    const capitalActual =
+      Number(
+        carteraResumenActual?.capital_actual_prestado || 0
+      );
+
+    const puntoCero =
+      Number(
+        carteraResumenActual?.capital_prestado_punto_cero || 0
+      );
+
+    const nuevosDesembolsos =
+      Number(
+        carteraResumenActual?.nuevos_desembolsos || 0
+      );
+
+    const capitalRecuperado =
+      Number(
+        carteraResumenActual
+          ?.capital_recuperado_desde_punto_cero || 0
+      );
+
+
+    $('carteraCapitalActual').textContent =
+      money(capitalActual);
+
+    $('carteraPuntoCero').textContent =
+      money(puntoCero);
+
+    $('carteraNuevosDesembolsos').textContent =
+      money(nuevosDesembolsos);
+
+    $('carteraCapitalRecuperado').textContent =
+      money(capitalRecuperado);
+
+
+    /*
+      4. Contadores del semáforo.
+    */
+
+    const contar = estado =>
+      carteraOperativaDatos.filter(
+        item => item.semaforo === estado
+      ).length;
+
+
+    /*
+      Un préstamo se considera con saldo cuando
+      su saldo de referencia es mayor que cero.
+
+      Esto se utiliza solamente para el contador individual.
+      El capital oficial sigue viniendo de
+      capital_operativo_aj.
+    */
+
+    const prestamosConSaldo =
+      carteraOperativaDatos.filter(
+        item =>
+          Number(
+            item.saldo_historico_referencia || 0
+          ) > 0
+      ).length;
+
+
+    $('carteraPrestamosConSaldo').textContent =
+      String(prestamosConSaldo);
+
+    $('carteraInicioControl').textContent =
+      String(contar('INICIO_CONTROL'));
+
+    $('carteraAlDia').textContent =
+      String(contar('AL_DIA'));
+
+    $('carteraProximos').textContent =
+      String(contar('PROXIMO'));
+
+    $('carteraVencidos').textContent =
+      String(contar('VENCIDO'));
+
+    $('carteraMoraProlongada').textContent =
+      String(contar('MORA_PROLONGADA'));
+
+    $('carteraPagados').textContent =
+      String(contar('PAGADO'));
+
+
+    /*
+      5. Pintamos tabla.
+    */
+
+    aplicarFiltrosCartera();
+
+  } catch (error) {
+
+    console.error(
+      'Error cargando cartera:',
+      error
+    );
+
+    body.innerHTML = `
+      <tr>
+        <td colspan="7">
+          No fue posible cargar la cartera.
+        </td>
+      </tr>
+    `;
+
+    if (msg) {
+      msg.textContent =
+        'Error consultando cartera: ' +
+        (error?.message || 'Error desconocido');
+    }
+  }
+}
+
+
+/* ---------------------------------------------------------
+   FILTRAR Y PINTAR CARTERA
+--------------------------------------------------------- */
+
+function aplicarFiltrosCartera() {
+
+  const body =
+    $('carteraDetalleBody');
+
+  if (!body) {
+    return;
+  }
+
+
+  const texto =
+    ($('buscarCartera')?.value || '')
+      .trim()
+      .toLowerCase();
+
+
+  const estado =
+    $('filtroCarteraEstado')?.value || '';
+
+
+  const filtrados =
+    carteraOperativaDatos.filter(item => {
+
+      const coincideTexto =
+        !texto ||
+        String(item.nombre || '')
+          .toLowerCase()
+          .includes(texto);
+
+
+      const coincideEstado =
+        !estado ||
+        item.semaforo === estado;
+
+
+      return (
+        coincideTexto &&
+        coincideEstado
+      );
+
+    });
+
+
+  /*
+    Total del saldo mostrado.
+
+    IMPORTANTE:
+    Es únicamente una suma visual de los registros
+    actualmente filtrados.
+
+    No sustituye el capital operativo oficial de
+    capital_operativo_aj.
+  */
+
+  const capitalMostrado =
+    filtrados.reduce(
+      (total, item) =>
+        total +
+        Number(
+          item.saldo_historico_referencia || 0
+        ),
+      0
+    );
+
+
+  $('carteraRegistrosVisibles').textContent =
+    String(filtrados.length);
+
+  $('carteraCapitalMostrado').textContent =
+    money(capitalMostrado);
+
+
+  if (filtrados.length === 0) {
+
+    body.innerHTML = `
+      <tr>
+        <td colspan="7">
+          No existen registros con los filtros seleccionados.
+        </td>
+      </tr>
+    `;
+
+    return;
+  }
+
+
+  body.innerHTML =
+    filtrados
+      .map(item => {
+
+        const estadoVisual =
+          nombreSemaforoCartera(
+            item.semaforo
+          );
+
+        const clase =
+          claseSemaforoCartera(
+            item.semaforo
+          );
+
+
+        const diasMora =
+          item.semaforo === 'INICIO_CONTROL'
+            ? '—'
+            : Number(
+                item.dias_mora_control_nuevo || 0
+              );
+
+
+        return `
+          <tr>
+
+            <td>
+              <strong>
+                ${escapeHtml(item.nombre || 'Sin nombre')}
+              </strong>
+            </td>
+
+            <td>
+              ${
+                item.fecha_prestamo
+                  ? fechaISOaLocal(item.fecha_prestamo)
+                  : '—'
+              }
+            </td>
+
+            <td>
+              ${money(item.capital_inicial)}
+            </td>
+
+            <td>
+              <strong>
+                ${money(
+                  item.saldo_historico_referencia
+                )}
+              </strong>
+            </td>
+
+            <td>
+              ${
+                item.fecha_proximo_pago
+                  ? fechaISOaLocal(
+                      item.fecha_proximo_pago
+                    )
+                  : '—'
+              }
+            </td>
+
+            <td>
+              <span class="${clase}">
+                ${escapeHtml(estadoVisual)}
+              </span>
+            </td>
+
+            <td>
+              ${diasMora}
+            </td>
+
+          </tr>
+        `;
+
+      })
+      .join('');
+}
+
+
+/* ---------------------------------------------------------
+   BUSCADOR
+--------------------------------------------------------- */
+
+if ($('buscarCartera')) {
+
+  $('buscarCartera')
+    .addEventListener(
+      'input',
+      () => {
+
+        aplicarFiltrosCartera();
+
+      }
+    );
+}
+
+
+/* ---------------------------------------------------------
+   FILTRO DE ESTADO
+--------------------------------------------------------- */
+
+if ($('filtroCarteraEstado')) {
+
+  $('filtroCarteraEstado')
+    .addEventListener(
+      'change',
+      () => {
+
+        aplicarFiltrosCartera();
+
+      }
+    );
+}
+
+
+/* ---------------------------------------------------------
+   PREPARAR MÓDULO CARTERA
+--------------------------------------------------------- */
+
+async function prepararCartera() {
+
+  if ($('buscarCartera')) {
+    $('buscarCartera').value = '';
+  }
+
+  if ($('filtroCarteraEstado')) {
+    $('filtroCarteraEstado').value = '';
+  }
+
+  await cargarCartera();
+}
+
+
+/* =========================================================
    CIERRES
 ========================================================= */
 
