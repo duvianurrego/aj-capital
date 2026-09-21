@@ -268,28 +268,28 @@ if (capitalRes.data) {
 
   const capitalActual =
     Number(
-      capitalRes.data
-        .capital_actual_prestado ||
-      0
+      capitalRes.data.capital_actual_prestado || 0
     );
 
   const puntoCero =
     Number(
-      capitalRes.data
-        .capital_prestado_punto_cero ||
-      0
+      capitalRes.data.capital_prestado_punto_cero || 0
     );
 
-  const capitalRecuperado =
+  const recuperado =
     Number(
-      capitalRes.data
-        .capital_recuperado_desde_punto_cero ||
-      0
+      capitalRes.data.capital_recuperado_desde_punto_cero || 0
     );
 
 
   $('capitalPrestado').textContent =
     money(capitalActual);
+
+
+  $('clientesSaldo').textContent =
+    `Punto Cero: ${money(puntoCero)} · Recuperado: ${money(recuperado)}`;
+
+}
 
 
   if ($('inicioPuntoCero')) {
