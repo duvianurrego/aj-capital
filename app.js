@@ -4875,6 +4875,7 @@ const paginasReales = [
   'clientes',
   'prestamos',
   'pagos',
+  'cartera',
   'caja',
   'cierres',
   'historial'
@@ -4980,6 +4981,19 @@ document
 
         }
 
+
+           else if (
+  pagina ===
+  'cartera'
+) {
+
+  $('cartera')
+    .classList
+    .remove('hidden');
+
+  await prepararCartera();
+
+}
 
         else if (
           pagina ===
