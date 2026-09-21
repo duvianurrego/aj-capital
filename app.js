@@ -276,7 +276,7 @@ if (capitalRes.data) {
       capitalRes.data.capital_prestado_punto_cero || 0
     );
 
-  const recuperado =
+  const capitalRecuperado =
     Number(
       capitalRes.data.capital_recuperado_desde_punto_cero || 0
     );
@@ -287,9 +287,7 @@ if (capitalRes.data) {
 
 
   $('clientesSaldo').textContent =
-    `Punto Cero: ${money(puntoCero)} · Recuperado: ${money(recuperado)}`;
-
-}
+    `Punto Cero: ${money(puntoCero)} · Recuperado: ${money(capitalRecuperado)}`;
 
 
   if ($('inicioPuntoCero')) {
@@ -308,10 +306,16 @@ if (capitalRes.data) {
   }
 
 }
+   
+   if (cicloRes.error) {
 
+  console.error(
+    'Error ciclo:',
+    cicloRes.error
+  );
 
-  if (cicloRes.error) {
-
+}
+   
     console.error(
       'Error ciclo:',
       cicloRes.error
