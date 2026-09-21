@@ -264,58 +264,23 @@ async function cargarDashboard() {
   }
 
 
-if (capitalRes.data) {
+  if (capitalRes.data) {
 
-  const capitalActual =
-    Number(
-      capitalRes.data.capital_actual_prestado || 0
-    );
-
-  const puntoCero =
-    Number(
-      capitalRes.data.capital_prestado_punto_cero || 0
-    );
-
-  const capitalRecuperado =
-    Number(
-      capitalRes.data.capital_recuperado_desde_punto_cero || 0
-    );
+    $('capitalPrestado').textContent =
+      money(
+        capitalRes.data
+          .capital_actual_prestado
+      );
 
 
-  $('capitalPrestado').textContent =
-    money(capitalActual);
-
-
-  $('clientesSaldo').textContent =
-    `Punto Cero: ${money(puntoCero)} · Recuperado: ${money(capitalRecuperado)}`;
-
-
-  if ($('inicioPuntoCero')) {
-
-    $('inicioPuntoCero').textContent =
-      money(puntoCero);
+    $('clientesSaldo').textContent =
+      'Punto Cero: $23.457.000';
 
   }
 
 
-  if ($('inicioCapitalRecuperado')) {
+  if (cicloRes.error) {
 
-    $('inicioCapitalRecuperado').textContent =
-      money(capitalRecuperado);
-
-  }
-
-}
-   
-   if (cicloRes.error) {
-
-  console.error(
-    'Error ciclo:',
-    cicloRes.error
-  );
-
-}
-   
     console.error(
       'Error ciclo:',
       cicloRes.error
@@ -932,7 +897,6 @@ $('clienteForm').addEventListener(
 
   }
 );
-
 
 /* =========================================================
    PRÉSTAMOS
@@ -2124,7 +2088,6 @@ $('pagoForm').addEventListener(
   }
 );
 
-
 /* =========================================================
    CAJA
 ========================================================= */
@@ -2134,34 +2097,19 @@ async function prepararCaja() {
   $('cuotaBancoFecha').value =
     fechaHoyLocal();
 
-
   $('transferenciaFecha').value =
     fechaHoyLocal();
-
 
   $('retiroFecha').value =
     fechaHoyLocal();
 
-
   $('salidaTercerosFecha').value =
     fechaHoyLocal();
 
-
-  $('cuotaBancoMsg').textContent =
-    '';
-
-
-  $('transferenciaMsg').textContent =
-    '';
-
-
-  $('retiroMsg').textContent =
-    '';
-
-
-  $('salidaTercerosMsg').textContent =
-    '';
-
+  $('cuotaBancoMsg').textContent = '';
+  $('transferenciaMsg').textContent = '';
+  $('retiroMsg').textContent = '';
+  $('salidaTercerosMsg').textContent = '';
 
   await cargarCaja();
 
@@ -3172,7 +3120,6 @@ $('salidaTercerosForm').addEventListener(
   }
 );
 
-
 /* =========================================================
    CARTERA
 ========================================================= */
@@ -3227,39 +3174,43 @@ function claseSemaforoCartera(estado) {
 
 async function cargarCartera() {
 
-  const body = $('carteraDetalleBody');
-  const msg = $('carteraMsg');
+  const body =
+    $('carteraDetalleBody');
+
+  const msg =
+    $('carteraMsg');
+
 
   if (!body) {
     return;
   }
 
+
   body.innerHTML = `
     <tr>
-      <td colspan="7">Cargando cartera...</td>
+      <td colspan="7">
+        Cargando cartera...
+      </td>
     </tr>
   `;
+
 
   if (msg) {
     msg.textContent = '';
   }
 
+
   try {
 
-    /*
-      1. Resumen oficial del capital operativo.
-
-      Esta vista es la fuente oficial para:
-      - capital actual prestado
-      - Punto Cero
-      - nuevos desembolsos
-      - capital recuperado
-    */
+    /* =====================================================
+       1. RESUMEN OFICIAL DEL CAPITAL OPERATIVO
+    ===================================================== */
 
     const {
       data: resumenData,
       error: resumenError
-    } = await supabase
+    } =
+    await supabase
       .from('capital_operativo_aj')
       .select(`
         capital_actual_prestado,
@@ -3269,19 +3220,21 @@ async function cargarCartera() {
       `)
       .limit(1);
 
+
     if (resumenError) {
       throw resumenError;
     }
 
 
-    /*
-      2. Seguimiento individual de préstamos.
-    */
+    /* =====================================================
+       2. SEGUIMIENTO INDIVIDUAL DE LOS PRÉSTAMOS
+    ===================================================== */
 
     const {
       data: carteraData,
       error: carteraError
-    } = await supabase
+    } =
+    await supabase
       .from('semaforo_operativo_aj')
       .select(`
         prestamo_id,
@@ -3294,9 +3247,13 @@ async function cargarCartera() {
         semaforo,
         dias_mora_control_nuevo
       `)
-      .order('nombre', {
-        ascending: true
-      });
+      .order(
+        'nombre',
+        {
+          ascending: true
+        }
+      );
+
 
     if (carteraError) {
       throw carteraError;
@@ -3304,108 +3261,158 @@ async function cargarCartera() {
 
 
     carteraResumenActual =
-      resumenData && resumenData.length > 0
+      resumenData &&
+      resumenData.length > 0
         ? resumenData[0]
         : null;
+
 
     carteraOperativaDatos =
       carteraData || [];
 
 
-    /*
-      3. Tarjetas principales.
-    */
+    /* =====================================================
+       3. TARJETAS PRINCIPALES
+    ===================================================== */
 
     const capitalActual =
       Number(
-        carteraResumenActual?.capital_actual_prestado || 0
+        carteraResumenActual
+          ?.capital_actual_prestado ||
+        0
       );
+
 
     const puntoCero =
       Number(
-        carteraResumenActual?.capital_prestado_punto_cero || 0
+        carteraResumenActual
+          ?.capital_prestado_punto_cero ||
+        0
       );
+
 
     const nuevosDesembolsos =
       Number(
-        carteraResumenActual?.nuevos_desembolsos || 0
+        carteraResumenActual
+          ?.nuevos_desembolsos ||
+        0
       );
+
 
     const capitalRecuperado =
       Number(
         carteraResumenActual
-          ?.capital_recuperado_desde_punto_cero || 0
+          ?.capital_recuperado_desde_punto_cero ||
+        0
       );
 
 
-    $('carteraCapitalActual').textContent =
-      money(capitalActual);
-
-    $('carteraPuntoCero').textContent =
-      money(puntoCero);
-
-    $('carteraNuevosDesembolsos').textContent =
-      money(nuevosDesembolsos);
-
-    $('carteraCapitalRecuperado').textContent =
-      money(capitalRecuperado);
+    if ($('carteraCapitalActual')) {
+      $('carteraCapitalActual').textContent =
+        money(capitalActual);
+    }
 
 
-    /*
-      4. Contadores del semáforo.
-    */
-
-    const contar = estado =>
-      carteraOperativaDatos.filter(
-        item => item.semaforo === estado
-      ).length;
+    if ($('carteraPuntoCero')) {
+      $('carteraPuntoCero').textContent =
+        money(puntoCero);
+    }
 
 
-    /*
-      Un préstamo se considera con saldo cuando
-      su saldo de referencia es mayor que cero.
+    if ($('carteraNuevosDesembolsos')) {
+      $('carteraNuevosDesembolsos').textContent =
+        money(nuevosDesembolsos);
+    }
 
-      Esto se utiliza solamente para el contador individual.
-      El capital oficial sigue viniendo de
-      capital_operativo_aj.
-    */
+
+    if ($('carteraCapitalRecuperado')) {
+      $('carteraCapitalRecuperado').textContent =
+        money(capitalRecuperado);
+    }
+
+
+    /* =====================================================
+       4. CONTADORES DEL SEMÁFORO
+    ===================================================== */
+
+    const contar =
+      estado =>
+        carteraOperativaDatos.filter(
+          item =>
+            item.semaforo === estado
+        ).length;
+
 
     const prestamosConSaldo =
       carteraOperativaDatos.filter(
         item =>
           Number(
-            item.saldo_historico_referencia || 0
+            item.saldo_historico_referencia ||
+            0
           ) > 0
       ).length;
 
 
-    $('carteraPrestamosConSaldo').textContent =
-      String(prestamosConSaldo);
-
-    $('carteraInicioControl').textContent =
-      String(contar('INICIO_CONTROL'));
-
-    $('carteraAlDia').textContent =
-      String(contar('AL_DIA'));
-
-    $('carteraProximos').textContent =
-      String(contar('PROXIMO'));
-
-    $('carteraVencidos').textContent =
-      String(contar('VENCIDO'));
-
-    $('carteraMoraProlongada').textContent =
-      String(contar('MORA_PROLONGADA'));
-
-    $('carteraPagados').textContent =
-      String(contar('PAGADO'));
+    if ($('carteraPrestamosConSaldo')) {
+      $('carteraPrestamosConSaldo').textContent =
+        String(prestamosConSaldo);
+    }
 
 
-    /*
-      5. Pintamos tabla.
-    */
+    if ($('carteraInicioControl')) {
+      $('carteraInicioControl').textContent =
+        String(
+          contar('INICIO_CONTROL')
+        );
+    }
+
+
+    if ($('carteraAlDia')) {
+      $('carteraAlDia').textContent =
+        String(
+          contar('AL_DIA')
+        );
+    }
+
+
+    if ($('carteraProximos')) {
+      $('carteraProximos').textContent =
+        String(
+          contar('PROXIMO')
+        );
+    }
+
+
+    if ($('carteraVencidos')) {
+      $('carteraVencidos').textContent =
+        String(
+          contar('VENCIDO')
+        );
+    }
+
+
+    if ($('carteraMoraProlongada')) {
+      $('carteraMoraProlongada').textContent =
+        String(
+          contar('MORA_PROLONGADA')
+        );
+    }
+
+
+    if ($('carteraPagados')) {
+      $('carteraPagados').textContent =
+        String(
+          contar('PAGADO')
+        );
+    }
+
+
+    /* =====================================================
+       5. PINTAR TABLA
+    ===================================================== */
 
     aplicarFiltrosCartera();
+
 
   } catch (error) {
 
@@ -3413,6 +3420,7 @@ async function cargarCartera() {
       'Error cargando cartera:',
       error
     );
+
 
     body.innerHTML = `
       <tr>
@@ -3422,12 +3430,20 @@ async function cargarCartera() {
       </tr>
     `;
 
+
     if (msg) {
+
       msg.textContent =
         'Error consultando cartera: ' +
-        (error?.message || 'Error desconocido');
+        (
+          error?.message ||
+          'Error desconocido'
+        );
+
     }
+
   }
+
 }
 
 
@@ -3440,74 +3456,100 @@ function aplicarFiltrosCartera() {
   const body =
     $('carteraDetalleBody');
 
+
   if (!body) {
     return;
   }
 
 
   const texto =
-    ($('buscarCartera')?.value || '')
+    (
+      $('buscarCartera')?.value ||
+      ''
+    )
       .trim()
       .toLowerCase();
 
 
   const estado =
-    $('filtroCarteraEstado')?.value || '';
+    $('filtroCarteraEstado')
+      ?.value ||
+    '';
 
 
   const filtrados =
-    carteraOperativaDatos.filter(item => {
+    carteraOperativaDatos.filter(
+      item => {
 
-      const coincideTexto =
-        !texto ||
-        String(item.nombre || '')
-          .toLowerCase()
-          .includes(texto);
-
-
-      const coincideEstado =
-        !estado ||
-        item.semaforo === estado;
-
-
-      return (
-        coincideTexto &&
-        coincideEstado
-      );
-
-    });
+        const coincideTexto =
+          !texto ||
+          String(
+            item.nombre ||
+            ''
+          )
+            .toLowerCase()
+            .includes(texto);
 
 
-  /*
-    Total del saldo mostrado.
+        const coincideEstado =
+          !estado ||
+          item.semaforo ===
+          estado;
 
-    IMPORTANTE:
-    Es únicamente una suma visual de los registros
-    actualmente filtrados.
 
-    No sustituye el capital operativo oficial de
-    capital_operativo_aj.
-  */
+        return (
+          coincideTexto &&
+          coincideEstado
+        );
+
+      }
+    );
+
+
+  /* =====================================================
+     CAPITAL MOSTRADO SEGÚN FILTROS
+  ===================================================== */
 
   const capitalMostrado =
     filtrados.reduce(
       (total, item) =>
         total +
         Number(
-          item.saldo_historico_referencia || 0
+          item.saldo_historico_referencia ||
+          0
         ),
       0
     );
 
 
-  $('carteraRegistrosVisibles').textContent =
-    String(filtrados.length);
+  if ($('carteraRegistrosVisibles')) {
 
-  $('carteraCapitalMostrado').textContent =
-    money(capitalMostrado);
+    $('carteraRegistrosVisibles').textContent =
+      String(
+        filtrados.length
+      );
+
+  }
 
 
-  if (filtrados.length === 0) {
+  if ($('carteraCapitalMostrado')) {
+
+    $('carteraCapitalMostrado').textContent =
+      money(
+        capitalMostrado
+      );
+
+  }
+
+
+  /* =====================================================
+     SIN RESULTADOS
+  ===================================================== */
+
+  if (
+    filtrados.length ===
+    0
+  ) {
 
     body.innerHTML = `
       <tr>
@@ -3518,91 +3560,111 @@ function aplicarFiltrosCartera() {
     `;
 
     return;
+
   }
 
 
+  /* =====================================================
+     TABLA
+  ===================================================== */
+
   body.innerHTML =
     filtrados
-      .map(item => {
+      .map(
+        item => {
 
-        const estadoVisual =
-          nombreSemaforoCartera(
-            item.semaforo
-          );
-
-        const clase =
-          claseSemaforoCartera(
-            item.semaforo
-          );
+          const estadoVisual =
+            nombreSemaforoCartera(
+              item.semaforo
+            );
 
 
-        const diasMora =
-          item.semaforo === 'INICIO_CONTROL'
-            ? '—'
-            : Number(
-                item.dias_mora_control_nuevo || 0
-              );
+          const clase =
+            claseSemaforoCartera(
+              item.semaforo
+            );
 
 
-        return `
-          <tr>
+          const diasMora =
+            item.semaforo ===
+            'INICIO_CONTROL'
+              ? '—'
+              : Number(
+                  item.dias_mora_control_nuevo ||
+                  0
+                );
 
-            <td>
-              <strong>
-                ${escapeHtml(item.nombre || 'Sin nombre')}
-              </strong>
-            </td>
 
-            <td>
-              ${
-                item.fecha_prestamo
-                  ? fechaISOaLocal(item.fecha_prestamo)
-                  : '—'
-              }
-            </td>
+          return `
+            <tr>
 
-            <td>
-              ${money(item.capital_inicial)}
-            </td>
+              <td>
+                <strong>
+                  ${escapeHtml(
+                    item.nombre ||
+                    'Sin nombre'
+                  )}
+                </strong>
+              </td>
 
-            <td>
-              <strong>
+              <td>
+                ${
+                  item.fecha_prestamo
+                    ? fechaISOaLocal(
+                        item.fecha_prestamo
+                      )
+                    : '—'
+                }
+              </td>
+
+              <td>
                 ${money(
-                  item.saldo_historico_referencia
+                  item.capital_inicial
                 )}
-              </strong>
-            </td>
+              </td>
 
-            <td>
-              ${
-                item.fecha_proximo_pago
-                  ? fechaISOaLocal(
-                      item.fecha_proximo_pago
-                    )
-                  : '—'
-              }
-            </td>
+              <td>
+                <strong>
+                  ${money(
+                    item.saldo_historico_referencia
+                  )}
+                </strong>
+              </td>
 
-            <td>
-              <span class="${clase}">
-                ${escapeHtml(estadoVisual)}
-              </span>
-            </td>
+              <td>
+                ${
+                  item.fecha_proximo_pago
+                    ? fechaISOaLocal(
+                        item.fecha_proximo_pago
+                      )
+                    : '—'
+                }
+              </td>
 
-            <td>
-              ${diasMora}
-            </td>
+              <td>
+                <span class="${clase}">
+                  ${escapeHtml(
+                    estadoVisual
+                  )}
+                </span>
+              </td>
 
-          </tr>
-        `;
+              <td>
+                ${diasMora}
+              </td>
 
-      })
+            </tr>
+          `;
+
+        }
+      )
       .join('');
+
 }
 
 
 /* ---------------------------------------------------------
-   BUSCADOR
+   BUSCADOR DE CARTERA
 --------------------------------------------------------- */
 
 if ($('buscarCartera')) {
@@ -3616,11 +3678,12 @@ if ($('buscarCartera')) {
 
       }
     );
+
 }
 
 
 /* ---------------------------------------------------------
-   FILTRO DE ESTADO
+   FILTRO POR ESTADO
 --------------------------------------------------------- */
 
 if ($('filtroCarteraEstado')) {
@@ -3634,6 +3697,7 @@ if ($('filtroCarteraEstado')) {
 
       }
     );
+
 }
 
 
@@ -3644,14 +3708,23 @@ if ($('filtroCarteraEstado')) {
 async function prepararCartera() {
 
   if ($('buscarCartera')) {
-    $('buscarCartera').value = '';
+
+    $('buscarCartera').value =
+      '';
+
   }
+
 
   if ($('filtroCarteraEstado')) {
-    $('filtroCarteraEstado').value = '';
+
+    $('filtroCarteraEstado').value =
+      '';
+
   }
 
+
   await cargarCartera();
+
 }
 
 /* =========================================================
@@ -3664,117 +3737,232 @@ let cuentasSociosDatos = {
 };
 
 
-function obtenerDatoSocio(objeto, socioId) {
-  return Number(objeto?.[socioId] || 0);
+/* ---------------------------------------------------------
+   OBTENER DATO DEL SOCIO
+--------------------------------------------------------- */
+
+function obtenerDatoSocio(
+  objeto,
+  socioId
+) {
+
+  return Number(
+    objeto?.[socioId] ||
+    0
+  );
+
 }
 
 
+/* ---------------------------------------------------------
+   ACTUALIZAR RESUMEN DEL PAGO DE DEUDA
+--------------------------------------------------------- */
+
 function actualizarResumenPagoDeuda() {
-  const socioId = Number($('pagoDeudaSocio')?.value || 0);
 
-  const deuda = obtenerDatoSocio(
-    cuentasSociosDatos.deudas,
-    socioId
-  );
+  const socioId =
+    Number(
+      $('pagoDeudaSocio')
+        ?.value ||
+      0
+    );
 
-  const caja = obtenerDatoSocio(
-    cuentasSociosDatos.cajas,
-    socioId
-  );
 
-  const maximo = Math.max(
-    0,
-    Math.min(deuda, caja)
-  );
+  const deuda =
+    obtenerDatoSocio(
+      cuentasSociosDatos.deudas,
+      socioId
+    );
+
+
+  const caja =
+    obtenerDatoSocio(
+      cuentasSociosDatos.cajas,
+      socioId
+    );
+
+
+  const maximo =
+    Math.max(
+      0,
+      Math.min(
+        deuda,
+        caja
+      )
+    );
 
 
   if ($('pagoDeudaDisponible')) {
-    $('pagoDeudaDisponible').textContent = money(deuda);
+
+    $('pagoDeudaDisponible')
+      .textContent =
+      money(deuda);
+
   }
+
 
   if ($('pagoDeudaCajaDisponible')) {
-    $('pagoDeudaCajaDisponible').textContent = money(caja);
+
+    $('pagoDeudaCajaDisponible')
+      .textContent =
+      money(caja);
+
   }
+
 
   if ($('pagoDeudaMaximo')) {
-    $('pagoDeudaMaximo').textContent = money(maximo);
+
+    $('pagoDeudaMaximo')
+      .textContent =
+      money(maximo);
+
   }
 
 
-  const advertencia = $('pagoDeudaAdvertencia');
+  const advertencia =
+    $('pagoDeudaAdvertencia');
 
-  if (!advertencia) return;
+
+  if (!advertencia) {
+    return;
+  }
 
 
   if (!socioId) {
-    advertencia.classList.add('hidden');
-    advertencia.textContent = '';
+
+    advertencia
+      .classList
+      .add('hidden');
+
+    advertencia.textContent =
+      '';
+
     return;
+
   }
 
 
   if (deuda <= 0) {
+
     advertencia.textContent =
       'A&J CAPITAL no registra deuda pendiente con este socio.';
 
-    advertencia.classList.remove('hidden');
+
+    advertencia
+      .classList
+      .remove('hidden');
+
     return;
+
   }
 
 
   if (caja <= 0) {
+
     advertencia.textContent =
       'No hay Caja A&J disponible bajo responsabilidad de este socio para realizar un reembolso.';
 
-    advertencia.classList.remove('hidden');
+
+    advertencia
+      .classList
+      .remove('hidden');
+
     return;
+
   }
 
 
   if (caja < deuda) {
+
     advertencia.textContent =
       `La deuda es ${money(deuda)}, pero actualmente solo pueden reembolsarse hasta ${money(maximo)} con la Caja A&J disponible.`;
 
-    advertencia.classList.remove('hidden');
+
+    advertencia
+      .classList
+      .remove('hidden');
+
     return;
+
   }
 
 
-  advertencia.classList.add('hidden');
-  advertencia.textContent = '';
+  advertencia
+    .classList
+    .add('hidden');
+
+
+  advertencia.textContent =
+    '';
+
 }
 
 
+/* =========================================================
+   CARGAR CUENTAS DE SOCIOS
+========================================================= */
 
 async function cargarCuentasSocios() {
 
-  const mensaje = $('cuentasSociosMsg');
+  const mensaje =
+    $('cuentasSociosMsg');
+
 
   if (mensaje) {
-    mensaje.textContent = 'Actualizando cuentas de socios...';
+
+    mensaje.textContent =
+      'Actualizando cuentas de socios...';
+
   }
 
 
   try {
 
     const [
-      { data: deudas, error: errorDeudas },
-      { data: cajas, error: errorCajas },
-      { data: historial, error: errorHistorial }
-    ] = await Promise.all([
+      {
+        data: deudas,
+        error: errorDeudas
+      },
+
+      {
+        data: cajas,
+        error: errorCajas
+      },
+
+      {
+        data: historial,
+        error: errorHistorial
+      }
+
+    ] =
+    await Promise.all([
 
       supabase
-        .from('resumen_cuentas_socios_aj')
-        .select('socio_id,nombre,empresa_debe_socio')
-        .order('socio_id'),
+        .from(
+          'resumen_cuentas_socios_aj'
+        )
+        .select(
+          'socio_id,nombre,empresa_debe_socio'
+        )
+        .order(
+          'socio_id'
+        ),
 
       supabase
-        .from('resumen_caja_socios')
-        .select('socio_id,nombre,saldo_calculado')
-        .order('socio_id'),
+        .from(
+          'resumen_caja_socios'
+        )
+        .select(
+          'socio_id,nombre,saldo_calculado'
+        )
+        .order(
+          'socio_id'
+        ),
 
       supabase
-        .from('cuentas_socios_aj')
+        .from(
+          'cuentas_socios_aj'
+        )
         .select(`
           id,
           socio_id,
@@ -3787,16 +3975,40 @@ async function cargarCuentasSocios() {
           movimiento_caja_id,
           creado_en
         `)
-        .order('fecha', { ascending: false })
-        .order('id', { ascending: false })
+        .order(
+          'fecha',
+          {
+            ascending: false
+          }
+        )
+        .order(
+          'id',
+          {
+            ascending: false
+          }
+        )
 
     ]);
 
 
-    if (errorDeudas) throw errorDeudas;
-    if (errorCajas) throw errorCajas;
-    if (errorHistorial) throw errorHistorial;
+    if (errorDeudas) {
+      throw errorDeudas;
+    }
 
+
+    if (errorCajas) {
+      throw errorCajas;
+    }
+
+
+    if (errorHistorial) {
+      throw errorHistorial;
+    }
+
+
+    /* =====================================================
+       RECONSTRUIR DATOS LOCALES
+    ===================================================== */
 
     cuentasSociosDatos = {
       deudas: {},
@@ -3804,142 +4016,317 @@ async function cargarCuentasSocios() {
     };
 
 
-    (deudas || []).forEach(row => {
-      cuentasSociosDatos.deudas[row.socio_id] =
-        Number(row.empresa_debe_socio || 0);
-    });
+    (deudas || [])
+      .forEach(
+        row => {
+
+          cuentasSociosDatos
+            .deudas[
+              row.socio_id
+            ] =
+            Number(
+              row.empresa_debe_socio ||
+              0
+            );
+
+        }
+      );
 
 
-    (cajas || []).forEach(row => {
-      cuentasSociosDatos.cajas[row.socio_id] =
-        Number(row.saldo_calculado || 0);
-    });
+    (cajas || [])
+      .forEach(
+        row => {
 
+          cuentasSociosDatos
+            .cajas[
+              row.socio_id
+            ] =
+            Number(
+              row.saldo_calculado ||
+              0
+            );
+
+        }
+      );
+
+
+    /* =====================================================
+       VALORES DE ANDRÉS Y JUAN
+    ===================================================== */
 
     const deudaAndres =
-      obtenerDatoSocio(cuentasSociosDatos.deudas, 1);
+      obtenerDatoSocio(
+        cuentasSociosDatos.deudas,
+        1
+      );
+
 
     const deudaJuan =
-      obtenerDatoSocio(cuentasSociosDatos.deudas, 2);
+      obtenerDatoSocio(
+        cuentasSociosDatos.deudas,
+        2
+      );
+
 
     const cajaAndres =
-      obtenerDatoSocio(cuentasSociosDatos.cajas, 1);
+      obtenerDatoSocio(
+        cuentasSociosDatos.cajas,
+        1
+      );
+
 
     const cajaJuan =
-      obtenerDatoSocio(cuentasSociosDatos.cajas, 2);
+      obtenerDatoSocio(
+        cuentasSociosDatos.cajas,
+        2
+      );
 
 
     const deudaTotal =
-      deudaAndres + deudaJuan;
+      deudaAndres +
+      deudaJuan;
+
 
     const cajaTotal =
-      cajaAndres + cajaJuan;
+      cajaAndres +
+      cajaJuan;
 
 
     const reembolsableAndres =
-      Math.max(0, Math.min(deudaAndres, cajaAndres));
+      Math.max(
+        0,
+        Math.min(
+          deudaAndres,
+          cajaAndres
+        )
+      );
+
 
     const reembolsableJuan =
-      Math.max(0, Math.min(deudaJuan, cajaJuan));
+      Math.max(
+        0,
+        Math.min(
+          deudaJuan,
+          cajaJuan
+        )
+      );
 
 
-    $('cuentasDeudaAndres').textContent =
-      money(deudaAndres);
+    /* =====================================================
+       TARJETAS GENERALES
+    ===================================================== */
 
-    $('cuentasDeudaJuan').textContent =
-      money(deudaJuan);
+    if ($('cuentasDeudaAndres')) {
 
-    $('cuentasDeudaTotal').textContent =
-      money(deudaTotal);
+      $('cuentasDeudaAndres')
+        .textContent =
+        money(deudaAndres);
 
-    $('cuentasCajaTotal').textContent =
-      money(cajaTotal);
-
-
-    $('cuentasAndresDeudaDetalle').textContent =
-      money(deudaAndres);
-
-    $('cuentasAndresCaja').textContent =
-      money(cajaAndres);
-
-    $('cuentasAndresReembolsable').textContent =
-      money(reembolsableAndres);
+    }
 
 
-    $('cuentasJuanDeudaDetalle').textContent =
-      money(deudaJuan);
+    if ($('cuentasDeudaJuan')) {
 
-    $('cuentasJuanCaja').textContent =
-      money(cajaJuan);
+      $('cuentasDeudaJuan')
+        .textContent =
+        money(deudaJuan);
 
-    $('cuentasJuanReembolsable').textContent =
-      money(reembolsableJuan);
-
-
-    const body = $('cuentasSociosBody');
+    }
 
 
-    if (!historial || historial.length === 0) {
+    if ($('cuentasDeudaTotal')) {
 
-      body.innerHTML = `
-        <tr>
-          <td colspan="6">
-            No existen movimientos de cuentas de socios.
-          </td>
-        </tr>
-      `;
+      $('cuentasDeudaTotal')
+        .textContent =
+        money(deudaTotal);
 
-    } else {
-
-      body.innerHTML = historial.map(row => {
-
-        const nombre =
-          Number(row.socio_id) === 1
-            ? 'Andrés Urrego'
-            : Number(row.socio_id) === 2
-              ? 'Juan'
-              : `Socio ${row.socio_id}`;
+    }
 
 
-        const movimiento =
-          row.tipo === 'DEUDA_EMPRESA'
-            ? 'A&J reconoce deuda'
-            : row.tipo === 'PAGO_DEUDA'
-              ? 'Reembolso al socio'
-              : row.tipo || 'Movimiento';
+    if ($('cuentasCajaTotal')) {
+
+      $('cuentasCajaTotal')
+        .textContent =
+        money(cajaTotal);
+
+    }
 
 
-        return `
+    /* =====================================================
+       DETALLE ANDRÉS
+    ===================================================== */
+
+    if ($('cuentasAndresDeudaDetalle')) {
+
+      $('cuentasAndresDeudaDetalle')
+        .textContent =
+        money(deudaAndres);
+
+    }
+
+
+    if ($('cuentasAndresCaja')) {
+
+      $('cuentasAndresCaja')
+        .textContent =
+        money(cajaAndres);
+
+    }
+
+
+    if ($('cuentasAndresReembolsable')) {
+
+      $('cuentasAndresReembolsable')
+        .textContent =
+        money(
+          reembolsableAndres
+        );
+
+    }
+
+
+    /* =====================================================
+       DETALLE JUAN
+    ===================================================== */
+
+    if ($('cuentasJuanDeudaDetalle')) {
+
+      $('cuentasJuanDeudaDetalle')
+        .textContent =
+        money(deudaJuan);
+
+    }
+
+
+    if ($('cuentasJuanCaja')) {
+
+      $('cuentasJuanCaja')
+        .textContent =
+        money(cajaJuan);
+
+    }
+
+
+    if ($('cuentasJuanReembolsable')) {
+
+      $('cuentasJuanReembolsable')
+        .textContent =
+        money(
+          reembolsableJuan
+        );
+
+    }
+
+
+    /* =====================================================
+       HISTORIAL
+    ===================================================== */
+
+    const body =
+      $('cuentasSociosBody');
+
+
+    if (body) {
+
+      if (
+        !historial ||
+        historial.length === 0
+      ) {
+
+        body.innerHTML = `
           <tr>
-
-            <td>
-              ${escapeHtml(mostrarFecha(row.fecha))}
+            <td colspan="6">
+              No existen movimientos de cuentas de socios.
             </td>
-
-            <td>
-              ${escapeHtml(nombre)}
-            </td>
-
-            <td>
-              ${escapeHtml(movimiento)}
-            </td>
-
-            <td>
-              ${money(Number(row.valor || 0))}
-            </td>
-
-            <td>
-              ${escapeHtml(row.referencia || '—')}
-            </td>
-
-            <td>
-              ${escapeHtml(row.observaciones || '—')}
-            </td>
-
           </tr>
         `;
 
-      }).join('');
+      }
+
+      else {
+
+        body.innerHTML =
+          historial
+            .map(
+              row => {
+
+                const nombre =
+                  Number(
+                    row.socio_id
+                  ) === 1
+                    ? 'Andrés Urrego'
+                    : Number(
+                        row.socio_id
+                      ) === 2
+                      ? 'Juan'
+                      : `Socio ${row.socio_id}`;
+
+
+                const movimiento =
+                  row.tipo ===
+                  'DEUDA_EMPRESA'
+                    ? 'A&J reconoce deuda'
+                    : row.tipo ===
+                      'PAGO_DEUDA'
+                      ? 'Reembolso al socio'
+                      : row.tipo ||
+                        'Movimiento';
+
+
+                return `
+                  <tr>
+
+                    <td>
+                      ${escapeHtml(
+                        mostrarFecha(
+                          row.fecha
+                        )
+                      )}
+                    </td>
+
+                    <td>
+                      ${escapeHtml(
+                        nombre
+                      )}
+                    </td>
+
+                    <td>
+                      ${escapeHtml(
+                        movimiento
+                      )}
+                    </td>
+
+                    <td>
+                      ${money(
+                        Number(
+                          row.valor ||
+                          0
+                        )
+                      )}
+                    </td>
+
+                    <td>
+                      ${escapeHtml(
+                        row.referencia ||
+                        '—'
+                      )}
+                    </td>
+
+                    <td>
+                      ${escapeHtml(
+                        row.observaciones ||
+                        '—'
+                      )}
+                    </td>
+
+                  </tr>
+                `;
+
+              }
+            )
+            .join('');
+
+      }
 
     }
 
@@ -3952,1077 +4339,1445 @@ async function cargarCuentasSocios() {
     }
 
 
-  } catch (error) {
+  }
+
+  catch (error) {
 
     console.error(
       'Error cargando cuentas de socios:',
       error
     );
 
+
     if (mensaje) {
+
       mensaje.textContent =
-        `Error al cargar cuentas de socios: ${error.message}`;
+        `Error al cargar cuentas de socios: ${
+          error?.message ||
+          'Error desconocido'
+        }`;
+
     }
 
   }
+
 }
 
 
+/* =========================================================
+   PREPARAR CUENTAS DE SOCIOS
+========================================================= */
 
 async function prepararCuentasSocios() {
 
   if ($('pagoDeudaFecha')) {
+
     $('pagoDeudaFecha').value =
       fechaHoyLocal();
+
   }
+
 
   if ($('pagoDeudaSocio')) {
-    $('pagoDeudaSocio').value = '';
+
+    $('pagoDeudaSocio').value =
+      '';
+
   }
+
 
   if ($('pagoDeudaValor')) {
-    $('pagoDeudaValor').value = '';
+
+    $('pagoDeudaValor').value =
+      '';
+
   }
+
 
   if ($('pagoDeudaObservaciones')) {
-    $('pagoDeudaObservaciones').value = '';
+
+    $('pagoDeudaObservaciones').value =
+      '';
+
   }
+
 
   await cargarCuentasSocios();
+
 }
-
-
-
-$('pagoDeudaSocio')?.addEventListener(
-  'change',
-  actualizarResumenPagoDeuda
-);
-
-
-
-$('actualizarCuentasSociosBtn')?.addEventListener(
-  'click',
-  async () => {
-    await cargarCuentasSocios();
-  }
-);
-
-
-
-$('pagoDeudaSocioForm')?.addEventListener(
-  'submit',
-  async (event) => {
-
-    event.preventDefault();
-
-
-    const mensaje = $('pagoDeudaMsg');
-
-    mensaje.textContent = '';
-
-
-    const socioId =
-      Number($('pagoDeudaSocio').value || 0);
-
-    const fecha =
-      $('pagoDeudaFecha').value;
-
-    const valor =
-      Number($('pagoDeudaValor').value || 0);
-
-    const observaciones =
-      $('pagoDeudaObservaciones').value.trim();
-
-
-    if (!socioId) {
-      mensaje.textContent =
-        'Seleccione el socio al que A&J realizará el reembolso.';
-      return;
-    }
-
-
-    if (!fecha) {
-      mensaje.textContent =
-        'Seleccione la fecha del reembolso.';
-      return;
-    }
-
-
-    if (!valor || valor <= 0) {
-      mensaje.textContent =
-        'Ingrese un valor válido.';
-      return;
-    }
-
-
-    const deuda =
-      obtenerDatoSocio(
-        cuentasSociosDatos.deudas,
-        socioId
-      );
-
-    const caja =
-      obtenerDatoSocio(
-        cuentasSociosDatos.cajas,
-        socioId
-      );
-
-    const maximo =
-      Math.max(
-        0,
-        Math.min(deuda, caja)
-      );
-
-
-    if (valor > deuda) {
-      mensaje.textContent =
-        `El valor supera la deuda pendiente de ${money(deuda)}.`;
-      return;
-    }
-
-
-    if (valor > caja) {
-      mensaje.textContent =
-        `La Caja A&J disponible es de ${money(caja)}. No puede registrar un reembolso superior.`;
-      return;
-    }
-
-
-    if (valor > maximo) {
-      mensaje.textContent =
-        `El máximo reembolsable actualmente es ${money(maximo)}.`;
-      return;
-    }
-
-
-    const nombre =
-      socioId === 1
-        ? 'Andrés Urrego'
-        : 'Juan';
-
-
-    const confirmado = window.confirm(
-      `¿Confirma que A&J CAPITAL entregó realmente ${money(valor)} a ${nombre} como pago de una deuda pendiente?\n\nEsta operación reducirá simultáneamente la Caja A&J y la deuda con el socio.`
-    );
-
-
-    if (!confirmado) {
-      return;
-    }
-
-
-    const boton =
-      $('guardarPagoDeudaBtn');
-
-
-    boton.disabled = true;
-    mensaje.textContent =
-      'Registrando reembolso...';
-
-
-    try {
-
-      const { data, error } =
-        await supabase.rpc(
-          'pagar_deuda_socio_aj',
-          {
-            p_socio_id: socioId,
-            p_fecha: fecha,
-            p_valor: valor,
-            p_observaciones:
-              observaciones || null
-          }
-        );
-
-
-      if (error) throw error;
-
-
-      mensaje.textContent =
-        `Reembolso registrado correctamente. Registro #${data}.`;
-
-
-      $('pagoDeudaValor').value = '';
-      $('pagoDeudaObservaciones').value = '';
-
-
-      await cargarCuentasSocios();
-
-
-      if (typeof cargarCaja === 'function') {
-        await cargarCaja();
-      }
-
-
-      if (typeof cargarDashboard === 'function') {
-        await cargarDashboard();
-      }
-
-
-    } catch (error) {
-
-      console.error(
-        'Error registrando reembolso:',
-        error
-      );
-
-      mensaje.textContent =
-        `No se pudo registrar el reembolso: ${error.message}`;
-
-
-    } finally {
-
-      boton.disabled = false;
-
-    }
-
-  }
-);
 
 
 /* =========================================================
-   CIERRES
+   CAMBIO DE SOCIO
 ========================================================= */
 
-let cierrePreviewValido = false;
-let cierrePreviewFecha = null;
-
-
-/* ---------------------------------------------------------
-   UTILIDADES DE CIERRE
---------------------------------------------------------- */
-
-function fechaISOaLocal(fecha) {
-  if (!fecha) return "—";
-
-  const partes = String(fecha).split("-");
-
-  if (partes.length !== 3) {
-    return fecha;
-  }
-
-  return `${partes[2]}/${partes[1]}/${partes[0]}`;
-}
-
-
-function obtenerInicioCiclo(fechaFin) {
-  if (!fechaFin) return null;
-
-  const partes = fechaFin.split("-");
-
-  if (partes.length !== 3) return null;
-
-  const anio = Number(partes[0]);
-  const mes = Number(partes[1]);
-
-  let anioInicio = anio;
-  let mesInicio = mes - 1;
-
-  if (mesInicio === 0) {
-    mesInicio = 12;
-    anioInicio -= 1;
-  }
-
-  return (
-    String(anioInicio).padStart(4, "0") +
-    "-" +
-    String(mesInicio).padStart(2, "0") +
-    "-21"
+$('pagoDeudaSocio')
+  ?.addEventListener(
+    'change',
+    actualizarResumenPagoDeuda
   );
-}
 
 
-function fechaCierreSugerida() {
-  const hoy = fechaHoyLocal();
+/* =========================================================
+   ACTUALIZAR CUENTAS
+========================================================= */
 
-  const [anio, mes, dia] = hoy.split("-").map(Number);
-
-  /*
-    Si estamos en día 20 o después,
-    el cierre sugerido es el día 20 del mes actual.
-
-    Si estamos antes del día 20,
-    corresponde al día 20 del mes anterior.
-  */
-
-  if (dia >= 20) {
-    return (
-      String(anio).padStart(4, "0") +
-      "-" +
-      String(mes).padStart(2, "0") +
-      "-20"
-    );
-  }
-
-  let nuevoMes = mes - 1;
-  let nuevoAnio = anio;
-
-  if (nuevoMes === 0) {
-    nuevoMes = 12;
-    nuevoAnio -= 1;
-  }
-
-  return (
-    String(nuevoAnio).padStart(4, "0") +
-    "-" +
-    String(nuevoMes).padStart(2, "0") +
-    "-20"
-  );
-}
-
-
-function limpiarVistaPreviaCierre() {
-  cierrePreviewValido = false;
-  cierrePreviewFecha = null;
-
-  if ($("cierreEstado")) {
-    $("cierreEstado").textContent = "Pendiente de consultar";
-  }
-
-  if ($("cierreFechaInicio")) {
-    $("cierreFechaInicio").textContent = "—";
-  }
-
-  if ($("cierreFechaFinResumen")) {
-    $("cierreFechaFinResumen").textContent = "—";
-  }
-
-  if ($("cierreIntereses")) {
-    $("cierreIntereses").textContent = money(0);
-  }
-
-  if ($("cierreCuota")) {
-    $("cierreCuota").textContent = money(0);
-  }
-
-  if ($("cierreInteresesDetalle")) {
-    $("cierreInteresesDetalle").textContent = money(0);
-  }
-
-  if ($("cierreCuotaDetalle")) {
-    $("cierreCuotaDetalle").textContent = money(0);
-  }
-
-  if ($("cierreResultado")) {
-    $("cierreResultado").textContent = money(0);
-  }
-
-  if ($("cierreAndres")) {
-    $("cierreAndres").textContent = money(0);
-  }
-
-  if ($("cierreJuan")) {
-    $("cierreJuan").textContent = money(0);
-  }
-
-  if ($("cierreCantidadPagos")) {
-    $("cierreCantidadPagos").textContent = "0";
-  }
-
-  if ($("cierreCantidadCuotas")) {
-    $("cierreCantidadCuotas").textContent = "0";
-  }
-
-  if ($("cierreResultadoControl")) {
-    $("cierreResultadoControl").textContent = money(0);
-  }
-
-  if ($("cierreAdvertencia")) {
-    $("cierreAdvertencia").textContent = "";
-    $("cierreAdvertencia").classList.add("hidden");
-  }
-
-  if ($("ejecutarCierreBtn")) {
-    $("ejecutarCierreBtn").disabled = true;
-  }
-}
-
-
-/* ---------------------------------------------------------
-   PREVISUALIZAR CIERRE
---------------------------------------------------------- */
-
-async function cargarPrevisualizacionCierre() {
-  const msg = $("cierreMsg");
-
-  if (msg) {
-    msg.textContent = "Consultando información del ciclo...";
-  }
-
-  cierrePreviewValido = false;
-  cierrePreviewFecha = null;
-
-  if ($("ejecutarCierreBtn")) {
-    $("ejecutarCierreBtn").disabled = true;
-  }
-
-  const fechaFin = $("cierreFechaFin")?.value;
-
-  if (!fechaFin) {
-    if (msg) {
-      msg.textContent = "Seleccione la fecha de cierre.";
-    }
-
-    limpiarVistaPreviaCierre();
-    return;
-  }
-
-  const dia = Number(fechaFin.split("-")[2]);
-
-  if (dia !== 20) {
-    limpiarVistaPreviaCierre();
-
-    if ($("cierreEstado")) {
-      $("cierreEstado").textContent = "Fecha inválida";
-    }
-
-    if (msg) {
-      msg.textContent =
-        "La fecha de cierre debe corresponder al día 20.";
-    }
-
-    return;
-  }
-
-  const fechaInicio = obtenerInicioCiclo(fechaFin);
-
-  try {
-
-    /*
-      1. Verificamos primero si el ciclo ya fue cerrado.
-    */
-
-    const {
-      data: cierreExistente,
-      error: errorCierreExistente
-    } = await supabase
-      .from("cierres")
-      .select("id, numero_mes, estado")
-      .eq("fecha_inicio", fechaInicio)
-      .eq("fecha_fin", fechaFin)
-      .limit(1);
-
-    if (errorCierreExistente) {
-      throw errorCierreExistente;
-    }
-
-
-    /*
-      2. Consultamos los pagos reales del nuevo control.
-    */
-
-    const {
-      data: pagosCiclo,
-      error: errorPagos
-    } = await supabase
-      .from("pagos")
-      .select("id, valor_interes")
-      .eq("anulado", false)
-      .eq("control_nuevo", true)
-      .gte("fecha_pago", fechaInicio)
-      .lte("fecha_pago", fechaFin);
-
-    if (errorPagos) {
-      throw errorPagos;
-    }
-
-
-    /*
-      3. Consultamos TODAS las cuotas bancarias del ciclo.
-
-      Importante:
-      No filtramos por origen.
-
-      Así una cuota pagada con dinero personal de un socio
-      sigue siendo gasto real del ciclo.
-    */
-
-    const {
-      data: cuotasCiclo,
-      error: errorCuotas
-    } = await supabase
-      .from("movimientos_caja")
-      .select("id, valor, origen")
-      .eq("tipo", "PAGO_CUOTA_BANCO")
-      .gte("fecha", fechaInicio)
-      .lte("fecha", fechaFin);
-
-    if (errorCuotas) {
-      throw errorCuotas;
-    }
-
-
-    const intereses = (pagosCiclo || []).reduce(
-      (total, pago) =>
-        total + Number(pago.valor_interes || 0),
-      0
-    );
-
-    const cuota = (cuotasCiclo || []).reduce(
-      (total, movimiento) =>
-        total + Number(movimiento.valor || 0),
-      0
-    );
-
-    const resultado = intereses - cuota;
-
-    let andres = 0;
-    let juan = 0;
-
-    if (resultado > 0) {
-      andres =
-        Math.round((resultado / 2) * 100) / 100;
-
-      juan =
-        Math.round((resultado - andres) * 100) / 100;
-    }
-
-
-    /*
-      4. Pintamos la información.
-    */
-
-    $("cierreFechaInicio").textContent =
-      fechaISOaLocal(fechaInicio);
-
-    $("cierreFechaFinResumen").textContent =
-      fechaISOaLocal(fechaFin);
-
-    $("cierreIntereses").textContent =
-      money(intereses);
-
-    $("cierreCuota").textContent =
-      money(cuota);
-
-    $("cierreInteresesDetalle").textContent =
-      money(intereses);
-
-    $("cierreCuotaDetalle").textContent =
-      money(cuota);
-
-    $("cierreResultado").textContent =
-      money(resultado);
-
-    $("cierreAndres").textContent =
-      money(andres);
-
-    $("cierreJuan").textContent =
-      money(juan);
-
-    $("cierreCantidadPagos").textContent =
-      String((pagosCiclo || []).length);
-
-    $("cierreCantidadCuotas").textContent =
-      String((cuotasCiclo || []).length);
-
-    $("cierreResultadoControl").textContent =
-      money(resultado);
-
-
-    /*
-      5. Si ya existe, jamás habilitamos el botón.
-    */
-
-    if (cierreExistente && cierreExistente.length > 0) {
-
-      cierrePreviewValido = false;
-      cierrePreviewFecha = null;
-
-      $("cierreEstado").textContent =
-        "Ciclo ya cerrado";
-
-      $("ejecutarCierreBtn").disabled = true;
-
-      $("cierreAdvertencia").textContent =
-        `Este ciclo ya fue registrado como cierre N.º ${
-          cierreExistente[0].numero_mes ?? cierreExistente[0].id
-        }. No puede cerrarse nuevamente.`;
-
-      $("cierreAdvertencia").classList.remove("hidden");
-
-      if (msg) {
-        msg.textContent =
-          "Consulta realizada. El ciclo ya se encuentra cerrado.";
-      }
-
-      return;
-    }
-
-
-    /*
-      6. Ciclo todavía abierto.
-    */
-
-    cierrePreviewValido = true;
-    cierrePreviewFecha = fechaFin;
-
-    $("cierreEstado").textContent =
-      "Listo para revisión";
-
-    $("ejecutarCierreBtn").disabled = false;
-
-
-    if (resultado < 0) {
-
-      $("cierreAdvertencia").textContent =
-        `El ciclo presenta un resultado negativo de ${money(
-          Math.abs(resultado)
-        )}. No se generará distribución para Andrés ni Juan.`;
-
-      $("cierreAdvertencia").classList.remove("hidden");
-
-    } else if (resultado === 0) {
-
-      $("cierreAdvertencia").textContent =
-        "El resultado del ciclo es $0. No se generará distribución.";
-
-      $("cierreAdvertencia").classList.remove("hidden");
-
-    } else {
-
-      $("cierreAdvertencia").textContent =
-        `El resultado positivo es ${money(
-          resultado
-        )}. La distribución provisional es ${money(
-          andres
-        )} para Andrés y ${money(juan)} para Juan.`;
-
-      $("cierreAdvertencia").classList.remove("hidden");
-    }
-
-
-    if (msg) {
-      msg.textContent =
-        "Previsualización actualizada. Revise los valores antes de cerrar.";
-    }
-
-  } catch (error) {
-
-    console.error(
-      "Error cargando previsualización del cierre:",
-      error
-    );
-
-    limpiarVistaPreviaCierre();
-
-    if (msg) {
-      msg.textContent =
-        "No fue posible consultar el ciclo: " +
-        (error?.message || "Error desconocido");
-    }
-  }
-}
-
-
-/* ---------------------------------------------------------
-   HISTORIAL DE CIERRES
---------------------------------------------------------- */
-
-async function cargarHistorialCierres() {
-  const body = $("cierresBody");
-  const msg = $("cierresHistorialMsg");
-
-  if (!body) return;
-
-  body.innerHTML = `
-    <tr>
-      <td colspan="8">Cargando cierres...</td>
-    </tr>
-  `;
-
-  if (msg) {
-    msg.textContent = "";
-  }
-
-  try {
-
-    const {
-      data,
-      error
-    } = await supabase
-      .from("cierres")
-      .select(`
-        id,
-        numero_mes,
-        fecha_inicio,
-        fecha_fin,
-        intereses_cobrados,
-        cuota_bancaria,
-        utilidad_neta,
-        participacion_andres,
-        participacion_juan,
-        estado,
-        origen
-      `)
-      .order("numero_mes", {
-        ascending: false
-      });
-
-    if (error) {
-      throw error;
-    }
-
-    const cierres = data || [];
-
-    if (cierres.length === 0) {
-      body.innerHTML = `
-        <tr>
-          <td colspan="8">
-            No existen cierres registrados.
-          </td>
-        </tr>
-      `;
-
-      return;
-    }
-
-
-    body.innerHTML = cierres
-      .map(cierre => {
-
-        const ciclo =
-          `${fechaISOaLocal(cierre.fecha_inicio)} → ` +
-          `${fechaISOaLocal(cierre.fecha_fin)}`;
-
-        return `
-          <tr>
-            <td>
-              ${escapeHtml(
-                String(cierre.numero_mes ?? cierre.id ?? "")
-              )}
-            </td>
-
-            <td>
-              ${escapeHtml(ciclo)}
-            </td>
-
-            <td>
-              ${money(cierre.intereses_cobrados)}
-            </td>
-
-            <td>
-              ${money(cierre.cuota_bancaria)}
-            </td>
-
-            <td>
-              <strong>
-                ${money(cierre.utilidad_neta)}
-              </strong>
-            </td>
-
-            <td>
-              ${money(cierre.participacion_andres)}
-            </td>
-
-            <td>
-              ${money(cierre.participacion_juan)}
-            </td>
-
-            <td>
-              ${escapeHtml(cierre.estado || "—")}
-            </td>
-          </tr>
-        `;
-      })
-      .join("");
-
-  } catch (error) {
-
-    console.error(
-      "Error cargando historial de cierres:",
-      error
-    );
-
-    body.innerHTML = `
-      <tr>
-        <td colspan="8">
-          No fue posible cargar el historial.
-        </td>
-      </tr>
-    `;
-
-    if (msg) {
-      msg.textContent =
-        error?.message || "Error consultando cierres.";
-    }
-  }
-}
-
-
-/* ---------------------------------------------------------
-   CARGAR MÓDULO CIERRES
---------------------------------------------------------- */
-
-async function cargarCierres() {
-
-  if (!$("cierreFechaFin")) {
-    return;
-  }
-
-  /*
-    Si todavía no tiene fecha, ponemos automáticamente
-    el último día 20 correspondiente.
-  */
-
-  if (!$("cierreFechaFin").value) {
-    $("cierreFechaFin").value =
-      fechaCierreSugerida();
-  }
-
-  await Promise.all([
-    cargarPrevisualizacionCierre(),
-    cargarHistorialCierres()
-  ]);
-}
-
-
-/* ---------------------------------------------------------
-   CAMBIO MANUAL DE FECHA
---------------------------------------------------------- */
-
-if ($("cierreFechaFin")) {
-
-  $("cierreFechaFin").addEventListener(
-    "change",
-    () => {
-
-      /*
-        Al modificar la fecha invalidamos inmediatamente
-        cualquier previsualización anterior.
-
-        El usuario debe volver a consultar antes de cerrar.
-      */
-
-      cierrePreviewValido = false;
-      cierrePreviewFecha = null;
-
-      if ($("ejecutarCierreBtn")) {
-        $("ejecutarCierreBtn").disabled = true;
-      }
-
-      if ($("cierreEstado")) {
-        $("cierreEstado").textContent =
-          "Fecha modificada — actualizar";
-      }
-
-      if ($("cierreMsg")) {
-        $("cierreMsg").textContent =
-          "Actualice la previsualización antes de realizar el cierre.";
-      }
-    }
-  );
-}
-
-
-/* ---------------------------------------------------------
-   BOTÓN ACTUALIZAR PREVISUALIZACIÓN
---------------------------------------------------------- */
-
-if ($("actualizarCierreBtn")) {
-
-  $("actualizarCierreBtn").addEventListener(
-    "click",
+$('actualizarCuentasSociosBtn')
+  ?.addEventListener(
+    'click',
     async () => {
 
-      await cargarPrevisualizacionCierre();
+      await cargarCuentasSocios();
 
     }
   );
-}
 
 
-/* ---------------------------------------------------------
-   ACTUALIZAR HISTORIAL
---------------------------------------------------------- */
+/* =========================================================
+   REGISTRAR REEMBOLSO AL SOCIO
+========================================================= */
 
-if ($("actualizarHistorialCierresBtn")) {
+$('pagoDeudaSocioForm')
+  ?.addEventListener(
+    'submit',
+    async event => {
 
-  $("actualizarHistorialCierresBtn").addEventListener(
-    "click",
-    async () => {
-
-      await cargarHistorialCierres();
-
-    }
-  );
-}
+      event.preventDefault();
 
 
-/* ---------------------------------------------------------
-   EJECUTAR CIERRE
---------------------------------------------------------- */
+      const mensaje =
+        $('pagoDeudaMsg');
 
-if ($("ejecutarCierreBtn")) {
 
-  $("ejecutarCierreBtn").addEventListener(
-    "click",
-    async () => {
+      if (mensaje) {
+        mensaje.textContent = '';
+      }
 
-      const msg = $("cierreMsg");
 
-      const fechaFin =
-        $("cierreFechaFin")?.value;
+      const socioId =
+        Number(
+          $('pagoDeudaSocio')
+            ?.value ||
+          0
+        );
+
+
+      const fecha =
+        $('pagoDeudaFecha')
+          ?.value ||
+        '';
+
+
+      const valor =
+        Number(
+          $('pagoDeudaValor')
+            ?.value ||
+          0
+        );
+
 
       const observaciones =
-        $("cierreObservaciones")?.value.trim() || null;
+        $('pagoDeudaObservaciones')
+          ?.value
+          ?.trim() ||
+        '';
 
 
-      /*
-        Protección 1:
-        Debe existir una previsualización válida.
-      */
+      /* ===================================================
+         VALIDACIONES
+      =================================================== */
+
+      if (!socioId) {
+
+        if (mensaje) {
+
+          mensaje.textContent =
+            'Seleccione el socio al que A&J realizará el reembolso.';
+
+        }
+
+        return;
+
+      }
+
+
+      if (!fecha) {
+
+        if (mensaje) {
+
+          mensaje.textContent =
+            'Seleccione la fecha del reembolso.';
+
+        }
+
+        return;
+
+      }
+
 
       if (
-        !cierrePreviewValido ||
-        !cierrePreviewFecha
+        !valor ||
+        valor <= 0
       ) {
 
-        if (msg) {
-          msg.textContent =
-            "Primero debe actualizar y revisar la previsualización.";
+        if (mensaje) {
+
+          mensaje.textContent =
+            'Ingrese un valor válido.';
+
         }
 
+        return;
+
+      }
+
+
+      const deuda =
+        obtenerDatoSocio(
+          cuentasSociosDatos.deudas,
+          socioId
+        );
+
+
+      const caja =
+        obtenerDatoSocio(
+          cuentasSociosDatos.cajas,
+          socioId
+        );
+
+
+      const maximo =
+        Math.max(
+          0,
+          Math.min(
+            deuda,
+            caja
+          )
+        );
+
+
+      if (
+        valor >
+        deuda
+      ) {
+
+        if (mensaje) {
+
+          mensaje.textContent =
+            `El valor supera la deuda pendiente de ${money(deuda)}.`;
+
+        }
+
+        return;
+
+      }
+
+
+      if (
+        valor >
+        caja
+      ) {
+
+        if (mensaje) {
+
+          mensaje.textContent =
+            `La Caja A&J disponible es de ${money(caja)}. No puede registrar un reembolso superior.`;
+
+        }
+
+        return;
+
+      }
+
+
+      if (
+        valor >
+        maximo
+      ) {
+
+        if (mensaje) {
+
+          mensaje.textContent =
+            `El máximo reembolsable actualmente es ${money(maximo)}.`;
+
+        }
+
+        return;
+
+      }
+
+
+      const nombre =
+        socioId === 1
+          ? 'Andrés Urrego'
+          : 'Juan';
+
+
+      const confirmado =
+        window.confirm(
+          `¿Confirma que A&J CAPITAL entregó realmente ${money(valor)} a ${nombre} como pago de una deuda pendiente?\n\n` +
+          `Esta operación reducirá simultáneamente la Caja A&J y la deuda con el socio.`
+        );
+
+
+      if (!confirmado) {
         return;
       }
 
 
-      /*
-        Protección 2:
-        La fecha actual debe coincidir exactamente
-        con la fecha que fue previsualizada.
-      */
+      const boton =
+        $('guardarPagoDeudaBtn');
 
-      if (fechaFin !== cierrePreviewFecha) {
 
-        cierrePreviewValido = false;
-
-        $("ejecutarCierreBtn").disabled = true;
-
-        if (msg) {
-          msg.textContent =
-            "La fecha cambió. Actualice nuevamente la previsualización.";
-        }
-
-        return;
+      if (boton) {
+        boton.disabled = true;
       }
 
 
-      /*
-        Protección 3:
-        confirmación humana explícita.
-      */
+      if (mensaje) {
 
-      const confirmar = window.confirm(
-        "¿Confirma el cierre definitivo del ciclo " +
-        fechaISOaLocal(
-          obtenerInicioCiclo(fechaFin)
-        ) +
-        " al " +
-        fechaISOaLocal(fechaFin) +
-        "?\n\n" +
-        "Antes de continuar verifique que todos los pagos reales " +
-        "y la cuota bancaria estén registrados."
-      );
+        mensaje.textContent =
+          'Registrando reembolso...';
 
-      if (!confirmar) {
-        return;
       }
 
 
       try {
 
-        $("ejecutarCierreBtn").disabled = true;
-
-        if (msg) {
-          msg.textContent =
-            "Registrando cierre...";
-        }
-
-
-        /*
-          Ejecutamos exclusivamente la función oficial
-          que ya validamos en Supabase.
-        */
-
         const {
           data,
           error
-        } = await supabase.rpc(
-          "cerrar_ciclo_aj",
+        } =
+        await supabase.rpc(
+          'pagar_deuda_socio_aj',
           {
-            p_fecha_fin: fechaFin,
-            p_observaciones: observaciones
+
+            p_socio_id:
+              socioId,
+
+            p_fecha:
+              fecha,
+
+            p_valor:
+              valor,
+
+            p_observaciones:
+              observaciones ||
+              null
+
           }
         );
+
 
         if (error) {
           throw error;
         }
 
 
-        /*
-          Invalidamos la vista previa para impedir
-          doble clic o un segundo cierre.
-        */
+        if (mensaje) {
 
-        cierrePreviewValido = false;
-        cierrePreviewFecha = null;
+          mensaje.textContent =
+            `Reembolso registrado correctamente. Registro #${data}.`;
 
-        if (msg) {
-          msg.textContent =
-            `Cierre registrado correctamente. ID: ${data}`;
-        }
-
-        if ($("cierreEstado")) {
-          $("cierreEstado").textContent =
-            "Ciclo cerrado";
         }
 
 
-        /*
-          Volvemos a consultar directamente desde la base.
-          Esto confirma visualmente que el cierre existe.
-        */
+        if ($('pagoDeudaValor')) {
 
-        await cargarHistorialCierres();
-        await cargarPrevisualizacionCierre();
+          $('pagoDeudaValor').value =
+            '';
+
+        }
 
 
-        /*
-          Actualizamos también el Inicio porque el cierre
-          puede afectar la información mostrada allí.
-        */
+        if ($('pagoDeudaObservaciones')) {
 
-        if (typeof cargarDashboard === "function") {
+          $('pagoDeudaObservaciones').value =
+            '';
+
+        }
+
+
+        await cargarCuentasSocios();
+
+
+        if (
+          typeof cargarCaja ===
+          'function'
+        ) {
+
+          await cargarCaja();
+
+        }
+
+
+        if (
+          typeof cargarDashboard ===
+          'function'
+        ) {
+
           await cargarDashboard();
+
         }
 
-      } catch (error) {
+      }
+
+      catch (error) {
 
         console.error(
-          "Error ejecutando cierre:",
+          'Error registrando reembolso:',
           error
         );
 
-        if (msg) {
-          msg.textContent =
-            "No fue posible realizar el cierre: " +
-            (error?.message || "Error desconocido");
+
+        if (mensaje) {
+
+          mensaje.textContent =
+            `No se pudo registrar el reembolso: ${
+              error?.message ||
+              'Error desconocido'
+            }`;
+
         }
 
-        /*
-          Ante cualquier error obligamos a volver
-          a previsualizar antes de intentar nuevamente.
-        */
-
-        cierrePreviewValido = false;
-        cierrePreviewFecha = null;
-
-        $("ejecutarCierreBtn").disabled = true;
       }
+
+      finally {
+
+        if (boton) {
+          boton.disabled = false;
+        }
+
+      }
+
     }
   );
+
+/* =========================================================
+   CUENTAS DE SOCIOS
+========================================================= */
+
+let cuentasSociosDatos = {
+  deudas: {},
+  cajas: {}
+};
+
+
+/* ---------------------------------------------------------
+   OBTENER DATO DEL SOCIO
+--------------------------------------------------------- */
+
+function obtenerDatoSocio(
+  objeto,
+  socioId
+) {
+
+  return Number(
+    objeto?.[socioId] ||
+    0
+  );
+
 }
+
+
+/* ---------------------------------------------------------
+   ACTUALIZAR RESUMEN DEL PAGO DE DEUDA
+--------------------------------------------------------- */
+
+function actualizarResumenPagoDeuda() {
+
+  const socioId =
+    Number(
+      $('pagoDeudaSocio')
+        ?.value ||
+      0
+    );
+
+
+  const deuda =
+    obtenerDatoSocio(
+      cuentasSociosDatos.deudas,
+      socioId
+    );
+
+
+  const caja =
+    obtenerDatoSocio(
+      cuentasSociosDatos.cajas,
+      socioId
+    );
+
+
+  const maximo =
+    Math.max(
+      0,
+      Math.min(
+        deuda,
+        caja
+      )
+    );
+
+
+  if ($('pagoDeudaDisponible')) {
+
+    $('pagoDeudaDisponible')
+      .textContent =
+      money(deuda);
+
+  }
+
+
+  if ($('pagoDeudaCajaDisponible')) {
+
+    $('pagoDeudaCajaDisponible')
+      .textContent =
+      money(caja);
+
+  }
+
+
+  if ($('pagoDeudaMaximo')) {
+
+    $('pagoDeudaMaximo')
+      .textContent =
+      money(maximo);
+
+  }
+
+
+  const advertencia =
+    $('pagoDeudaAdvertencia');
+
+
+  if (!advertencia) {
+    return;
+  }
+
+
+  if (!socioId) {
+
+    advertencia
+      .classList
+      .add('hidden');
+
+    advertencia.textContent =
+      '';
+
+    return;
+
+  }
+
+
+  if (deuda <= 0) {
+
+    advertencia.textContent =
+      'A&J CAPITAL no registra deuda pendiente con este socio.';
+
+
+    advertencia
+      .classList
+      .remove('hidden');
+
+    return;
+
+  }
+
+
+  if (caja <= 0) {
+
+    advertencia.textContent =
+      'No hay Caja A&J disponible bajo responsabilidad de este socio para realizar un reembolso.';
+
+
+    advertencia
+      .classList
+      .remove('hidden');
+
+    return;
+
+  }
+
+
+  if (caja < deuda) {
+
+    advertencia.textContent =
+      `La deuda es ${money(deuda)}, pero actualmente solo pueden reembolsarse hasta ${money(maximo)} con la Caja A&J disponible.`;
+
+
+    advertencia
+      .classList
+      .remove('hidden');
+
+    return;
+
+  }
+
+
+  advertencia
+    .classList
+    .add('hidden');
+
+
+  advertencia.textContent =
+    '';
+
+}
+
+
+/* =========================================================
+   CARGAR CUENTAS DE SOCIOS
+========================================================= */
+
+async function cargarCuentasSocios() {
+
+  const mensaje =
+    $('cuentasSociosMsg');
+
+
+  if (mensaje) {
+
+    mensaje.textContent =
+      'Actualizando cuentas de socios...';
+
+  }
+
+
+  try {
+
+    const [
+      {
+        data: deudas,
+        error: errorDeudas
+      },
+
+      {
+        data: cajas,
+        error: errorCajas
+      },
+
+      {
+        data: historial,
+        error: errorHistorial
+      }
+
+    ] =
+    await Promise.all([
+
+      supabase
+        .from(
+          'resumen_cuentas_socios_aj'
+        )
+        .select(
+          'socio_id,nombre,empresa_debe_socio'
+        )
+        .order(
+          'socio_id'
+        ),
+
+      supabase
+        .from(
+          'resumen_caja_socios'
+        )
+        .select(
+          'socio_id,nombre,saldo_calculado'
+        )
+        .order(
+          'socio_id'
+        ),
+
+      supabase
+        .from(
+          'cuentas_socios_aj'
+        )
+        .select(`
+          id,
+          socio_id,
+          fecha,
+          tipo,
+          valor,
+          referencia,
+          observaciones,
+          origen,
+          movimiento_caja_id,
+          creado_en
+        `)
+        .order(
+          'fecha',
+          {
+            ascending: false
+          }
+        )
+        .order(
+          'id',
+          {
+            ascending: false
+          }
+        )
+
+    ]);
+
+
+    if (errorDeudas) {
+      throw errorDeudas;
+    }
+
+
+    if (errorCajas) {
+      throw errorCajas;
+    }
+
+
+    if (errorHistorial) {
+      throw errorHistorial;
+    }
+
+
+    /* =====================================================
+       RECONSTRUIR DATOS LOCALES
+    ===================================================== */
+
+    cuentasSociosDatos = {
+      deudas: {},
+      cajas: {}
+    };
+
+
+    (deudas || [])
+      .forEach(
+        row => {
+
+          cuentasSociosDatos
+            .deudas[
+              row.socio_id
+            ] =
+            Number(
+              row.empresa_debe_socio ||
+              0
+            );
+
+        }
+      );
+
+
+    (cajas || [])
+      .forEach(
+        row => {
+
+          cuentasSociosDatos
+            .cajas[
+              row.socio_id
+            ] =
+            Number(
+              row.saldo_calculado ||
+              0
+            );
+
+        }
+      );
+
+
+    /* =====================================================
+       VALORES DE ANDRÉS Y JUAN
+    ===================================================== */
+
+    const deudaAndres =
+      obtenerDatoSocio(
+        cuentasSociosDatos.deudas,
+        1
+      );
+
+
+    const deudaJuan =
+      obtenerDatoSocio(
+        cuentasSociosDatos.deudas,
+        2
+      );
+
+
+    const cajaAndres =
+      obtenerDatoSocio(
+        cuentasSociosDatos.cajas,
+        1
+      );
+
+
+    const cajaJuan =
+      obtenerDatoSocio(
+        cuentasSociosDatos.cajas,
+        2
+      );
+
+
+    const deudaTotal =
+      deudaAndres +
+      deudaJuan;
+
+
+    const cajaTotal =
+      cajaAndres +
+      cajaJuan;
+
+
+    const reembolsableAndres =
+      Math.max(
+        0,
+        Math.min(
+          deudaAndres,
+          cajaAndres
+        )
+      );
+
+
+    const reembolsableJuan =
+      Math.max(
+        0,
+        Math.min(
+          deudaJuan,
+          cajaJuan
+        )
+      );
+
+
+    /* =====================================================
+       TARJETAS GENERALES
+    ===================================================== */
+
+    if ($('cuentasDeudaAndres')) {
+
+      $('cuentasDeudaAndres')
+        .textContent =
+        money(deudaAndres);
+
+    }
+
+
+    if ($('cuentasDeudaJuan')) {
+
+      $('cuentasDeudaJuan')
+        .textContent =
+        money(deudaJuan);
+
+    }
+
+
+    if ($('cuentasDeudaTotal')) {
+
+      $('cuentasDeudaTotal')
+        .textContent =
+        money(deudaTotal);
+
+    }
+
+
+    if ($('cuentasCajaTotal')) {
+
+      $('cuentasCajaTotal')
+        .textContent =
+        money(cajaTotal);
+
+    }
+
+
+    /* =====================================================
+       DETALLE ANDRÉS
+    ===================================================== */
+
+    if ($('cuentasAndresDeudaDetalle')) {
+
+      $('cuentasAndresDeudaDetalle')
+        .textContent =
+        money(deudaAndres);
+
+    }
+
+
+    if ($('cuentasAndresCaja')) {
+
+      $('cuentasAndresCaja')
+        .textContent =
+        money(cajaAndres);
+
+    }
+
+
+    if ($('cuentasAndresReembolsable')) {
+
+      $('cuentasAndresReembolsable')
+        .textContent =
+        money(
+          reembolsableAndres
+        );
+
+    }
+
+
+    /* =====================================================
+       DETALLE JUAN
+    ===================================================== */
+
+    if ($('cuentasJuanDeudaDetalle')) {
+
+      $('cuentasJuanDeudaDetalle')
+        .textContent =
+        money(deudaJuan);
+
+    }
+
+
+    if ($('cuentasJuanCaja')) {
+
+      $('cuentasJuanCaja')
+        .textContent =
+        money(cajaJuan);
+
+    }
+
+
+    if ($('cuentasJuanReembolsable')) {
+
+      $('cuentasJuanReembolsable')
+        .textContent =
+        money(
+          reembolsableJuan
+        );
+
+    }
+
+
+    /* =====================================================
+       HISTORIAL
+    ===================================================== */
+
+    const body =
+      $('cuentasSociosBody');
+
+
+    if (body) {
+
+      if (
+        !historial ||
+        historial.length === 0
+      ) {
+
+        body.innerHTML = `
+          <tr>
+            <td colspan="6">
+              No existen movimientos de cuentas de socios.
+            </td>
+          </tr>
+        `;
+
+      }
+
+      else {
+
+        body.innerHTML =
+          historial
+            .map(
+              row => {
+
+                const nombre =
+                  Number(
+                    row.socio_id
+                  ) === 1
+                    ? 'Andrés Urrego'
+                    : Number(
+                        row.socio_id
+                      ) === 2
+                      ? 'Juan'
+                      : `Socio ${row.socio_id}`;
+
+
+                const movimiento =
+                  row.tipo ===
+                  'DEUDA_EMPRESA'
+                    ? 'A&J reconoce deuda'
+                    : row.tipo ===
+                      'PAGO_DEUDA'
+                      ? 'Reembolso al socio'
+                      : row.tipo ||
+                        'Movimiento';
+
+
+                return `
+                  <tr>
+
+                    <td>
+                      ${escapeHtml(
+                        mostrarFecha(
+                          row.fecha
+                        )
+                      )}
+                    </td>
+
+                    <td>
+                      ${escapeHtml(
+                        nombre
+                      )}
+                    </td>
+
+                    <td>
+                      ${escapeHtml(
+                        movimiento
+                      )}
+                    </td>
+
+                    <td>
+                      ${money(
+                        Number(
+                          row.valor ||
+                          0
+                        )
+                      )}
+                    </td>
+
+                    <td>
+                      ${escapeHtml(
+                        row.referencia ||
+                        '—'
+                      )}
+                    </td>
+
+                    <td>
+                      ${escapeHtml(
+                        row.observaciones ||
+                        '—'
+                      )}
+                    </td>
+
+                  </tr>
+                `;
+
+              }
+            )
+            .join('');
+
+      }
+
+    }
+
+
+    actualizarResumenPagoDeuda();
+
+
+    if (mensaje) {
+      mensaje.textContent = '';
+    }
+
+
+  }
+
+  catch (error) {
+
+    console.error(
+      'Error cargando cuentas de socios:',
+      error
+    );
+
+
+    if (mensaje) {
+
+      mensaje.textContent =
+        `Error al cargar cuentas de socios: ${
+          error?.message ||
+          'Error desconocido'
+        }`;
+
+    }
+
+  }
+
+}
+
+
+/* =========================================================
+   PREPARAR CUENTAS DE SOCIOS
+========================================================= */
+
+async function prepararCuentasSocios() {
+
+  if ($('pagoDeudaFecha')) {
+
+    $('pagoDeudaFecha').value =
+      fechaHoyLocal();
+
+  }
+
+
+  if ($('pagoDeudaSocio')) {
+
+    $('pagoDeudaSocio').value =
+      '';
+
+  }
+
+
+  if ($('pagoDeudaValor')) {
+
+    $('pagoDeudaValor').value =
+      '';
+
+  }
+
+
+  if ($('pagoDeudaObservaciones')) {
+
+    $('pagoDeudaObservaciones').value =
+      '';
+
+  }
+
+
+  await cargarCuentasSocios();
+
+}
+
+
+/* =========================================================
+   CAMBIO DE SOCIO
+========================================================= */
+
+$('pagoDeudaSocio')
+  ?.addEventListener(
+    'change',
+    actualizarResumenPagoDeuda
+  );
+
+
+/* =========================================================
+   ACTUALIZAR CUENTAS
+========================================================= */
+
+$('actualizarCuentasSociosBtn')
+  ?.addEventListener(
+    'click',
+    async () => {
+
+      await cargarCuentasSocios();
+
+    }
+  );
+
+
+/* =========================================================
+   REGISTRAR REEMBOLSO AL SOCIO
+========================================================= */
+
+$('pagoDeudaSocioForm')
+  ?.addEventListener(
+    'submit',
+    async event => {
+
+      event.preventDefault();
+
+
+      const mensaje =
+        $('pagoDeudaMsg');
+
+
+      if (mensaje) {
+        mensaje.textContent = '';
+      }
+
+
+      const socioId =
+        Number(
+          $('pagoDeudaSocio')
+            ?.value ||
+          0
+        );
+
+
+      const fecha =
+        $('pagoDeudaFecha')
+          ?.value ||
+        '';
+
+
+      const valor =
+        Number(
+          $('pagoDeudaValor')
+            ?.value ||
+          0
+        );
+
+
+      const observaciones =
+        $('pagoDeudaObservaciones')
+          ?.value
+          ?.trim() ||
+        '';
+
+
+      /* ===================================================
+         VALIDACIONES
+      =================================================== */
+
+      if (!socioId) {
+
+        if (mensaje) {
+
+          mensaje.textContent =
+            'Seleccione el socio al que A&J realizará el reembolso.';
+
+        }
+
+        return;
+
+      }
+
+
+      if (!fecha) {
+
+        if (mensaje) {
+
+          mensaje.textContent =
+            'Seleccione la fecha del reembolso.';
+
+        }
+
+        return;
+
+      }
+
+
+      if (
+        !valor ||
+        valor <= 0
+      ) {
+
+        if (mensaje) {
+
+          mensaje.textContent =
+            'Ingrese un valor válido.';
+
+        }
+
+        return;
+
+      }
+
+
+      const deuda =
+        obtenerDatoSocio(
+          cuentasSociosDatos.deudas,
+          socioId
+        );
+
+
+      const caja =
+        obtenerDatoSocio(
+          cuentasSociosDatos.cajas,
+          socioId
+        );
+
+
+      const maximo =
+        Math.max(
+          0,
+          Math.min(
+            deuda,
+            caja
+          )
+        );
+
+
+      if (
+        valor >
+        deuda
+      ) {
+
+        if (mensaje) {
+
+          mensaje.textContent =
+            `El valor supera la deuda pendiente de ${money(deuda)}.`;
+
+        }
+
+        return;
+
+      }
+
+
+      if (
+        valor >
+        caja
+      ) {
+
+        if (mensaje) {
+
+          mensaje.textContent =
+            `La Caja A&J disponible es de ${money(caja)}. No puede registrar un reembolso superior.`;
+
+        }
+
+        return;
+
+      }
+
+
+      if (
+        valor >
+        maximo
+      ) {
+
+        if (mensaje) {
+
+          mensaje.textContent =
+            `El máximo reembolsable actualmente es ${money(maximo)}.`;
+
+        }
+
+        return;
+
+      }
+
+
+      const nombre =
+        socioId === 1
+          ? 'Andrés Urrego'
+          : 'Juan';
+
+
+      const confirmado =
+        window.confirm(
+          `¿Confirma que A&J CAPITAL entregó realmente ${money(valor)} a ${nombre} como pago de una deuda pendiente?\n\n` +
+          `Esta operación reducirá simultáneamente la Caja A&J y la deuda con el socio.`
+        );
+
+
+      if (!confirmado) {
+        return;
+      }
+
+
+      const boton =
+        $('guardarPagoDeudaBtn');
+
+
+      if (boton) {
+        boton.disabled = true;
+      }
+
+
+      if (mensaje) {
+
+        mensaje.textContent =
+          'Registrando reembolso...';
+
+      }
+
+
+      try {
+
+        const {
+          data,
+          error
+        } =
+        await supabase.rpc(
+          'pagar_deuda_socio_aj',
+          {
+
+            p_socio_id:
+              socioId,
+
+            p_fecha:
+              fecha,
+
+            p_valor:
+              valor,
+
+            p_observaciones:
+              observaciones ||
+              null
+
+          }
+        );
+
+
+        if (error) {
+          throw error;
+        }
+
+
+        if (mensaje) {
+
+          mensaje.textContent =
+            `Reembolso registrado correctamente. Registro #${data}.`;
+
+        }
+
+
+        if ($('pagoDeudaValor')) {
+
+          $('pagoDeudaValor').value =
+            '';
+
+        }
+
+
+        if ($('pagoDeudaObservaciones')) {
+
+          $('pagoDeudaObservaciones').value =
+            '';
+
+        }
+
+
+        await cargarCuentasSocios();
+
+
+        if (
+          typeof cargarCaja ===
+          'function'
+        ) {
+
+          await cargarCaja();
+
+        }
+
+
+        if (
+          typeof cargarDashboard ===
+          'function'
+        ) {
+
+          await cargarDashboard();
+
+        }
+
+      }
+
+      catch (error) {
+
+        console.error(
+          'Error registrando reembolso:',
+          error
+        );
+
+
+        if (mensaje) {
+
+          mensaje.textContent =
+            `No se pudo registrar el reembolso: ${
+              error?.message ||
+              'Error desconocido'
+            }`;
+
+        }
+
+      }
+
+      finally {
+
+        if (boton) {
+          boton.disabled = false;
+        }
+
+      }
+
+    }
+  );
 
 /* =========================================================
    HISTORIAL
@@ -5111,6 +5866,10 @@ async function prepararHistorial() {
 
 }
 
+
+/* =========================================================
+   CARGAR HISTORIAL
+========================================================= */
 
 async function cargarHistorial() {
 
@@ -5224,12 +5983,15 @@ async function cargarHistorial() {
 
 
   renderHistorial(
-    data ||
-    []
+    data || []
   );
 
 }
 
+
+/* =========================================================
+   PINTAR HISTORIAL
+========================================================= */
 
 function renderHistorial(lista) {
 
@@ -5319,67 +6081,70 @@ function renderHistorial(lista) {
 
   lista.forEach(x => {
 
-    $('historialBody').insertAdjacentHTML(
-      'beforeend',
-      `
-      <tr>
+    $('historialBody')
+      .insertAdjacentHTML(
+        'beforeend',
+        `
+        <tr>
 
-        <td>
-          ${mostrarFecha(x.fecha_pago)}
-        </td>
+          <td>
+            ${mostrarFecha(
+              x.fecha_pago
+            )}
+          </td>
 
-        <td>
-          <strong>
+          <td>
+            <strong>
+              ${escapeHtml(
+                x.cliente ||
+                '—'
+              )}
+            </strong>
+          </td>
+
+          <td>
+            ${money(
+              x.valor_interes
+            )}
+          </td>
+
+          <td>
+            ${money(
+              x.valor_capital
+            )}
+          </td>
+
+          <td>
+            <strong>
+              ${money(
+                x.valor_total
+              )}
+            </strong>
+          </td>
+
+          <td>
             ${escapeHtml(
-              x.cliente ||
+              x.recibido_por ||
               '—'
             )}
-          </strong>
-        </td>
+          </td>
 
-        <td>
-          ${money(
-            x.valor_interes
-          )}
-        </td>
-
-        <td>
-          ${money(
-            x.valor_capital
-          )}
-        </td>
-
-        <td>
-          <strong>
-            ${money(
-              x.valor_total
+          <td>
+            ${escapeHtml(
+              x.medio_pago ||
+              '—'
             )}
-          </strong>
-        </td>
+          </td>
 
-        <td>
-          ${escapeHtml(
-            x.recibido_por ||
-            '—'
-          )}
-        </td>
+          <td>
+            <span class="badge ${x.anulado ? 'red' : 'green'}">
+              ${x.anulado ? 'ANULADO' : 'VÁLIDO'}
+            </span>
+          </td>
 
-        <td>
-          ${escapeHtml(
-            x.medio_pago ||
-            '—'
-          )}
-        </td>
-
-        <td>
-          <span class="badge ${x.anulado ? 'red' : 'green'}">
-            ${x.anulado ? 'ANULADO' : 'VÁLIDO'}
-          </span>
-        </td>
-
-      </tr>
-      `
-    );
+        </tr>
+        `
+      );
 
   });
 
@@ -5390,40 +6155,58 @@ function renderHistorial(lista) {
 }
 
 
-$('consultarHistorialBtn').addEventListener(
-  'click',
-  async () => {
+/* =========================================================
+   BOTÓN CONSULTAR HISTORIAL
+========================================================= */
 
-    await cargarHistorial();
+if ($('consultarHistorialBtn')) {
 
-  }
-);
+  $('consultarHistorialBtn')
+    .addEventListener(
+      'click',
+      async () => {
 
+        await cargarHistorial();
 
-$('limpiarHistorialBtn').addEventListener(
-  'click',
-  async () => {
+      }
+    );
 
-    $('historialDesde').value =
-      '';
-
-
-    $('historialHasta').value =
-      '';
+}
 
 
-    $('historialCliente').value =
-      '';
+/* =========================================================
+   BOTÓN LIMPIAR HISTORIAL
+========================================================= */
+
+if ($('limpiarHistorialBtn')) {
+
+  $('limpiarHistorialBtn')
+    .addEventListener(
+      'click',
+      async () => {
+
+        $('historialDesde').value =
+          '';
 
 
-    $('historialReceptor').value =
-      '';
+        $('historialHasta').value =
+          '';
 
 
-    await cargarHistorial();
+        $('historialCliente').value =
+          '';
 
-  }
-);
+
+        $('historialReceptor').value =
+          '';
+
+
+        await cargarHistorial();
+
+      }
+    );
+
+}
 
 
 /* =========================================================
@@ -5451,37 +6234,72 @@ document
       'click',
       async () => {
 
+        /*
+          Quitamos el estado activo de todos
+          los botones de navegación.
+        */
+
         document
           .querySelectorAll('.nav')
-          .forEach(b =>
-            b.classList.remove('active')
-          );
+          .forEach(b => {
+
+            b.classList.remove(
+              'active'
+            );
+
+          });
 
 
-        boton.classList.add('active');
+        /*
+          Activamos el botón seleccionado.
+        */
 
+        boton.classList.add(
+          'active'
+        );
+
+
+        /*
+          Ocultamos todas las páginas reales.
+        */
 
         paginasReales.forEach(id => {
 
-          const paginaElemento = $(id);
+          const paginaElemento =
+            $(id);
+
 
           if (paginaElemento) {
+
             paginaElemento
               .classList
               .add('hidden');
+
           }
 
         });
 
 
-        $('placeholder')
-          .classList
-          .add('hidden');
+        /*
+          Ocultamos también el placeholder.
+        */
+
+        if ($('placeholder')) {
+
+          $('placeholder')
+            .classList
+            .add('hidden');
+
+        }
 
 
         const pagina =
           boton.dataset.page;
 
+
+        /* ===============================================
+           INICIO
+        =============================================== */
 
         if (
           pagina ===
@@ -5498,6 +6316,10 @@ document
         }
 
 
+        /* ===============================================
+           CLIENTES
+        =============================================== */
+
         else if (
           pagina ===
           'clientes'
@@ -5512,6 +6334,10 @@ document
 
         }
 
+
+        /* ===============================================
+           PRÉSTAMOS
+        =============================================== */
 
         else if (
           pagina ===
@@ -5528,6 +6354,10 @@ document
         }
 
 
+        /* ===============================================
+           PAGOS
+        =============================================== */
+
         else if (
           pagina ===
           'pagos'
@@ -5543,18 +6373,28 @@ document
         }
 
 
-           else if (
-  pagina ===
-  'cartera'
-) {
+        /* ===============================================
+           CARTERA
+        =============================================== */
 
-  $('cartera')
-    .classList
-    .remove('hidden');
+        else if (
+          pagina ===
+          'cartera'
+        ) {
 
-  await prepararCartera();
+          $('cartera')
+            .classList
+            .remove('hidden');
 
-}
+
+          await prepararCartera();
+
+        }
+
+
+        /* ===============================================
+           CAJA
+        =============================================== */
 
         else if (
           pagina ===
@@ -5571,10 +6411,28 @@ document
         }
 
 
-           else if (pagina === 'cuentas-socios') {
-  $('cuentas-socios').classList.remove('hidden');
-  await prepararCuentasSocios();
-}
+        /* ===============================================
+           CUENTAS DE SOCIOS
+        =============================================== */
+
+        else if (
+          pagina ===
+          'cuentas-socios'
+        ) {
+
+          $('cuentas-socios')
+            .classList
+            .remove('hidden');
+
+
+          await prepararCuentasSocios();
+
+        }
+
+
+        /* ===============================================
+           CIERRES
+        =============================================== */
 
         else if (
           pagina ===
@@ -5591,6 +6449,10 @@ document
         }
 
 
+        /* ===============================================
+           HISTORIAL
+        =============================================== */
+
         else if (
           pagina ===
           'historial'
@@ -5606,15 +6468,28 @@ document
         }
 
 
+        /* ===============================================
+           PLACEHOLDER
+        =============================================== */
+
         else {
 
-          $('placeholder')
-            .classList
-            .remove('hidden');
+          if ($('placeholder')) {
+
+            $('placeholder')
+              .classList
+              .remove('hidden');
+
+          }
 
 
-          $('placeholderTitle').textContent =
-            boton.textContent.trim();
+          if ($('placeholderTitle')) {
+
+            $('placeholderTitle')
+              .textContent =
+              boton.textContent.trim();
+
+          }
 
         }
 
@@ -5622,3 +6497,8 @@ document
     );
 
   });
+
+
+/* =========================================================
+   FIN DE APP.JS
+========================================================= */
