@@ -3609,11 +3609,11 @@ function aplicarFiltrosCartera() {
 
               <td>
                 ${
-                  item.fecha_prestamo
-                    ? mostrarFecha(
-                        item.fecha_prestamo
-                      )
-                    : '—'
+  item.fecha_prestamo
+  ? mostrarFecha(
+      item.fecha_prestamo
+    )
+  : '—'
                 }
               </td>
 
