@@ -907,6 +907,283 @@
 
     </section>
 
+        <!-- CIERRES -->
+
+    <section id="cierres" class="page hidden">
+
+      <div class="page-head">
+        <div>
+          <h2>Cierres</h2>
+          <p>
+            Cierre mensual del ciclo operativo de A&J CAPITAL.
+            Los ciclos comprenden del día 21 al día 20 del mes siguiente.
+          </p>
+        </div>
+      </div>
+
+
+      <!-- PREVISUALIZACIÓN DEL CIERRE -->
+
+      <section class="panel">
+
+        <h3>Previsualización del ciclo</h3>
+
+        <p class="help-text">
+          Esta sección muestra el resultado antes de realizar el cierre.
+          Consultar o actualizar la previsualización no registra ningún cierre.
+        </p>
+
+
+        <div class="form-grid">
+
+          <div>
+            <label>Fecha de cierre</label>
+            <input
+              id="cierreFechaFin"
+              type="date"
+              required
+            >
+          </div>
+
+          <div>
+            <label>Estado</label>
+
+            <div
+              id="cierreEstado"
+              class="total-pago"
+            >
+              Pendiente de consultar
+            </div>
+          </div>
+
+        </div>
+
+
+        <div class="cards">
+
+          <article>
+            <span>Inicio del ciclo</span>
+            <strong id="cierreFechaInicio">—</strong>
+            <small>Primer día incluido</small>
+          </article>
+
+          <article>
+            <span>Fin del ciclo</span>
+            <strong id="cierreFechaFinResumen">—</strong>
+            <small>Día 20 incluido</small>
+          </article>
+
+          <article>
+            <span>Intereses cobrados</span>
+            <strong id="cierreIntereses">$0</strong>
+            <small>Ingresos reales del ciclo</small>
+          </article>
+
+          <article>
+            <span>Cuota bancaria</span>
+            <strong id="cierreCuota">$0</strong>
+            <small>Cuotas realmente pagadas</small>
+          </article>
+
+        </div>
+
+
+        <div class="grid2">
+
+          <section class="panel">
+
+            <h3>Resultado del ciclo</h3>
+
+            <div class="metric">
+              <span>Intereses cobrados</span>
+              <b id="cierreInteresesDetalle">$0</b>
+            </div>
+
+            <div class="metric">
+              <span>Cuota bancaria</span>
+              <b id="cierreCuotaDetalle">$0</b>
+            </div>
+
+            <div class="metric">
+              <span>Resultado neto</span>
+              <b id="cierreResultado">$0</b>
+            </div>
+
+          </section>
+
+
+          <section class="panel">
+
+            <h3>Distribución</h3>
+
+            <div class="metric">
+              <span>Andrés Urrego</span>
+              <b id="cierreAndres">$0</b>
+            </div>
+
+            <div class="metric">
+              <span>Juan</span>
+              <b id="cierreJuan">$0</b>
+            </div>
+
+            <p class="help-text">
+              La utilidad positiva se distribuye 50/50.
+              Si el resultado del ciclo es cero o negativo,
+              no se genera distribución.
+            </p>
+
+          </section>
+
+        </div>
+
+
+        <div
+          id="cierreAdvertencia"
+          class="warning-box hidden"
+        ></div>
+
+
+        <div class="form-grid">
+
+          <div class="full">
+            <label>Observaciones del cierre</label>
+
+            <textarea
+              id="cierreObservaciones"
+              rows="3"
+              placeholder="Observaciones opcionales del cierre"
+            ></textarea>
+          </div>
+
+
+          <div class="full form-actions">
+
+            <button
+              id="actualizarCierreBtn"
+              type="button"
+              class="secondary"
+            >
+              Actualizar previsualización
+            </button>
+
+            <button
+              id="ejecutarCierreBtn"
+              type="button"
+              class="primary"
+              disabled
+            >
+              Cerrar ciclo
+            </button>
+
+          </div>
+
+        </div>
+
+
+        <div
+          id="cierreMsg"
+          class="msg"
+        ></div>
+
+      </section>
+
+
+      <!-- CONTROL ANTES DEL CIERRE -->
+
+      <section class="panel">
+
+        <h3>Control antes de cerrar</h3>
+
+        <div class="metric">
+          <span>Pagos registrados en el ciclo</span>
+          <b id="cierreCantidadPagos">0</b>
+        </div>
+
+        <div class="metric">
+          <span>Cuotas bancarias registradas</span>
+          <b id="cierreCantidadCuotas">0</b>
+        </div>
+
+        <div class="metric">
+          <span>Resultado a registrar</span>
+          <b id="cierreResultadoControl">$0</b>
+        </div>
+
+        <p class="help-text">
+          Antes de cerrar, verifique que todos los pagos reales
+          y la cuota bancaria correspondiente al ciclo estén registrados.
+          El cierre no debe utilizarse para completar movimientos faltantes.
+        </p>
+
+      </section>
+
+
+      <!-- HISTORIAL DE CIERRES -->
+
+      <section class="panel">
+
+        <div class="page-head">
+
+          <div>
+            <h3>Historial de cierres</h3>
+            <p>
+              Incluye los cierres históricos y los nuevos cierres
+              realizados desde la aplicación.
+            </p>
+          </div>
+
+          <button
+            id="actualizarHistorialCierresBtn"
+            type="button"
+            class="secondary"
+          >
+            Actualizar
+          </button>
+
+        </div>
+
+
+        <div class="table-wrap">
+
+          <table>
+
+            <thead>
+              <tr>
+                <th>N.º</th>
+                <th>Ciclo</th>
+                <th>Intereses</th>
+                <th>Cuota banco</th>
+                <th>Resultado</th>
+                <th>Andrés</th>
+                <th>Juan</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+
+
+            <tbody id="cierresBody">
+
+              <tr>
+                <td colspan="8">
+                  Cargando cierres...
+                </td>
+              </tr>
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+
+        <div
+          id="cierresHistorialMsg"
+          class="msg"
+        ></div>
+
+      </section>
+
+    </section>
 
     <!-- HISTORIAL -->
 
@@ -1020,7 +1297,7 @@
     </section>
 
 
-    <!-- PLACEHOLDER CARTERA / CIERRES -->
+    <!-- PLACEHOLDER CARTERA -->
 
     <section id="placeholder" class="page hidden">
       <section class="panel">
