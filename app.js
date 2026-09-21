@@ -3564,101 +3564,95 @@ function aplicarFiltrosCartera() {
   }
 
 
-  /* =====================================================
+   /* =====================================================
      TABLA
   ===================================================== */
 
-  body.innerHTML =
-    filtrados
-      .map(
-        item => {
+  body.innerHTML = filtrados
+    .map(item => {
 
-          const estadoVisual =
-            nombreSemaforoCartera(
-              item.semaforo
+      const estadoVisual =
+        nombreSemaforoCartera(
+          item.semaforo
+        );
+
+      const clase =
+        claseSemaforoCartera(
+          item.semaforo
+        );
+
+      const diasMora =
+        item.semaforo === 'INICIO_CONTROL'
+          ? '—'
+          : Number(
+              item.dias_mora_control_nuevo || 0
             );
 
+      const fechaPrestamo =
+        item.fecha_prestamo
+          ? mostrarFecha(
+              item.fecha_prestamo
+            )
+          : '—';
 
-          const clase =
-            claseSemaforoCartera(
-              item.semaforo
-            );
-
-
-          const diasMora =
-            item.semaforo ===
-            'INICIO_CONTROL'
-              ? '—'
-              : Number(
-                  item.dias_mora_control_nuevo ||
-                  0
-                );
+      const fechaProximoPago =
+        item.fecha_proximo_pago
+          ? mostrarFecha(
+              item.fecha_proximo_pago
+            )
+          : '—';
 
 
-          return `
-            <tr>
+      return `
+        <tr>
 
-              <td>
-                <strong>
-                  ${escapeHtml(
-                    item.nombre ||
-                    'Sin nombre'
-                  )}
-                </strong>
-              </td>
+          <td>
+            <strong>
+              ${escapeHtml(
+                item.nombre || 'Sin nombre'
+              )}
+            </strong>
+          </td>
 
-              <td>
-                ${
-  item.fecha_prestamo
-  ? mostrarFecha(
-      item.fecha_prestamo
-    )
-  : '—'
-                }
-              </td>
+          <td>
+            ${fechaPrestamo}
+          </td>
 
-              <td>
-                ${money(
-                  item.capital_inicial
-                )}
-              </td>
+          <td>
+            ${money(
+              item.capital_inicial
+            )}
+          </td>
 
-              <td>
-                <strong>
-                  ${money(
-                    item.saldo_historico_referencia
-                  )}
-                </strong>
-              </td>
+          <td>
+            <strong>
+              ${money(
+                item.saldo_historico_referencia
+              )}
+            </strong>
+          </td>
 
-              <td>
-                ${
-                  item.fecha_proximo_pago
-                    ? mostrarFecha(
-                        item.fecha_proximo_pago
-                      )
-                    : '—'
-                }
-              </td>
+          <td>
+            ${fechaProximoPago}
+          </td>
 
-              <td>
-                <span class="${clase}">
-                  ${escapeHtml(
-                    estadoVisual
-                  )}
-                </span>
-              </td>
+          <td>
+            <span class="${clase}">
+              ${escapeHtml(
+                estadoVisual
+              )}
+            </span>
+          </td>
 
-              <td>
-                ${diasMora}
-              </td>
+          <td>
+            ${diasMora}
+          </td>
 
-            </tr>
-          `;
+        </tr>
+      `;
 
-        }
-      )
-      .join('');
+    })
+    .join('');
 
 }
 
