@@ -3137,6 +3137,851 @@ $('salidaTercerosForm').addEventListener(
   }
 );
 
+
+/* =========================================================
+   CIERRES
+========================================================= */
+
+let cierrePreviewValido = false;
+let cierrePreviewFecha = null;
+
+
+/* ---------------------------------------------------------
+   UTILIDADES DE CIERRE
+--------------------------------------------------------- */
+
+function fechaISOaLocal(fecha) {
+  if (!fecha) return "—";
+
+  const partes = String(fecha).split("-");
+
+  if (partes.length !== 3) {
+    return fecha;
+  }
+
+  return `${partes[2]}/${partes[1]}/${partes[0]}`;
+}
+
+
+function obtenerInicioCiclo(fechaFin) {
+  if (!fechaFin) return null;
+
+  const partes = fechaFin.split("-");
+
+  if (partes.length !== 3) return null;
+
+  const anio = Number(partes[0]);
+  const mes = Number(partes[1]);
+
+  let anioInicio = anio;
+  let mesInicio = mes - 1;
+
+  if (mesInicio === 0) {
+    mesInicio = 12;
+    anioInicio -= 1;
+  }
+
+  return (
+    String(anioInicio).padStart(4, "0") +
+    "-" +
+    String(mesInicio).padStart(2, "0") +
+    "-21"
+  );
+}
+
+
+function fechaCierreSugerida() {
+  const hoy = fechaHoyLocal();
+
+  const [anio, mes, dia] = hoy.split("-").map(Number);
+
+  /*
+    Si estamos en día 20 o después,
+    el cierre sugerido es el día 20 del mes actual.
+
+    Si estamos antes del día 20,
+    corresponde al día 20 del mes anterior.
+  */
+
+  if (dia >= 20) {
+    return (
+      String(anio).padStart(4, "0") +
+      "-" +
+      String(mes).padStart(2, "0") +
+      "-20"
+    );
+  }
+
+  let nuevoMes = mes - 1;
+  let nuevoAnio = anio;
+
+  if (nuevoMes === 0) {
+    nuevoMes = 12;
+    nuevoAnio -= 1;
+  }
+
+  return (
+    String(nuevoAnio).padStart(4, "0") +
+    "-" +
+    String(nuevoMes).padStart(2, "0") +
+    "-20"
+  );
+}
+
+
+function limpiarVistaPreviaCierre() {
+  cierrePreviewValido = false;
+  cierrePreviewFecha = null;
+
+  if ($("cierreEstado")) {
+    $("cierreEstado").textContent = "Pendiente de consultar";
+  }
+
+  if ($("cierreFechaInicio")) {
+    $("cierreFechaInicio").textContent = "—";
+  }
+
+  if ($("cierreFechaFinResumen")) {
+    $("cierreFechaFinResumen").textContent = "—";
+  }
+
+  if ($("cierreIntereses")) {
+    $("cierreIntereses").textContent = money(0);
+  }
+
+  if ($("cierreCuota")) {
+    $("cierreCuota").textContent = money(0);
+  }
+
+  if ($("cierreInteresesDetalle")) {
+    $("cierreInteresesDetalle").textContent = money(0);
+  }
+
+  if ($("cierreCuotaDetalle")) {
+    $("cierreCuotaDetalle").textContent = money(0);
+  }
+
+  if ($("cierreResultado")) {
+    $("cierreResultado").textContent = money(0);
+  }
+
+  if ($("cierreAndres")) {
+    $("cierreAndres").textContent = money(0);
+  }
+
+  if ($("cierreJuan")) {
+    $("cierreJuan").textContent = money(0);
+  }
+
+  if ($("cierreCantidadPagos")) {
+    $("cierreCantidadPagos").textContent = "0";
+  }
+
+  if ($("cierreCantidadCuotas")) {
+    $("cierreCantidadCuotas").textContent = "0";
+  }
+
+  if ($("cierreResultadoControl")) {
+    $("cierreResultadoControl").textContent = money(0);
+  }
+
+  if ($("cierreAdvertencia")) {
+    $("cierreAdvertencia").textContent = "";
+    $("cierreAdvertencia").classList.add("hidden");
+  }
+
+  if ($("ejecutarCierreBtn")) {
+    $("ejecutarCierreBtn").disabled = true;
+  }
+}
+
+
+/* ---------------------------------------------------------
+   PREVISUALIZAR CIERRE
+--------------------------------------------------------- */
+
+async function cargarPrevisualizacionCierre() {
+  const msg = $("cierreMsg");
+
+  if (msg) {
+    msg.textContent = "Consultando información del ciclo...";
+  }
+
+  cierrePreviewValido = false;
+  cierrePreviewFecha = null;
+
+  if ($("ejecutarCierreBtn")) {
+    $("ejecutarCierreBtn").disabled = true;
+  }
+
+  const fechaFin = $("cierreFechaFin")?.value;
+
+  if (!fechaFin) {
+    if (msg) {
+      msg.textContent = "Seleccione la fecha de cierre.";
+    }
+
+    limpiarVistaPreviaCierre();
+    return;
+  }
+
+  const dia = Number(fechaFin.split("-")[2]);
+
+  if (dia !== 20) {
+    limpiarVistaPreviaCierre();
+
+    if ($("cierreEstado")) {
+      $("cierreEstado").textContent = "Fecha inválida";
+    }
+
+    if (msg) {
+      msg.textContent =
+        "La fecha de cierre debe corresponder al día 20.";
+    }
+
+    return;
+  }
+
+  const fechaInicio = obtenerInicioCiclo(fechaFin);
+
+  try {
+
+    /*
+      1. Verificamos primero si el ciclo ya fue cerrado.
+    */
+
+    const {
+      data: cierreExistente,
+      error: errorCierreExistente
+    } = await supabase
+      .from("cierres")
+      .select("id, numero_mes, estado")
+      .eq("fecha_inicio", fechaInicio)
+      .eq("fecha_fin", fechaFin)
+      .limit(1);
+
+    if (errorCierreExistente) {
+      throw errorCierreExistente;
+    }
+
+
+    /*
+      2. Consultamos los pagos reales del nuevo control.
+    */
+
+    const {
+      data: pagosCiclo,
+      error: errorPagos
+    } = await supabase
+      .from("pagos")
+      .select("id, valor_interes")
+      .eq("anulado", false)
+      .eq("control_nuevo", true)
+      .gte("fecha_pago", fechaInicio)
+      .lte("fecha_pago", fechaFin);
+
+    if (errorPagos) {
+      throw errorPagos;
+    }
+
+
+    /*
+      3. Consultamos TODAS las cuotas bancarias del ciclo.
+
+      Importante:
+      No filtramos por origen.
+
+      Así una cuota pagada con dinero personal de un socio
+      sigue siendo gasto real del ciclo.
+    */
+
+    const {
+      data: cuotasCiclo,
+      error: errorCuotas
+    } = await supabase
+      .from("movimientos_caja")
+      .select("id, valor, origen")
+      .eq("tipo", "PAGO_CUOTA_BANCO")
+      .gte("fecha", fechaInicio)
+      .lte("fecha", fechaFin);
+
+    if (errorCuotas) {
+      throw errorCuotas;
+    }
+
+
+    const intereses = (pagosCiclo || []).reduce(
+      (total, pago) =>
+        total + Number(pago.valor_interes || 0),
+      0
+    );
+
+    const cuota = (cuotasCiclo || []).reduce(
+      (total, movimiento) =>
+        total + Number(movimiento.valor || 0),
+      0
+    );
+
+    const resultado = intereses - cuota;
+
+    let andres = 0;
+    let juan = 0;
+
+    if (resultado > 0) {
+      andres =
+        Math.round((resultado / 2) * 100) / 100;
+
+      juan =
+        Math.round((resultado - andres) * 100) / 100;
+    }
+
+
+    /*
+      4. Pintamos la información.
+    */
+
+    $("cierreFechaInicio").textContent =
+      fechaISOaLocal(fechaInicio);
+
+    $("cierreFechaFinResumen").textContent =
+      fechaISOaLocal(fechaFin);
+
+    $("cierreIntereses").textContent =
+      money(intereses);
+
+    $("cierreCuota").textContent =
+      money(cuota);
+
+    $("cierreInteresesDetalle").textContent =
+      money(intereses);
+
+    $("cierreCuotaDetalle").textContent =
+      money(cuota);
+
+    $("cierreResultado").textContent =
+      money(resultado);
+
+    $("cierreAndres").textContent =
+      money(andres);
+
+    $("cierreJuan").textContent =
+      money(juan);
+
+    $("cierreCantidadPagos").textContent =
+      String((pagosCiclo || []).length);
+
+    $("cierreCantidadCuotas").textContent =
+      String((cuotasCiclo || []).length);
+
+    $("cierreResultadoControl").textContent =
+      money(resultado);
+
+
+    /*
+      5. Si ya existe, jamás habilitamos el botón.
+    */
+
+    if (cierreExistente && cierreExistente.length > 0) {
+
+      cierrePreviewValido = false;
+      cierrePreviewFecha = null;
+
+      $("cierreEstado").textContent =
+        "Ciclo ya cerrado";
+
+      $("ejecutarCierreBtn").disabled = true;
+
+      $("cierreAdvertencia").textContent =
+        `Este ciclo ya fue registrado como cierre N.º ${
+          cierreExistente[0].numero_mes ?? cierreExistente[0].id
+        }. No puede cerrarse nuevamente.`;
+
+      $("cierreAdvertencia").classList.remove("hidden");
+
+      if (msg) {
+        msg.textContent =
+          "Consulta realizada. El ciclo ya se encuentra cerrado.";
+      }
+
+      return;
+    }
+
+
+    /*
+      6. Ciclo todavía abierto.
+    */
+
+    cierrePreviewValido = true;
+    cierrePreviewFecha = fechaFin;
+
+    $("cierreEstado").textContent =
+      "Listo para revisión";
+
+    $("ejecutarCierreBtn").disabled = false;
+
+
+    if (resultado < 0) {
+
+      $("cierreAdvertencia").textContent =
+        `El ciclo presenta un resultado negativo de ${money(
+          Math.abs(resultado)
+        )}. No se generará distribución para Andrés ni Juan.`;
+
+      $("cierreAdvertencia").classList.remove("hidden");
+
+    } else if (resultado === 0) {
+
+      $("cierreAdvertencia").textContent =
+        "El resultado del ciclo es $0. No se generará distribución.";
+
+      $("cierreAdvertencia").classList.remove("hidden");
+
+    } else {
+
+      $("cierreAdvertencia").textContent =
+        `El resultado positivo es ${money(
+          resultado
+        )}. La distribución provisional es ${money(
+          andres
+        )} para Andrés y ${money(juan)} para Juan.`;
+
+      $("cierreAdvertencia").classList.remove("hidden");
+    }
+
+
+    if (msg) {
+      msg.textContent =
+        "Previsualización actualizada. Revise los valores antes de cerrar.";
+    }
+
+  } catch (error) {
+
+    console.error(
+      "Error cargando previsualización del cierre:",
+      error
+    );
+
+    limpiarVistaPreviaCierre();
+
+    if (msg) {
+      msg.textContent =
+        "No fue posible consultar el ciclo: " +
+        (error?.message || "Error desconocido");
+    }
+  }
+}
+
+
+/* ---------------------------------------------------------
+   HISTORIAL DE CIERRES
+--------------------------------------------------------- */
+
+async function cargarHistorialCierres() {
+  const body = $("cierresBody");
+  const msg = $("cierresHistorialMsg");
+
+  if (!body) return;
+
+  body.innerHTML = `
+    <tr>
+      <td colspan="8">Cargando cierres...</td>
+    </tr>
+  `;
+
+  if (msg) {
+    msg.textContent = "";
+  }
+
+  try {
+
+    const {
+      data,
+      error
+    } = await supabase
+      .from("cierres")
+      .select(`
+        id,
+        numero_mes,
+        fecha_inicio,
+        fecha_fin,
+        intereses_cobrados,
+        cuota_bancaria,
+        utilidad_neta,
+        participacion_andres,
+        participacion_juan,
+        estado,
+        origen
+      `)
+      .order("numero_mes", {
+        ascending: false
+      });
+
+    if (error) {
+      throw error;
+    }
+
+    const cierres = data || [];
+
+    if (cierres.length === 0) {
+      body.innerHTML = `
+        <tr>
+          <td colspan="8">
+            No existen cierres registrados.
+          </td>
+        </tr>
+      `;
+
+      return;
+    }
+
+
+    body.innerHTML = cierres
+      .map(cierre => {
+
+        const ciclo =
+          `${fechaISOaLocal(cierre.fecha_inicio)} → ` +
+          `${fechaISOaLocal(cierre.fecha_fin)}`;
+
+        return `
+          <tr>
+            <td>
+              ${escapeHtml(
+                String(cierre.numero_mes ?? cierre.id ?? "")
+              )}
+            </td>
+
+            <td>
+              ${escapeHtml(ciclo)}
+            </td>
+
+            <td>
+              ${money(cierre.intereses_cobrados)}
+            </td>
+
+            <td>
+              ${money(cierre.cuota_bancaria)}
+            </td>
+
+            <td>
+              <strong>
+                ${money(cierre.utilidad_neta)}
+              </strong>
+            </td>
+
+            <td>
+              ${money(cierre.participacion_andres)}
+            </td>
+
+            <td>
+              ${money(cierre.participacion_juan)}
+            </td>
+
+            <td>
+              ${escapeHtml(cierre.estado || "—")}
+            </td>
+          </tr>
+        `;
+      })
+      .join("");
+
+  } catch (error) {
+
+    console.error(
+      "Error cargando historial de cierres:",
+      error
+    );
+
+    body.innerHTML = `
+      <tr>
+        <td colspan="8">
+          No fue posible cargar el historial.
+        </td>
+      </tr>
+    `;
+
+    if (msg) {
+      msg.textContent =
+        error?.message || "Error consultando cierres.";
+    }
+  }
+}
+
+
+/* ---------------------------------------------------------
+   CARGAR MÓDULO CIERRES
+--------------------------------------------------------- */
+
+async function cargarCierres() {
+
+  if (!$("cierreFechaFin")) {
+    return;
+  }
+
+  /*
+    Si todavía no tiene fecha, ponemos automáticamente
+    el último día 20 correspondiente.
+  */
+
+  if (!$("cierreFechaFin").value) {
+    $("cierreFechaFin").value =
+      fechaCierreSugerida();
+  }
+
+  await Promise.all([
+    cargarPrevisualizacionCierre(),
+    cargarHistorialCierres()
+  ]);
+}
+
+
+/* ---------------------------------------------------------
+   CAMBIO MANUAL DE FECHA
+--------------------------------------------------------- */
+
+if ($("cierreFechaFin")) {
+
+  $("cierreFechaFin").addEventListener(
+    "change",
+    () => {
+
+      /*
+        Al modificar la fecha invalidamos inmediatamente
+        cualquier previsualización anterior.
+
+        El usuario debe volver a consultar antes de cerrar.
+      */
+
+      cierrePreviewValido = false;
+      cierrePreviewFecha = null;
+
+      if ($("ejecutarCierreBtn")) {
+        $("ejecutarCierreBtn").disabled = true;
+      }
+
+      if ($("cierreEstado")) {
+        $("cierreEstado").textContent =
+          "Fecha modificada — actualizar";
+      }
+
+      if ($("cierreMsg")) {
+        $("cierreMsg").textContent =
+          "Actualice la previsualización antes de realizar el cierre.";
+      }
+    }
+  );
+}
+
+
+/* ---------------------------------------------------------
+   BOTÓN ACTUALIZAR PREVISUALIZACIÓN
+--------------------------------------------------------- */
+
+if ($("actualizarCierreBtn")) {
+
+  $("actualizarCierreBtn").addEventListener(
+    "click",
+    async () => {
+
+      await cargarPrevisualizacionCierre();
+
+    }
+  );
+}
+
+
+/* ---------------------------------------------------------
+   ACTUALIZAR HISTORIAL
+--------------------------------------------------------- */
+
+if ($("actualizarHistorialCierresBtn")) {
+
+  $("actualizarHistorialCierresBtn").addEventListener(
+    "click",
+    async () => {
+
+      await cargarHistorialCierres();
+
+    }
+  );
+}
+
+
+/* ---------------------------------------------------------
+   EJECUTAR CIERRE
+--------------------------------------------------------- */
+
+if ($("ejecutarCierreBtn")) {
+
+  $("ejecutarCierreBtn").addEventListener(
+    "click",
+    async () => {
+
+      const msg = $("cierreMsg");
+
+      const fechaFin =
+        $("cierreFechaFin")?.value;
+
+      const observaciones =
+        $("cierreObservaciones")?.value.trim() || null;
+
+
+      /*
+        Protección 1:
+        Debe existir una previsualización válida.
+      */
+
+      if (
+        !cierrePreviewValido ||
+        !cierrePreviewFecha
+      ) {
+
+        if (msg) {
+          msg.textContent =
+            "Primero debe actualizar y revisar la previsualización.";
+        }
+
+        return;
+      }
+
+
+      /*
+        Protección 2:
+        La fecha actual debe coincidir exactamente
+        con la fecha que fue previsualizada.
+      */
+
+      if (fechaFin !== cierrePreviewFecha) {
+
+        cierrePreviewValido = false;
+
+        $("ejecutarCierreBtn").disabled = true;
+
+        if (msg) {
+          msg.textContent =
+            "La fecha cambió. Actualice nuevamente la previsualización.";
+        }
+
+        return;
+      }
+
+
+      /*
+        Protección 3:
+        confirmación humana explícita.
+      */
+
+      const confirmar = window.confirm(
+        "¿Confirma el cierre definitivo del ciclo " +
+        fechaISOaLocal(
+          obtenerInicioCiclo(fechaFin)
+        ) +
+        " al " +
+        fechaISOaLocal(fechaFin) +
+        "?\n\n" +
+        "Antes de continuar verifique que todos los pagos reales " +
+        "y la cuota bancaria estén registrados."
+      );
+
+      if (!confirmar) {
+        return;
+      }
+
+
+      try {
+
+        $("ejecutarCierreBtn").disabled = true;
+
+        if (msg) {
+          msg.textContent =
+            "Registrando cierre...";
+        }
+
+
+        /*
+          Ejecutamos exclusivamente la función oficial
+          que ya validamos en Supabase.
+        */
+
+        const {
+          data,
+          error
+        } = await supabase.rpc(
+          "cerrar_ciclo_aj",
+          {
+            p_fecha_fin: fechaFin,
+            p_observaciones: observaciones
+          }
+        );
+
+        if (error) {
+          throw error;
+        }
+
+
+        /*
+          Invalidamos la vista previa para impedir
+          doble clic o un segundo cierre.
+        */
+
+        cierrePreviewValido = false;
+        cierrePreviewFecha = null;
+
+        if (msg) {
+          msg.textContent =
+            `Cierre registrado correctamente. ID: ${data}`;
+        }
+
+        if ($("cierreEstado")) {
+          $("cierreEstado").textContent =
+            "Ciclo cerrado";
+        }
+
+
+        /*
+          Volvemos a consultar directamente desde la base.
+          Esto confirma visualmente que el cierre existe.
+        */
+
+        await cargarHistorialCierres();
+        await cargarPrevisualizacionCierre();
+
+
+        /*
+          Actualizamos también el Inicio porque el cierre
+          puede afectar la información mostrada allí.
+        */
+
+        if (typeof cargarDashboard === "function") {
+          await cargarDashboard();
+        }
+
+      } catch (error) {
+
+        console.error(
+          "Error ejecutando cierre:",
+          error
+        );
+
+        if (msg) {
+          msg.textContent =
+            "No fue posible realizar el cierre: " +
+            (error?.message || "Error desconocido");
+        }
+
+        /*
+          Ante cualquier error obligamos a volver
+          a previsualizar antes de intentar nuevamente.
+        */
+
+        cierrePreviewValido = false;
+        cierrePreviewFecha = null;
+
+        $("ejecutarCierreBtn").disabled = true;
+      }
+    }
+  );
+}
+
 /* =========================================================
    HISTORIAL
 ========================================================= */
