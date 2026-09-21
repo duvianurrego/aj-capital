@@ -47,6 +47,7 @@
         <button class="nav" data-page="pagos">Registrar pago</button>
         <button class="nav" data-page="cartera">Cartera</button>
         <button class="nav" data-page="caja">Caja</button>
+        <button class="nav" data-page="cuentas-socios">Cuentas de socios</button>
         <button class="nav" data-page="cierres">Cierres</button>
         <button class="nav" data-page="historial">Historial</button>
       </nav>
@@ -1102,6 +1103,288 @@
       </section>
 
     </section>
+
+        <!-- CUENTAS DE SOCIOS -->
+
+    <section id="cuentas-socios" class="page hidden">
+
+      <div class="page-head">
+        <div>
+          <h2>Cuentas de socios</h2>
+          <p>
+            Control de los valores que A&J CAPITAL adeuda a Andrés y Juan
+            por dinero personal aportado a la operación.
+          </p>
+        </div>
+      </div>
+
+
+      <!-- RESUMEN -->
+
+      <div class="cards">
+
+        <article>
+          <span>A&J debe a Andrés</span>
+          <strong id="cuentasDeudaAndres">$0</strong>
+          <small>Cuenta por pagar</small>
+        </article>
+
+        <article>
+          <span>A&J debe a Juan</span>
+          <strong id="cuentasDeudaJuan">$0</strong>
+          <small>Cuenta por pagar</small>
+        </article>
+
+        <article>
+          <span>Deuda total con socios</span>
+          <strong id="cuentasDeudaTotal">$0</strong>
+          <small>Obligación actual de A&J</small>
+        </article>
+
+        <article>
+          <span>Caja A&J disponible</span>
+          <strong id="cuentasCajaTotal">$0</strong>
+          <small>Dinero empresarial actual</small>
+        </article>
+
+      </div>
+
+
+      <div class="grid2">
+
+        <!-- ANDRÉS -->
+
+        <section class="panel">
+
+          <h3>Andrés Urrego</h3>
+
+          <div class="metric">
+            <span>Deuda pendiente</span>
+            <b id="cuentasAndresDeudaDetalle">$0</b>
+          </div>
+
+          <div class="metric">
+            <span>Caja A&J bajo responsabilidad</span>
+            <b id="cuentasAndresCaja">$0</b>
+          </div>
+
+          <div class="metric">
+            <span>Máximo reembolsable actualmente</span>
+            <b id="cuentasAndresReembolsable">$0</b>
+          </div>
+
+        </section>
+
+
+        <!-- JUAN -->
+
+        <section class="panel">
+
+          <h3>Juan</h3>
+
+          <div class="metric">
+            <span>Deuda pendiente</span>
+            <b id="cuentasJuanDeudaDetalle">$0</b>
+          </div>
+
+          <div class="metric">
+            <span>Caja A&J bajo responsabilidad</span>
+            <b id="cuentasJuanCaja">$0</b>
+          </div>
+
+          <div class="metric">
+            <span>Máximo reembolsable actualmente</span>
+            <b id="cuentasJuanReembolsable">$0</b>
+          </div>
+
+        </section>
+
+      </div>
+
+
+      <!-- REEMBOLSO -->
+
+      <section class="panel">
+
+        <h3>Registrar reembolso a socio</h3>
+
+        <p class="help-text">
+          Utilice esta opción únicamente cuando A&J CAPITAL entregue
+          realmente dinero empresarial para pagar una deuda pendiente
+          con uno de los socios.
+        </p>
+
+        <form id="pagoDeudaSocioForm" class="form-grid">
+
+          <div>
+            <label>Socio *</label>
+
+            <select id="pagoDeudaSocio" required>
+              <option value="">Seleccione</option>
+              <option value="1">Andrés Urrego</option>
+              <option value="2">Juan</option>
+            </select>
+          </div>
+
+
+          <div>
+            <label>Fecha *</label>
+
+            <input
+              id="pagoDeudaFecha"
+              type="date"
+              required
+            >
+          </div>
+
+
+          <div>
+            <label>Valor a reembolsar *</label>
+
+            <input
+              id="pagoDeudaValor"
+              type="number"
+              min="1"
+              step="1"
+              required
+            >
+          </div>
+
+
+          <div>
+            <label>Deuda pendiente</label>
+
+            <div
+              id="pagoDeudaDisponible"
+              class="total-pago"
+            >
+              $0
+            </div>
+          </div>
+
+
+          <div>
+            <label>Caja A&J disponible</label>
+
+            <div
+              id="pagoDeudaCajaDisponible"
+              class="total-pago"
+            >
+              $0
+            </div>
+          </div>
+
+
+          <div>
+            <label>Máximo que puede reembolsarse</label>
+
+            <div
+              id="pagoDeudaMaximo"
+              class="total-pago"
+            >
+              $0
+            </div>
+          </div>
+
+
+          <div
+            id="pagoDeudaAdvertencia"
+            class="full warning-box hidden"
+          ></div>
+
+
+          <div class="full">
+            <label>Observaciones</label>
+
+            <textarea
+              id="pagoDeudaObservaciones"
+              rows="3"
+              placeholder="Detalle opcional del reembolso"
+            ></textarea>
+          </div>
+
+
+          <div class="full form-actions">
+
+            <button
+              type="submit"
+              id="guardarPagoDeudaBtn"
+              class="primary"
+            >
+              Registrar reembolso
+            </button>
+
+          </div>
+
+        </form>
+
+        <div id="pagoDeudaMsg" class="msg"></div>
+
+      </section>
+
+
+      <!-- HISTORIAL -->
+
+      <section class="panel">
+
+        <div class="page-head">
+
+          <div>
+            <h3>Historial de cuentas de socios</h3>
+
+            <p>
+              Aportes personales reconocidos por A&J CAPITAL
+              y reembolsos realizados.
+            </p>
+          </div>
+
+          <button
+            id="actualizarCuentasSociosBtn"
+            type="button"
+            class="secondary"
+          >
+            Actualizar
+          </button>
+
+        </div>
+
+
+        <div class="table-wrap">
+
+          <table>
+
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Socio</th>
+                <th>Movimiento</th>
+                <th>Valor</th>
+                <th>Referencia</th>
+                <th>Observación</th>
+              </tr>
+            </thead>
+
+
+            <tbody id="cuentasSociosBody">
+
+              <tr>
+                <td colspan="6">
+                  Cargando movimientos...
+                </td>
+              </tr>
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+        <div id="cuentasSociosMsg" class="msg"></div>
+
+      </section>
+
+    </section>
+
     
         <!-- CIERRES -->
 
