@@ -907,6 +907,202 @@
 
     </section>
 
+    
+        <!-- CARTERA -->
+
+    <section id="cartera" class="page hidden">
+
+      <div class="page-head">
+        <div>
+          <h2>Cartera</h2>
+          <p>
+            Control del capital prestado y seguimiento individual
+            de los préstamos de A&J CAPITAL.
+          </p>
+        </div>
+      </div>
+
+
+      <!-- RESUMEN DE CARTERA -->
+
+      <div class="cards">
+
+        <article>
+          <span>Capital actualmente prestado</span>
+          <strong id="carteraCapitalActual">$0</strong>
+          <small>Cartera operativa actual</small>
+        </article>
+
+        <article>
+          <span>Capital Punto Cero</span>
+          <strong id="carteraPuntoCero">$0</strong>
+          <small>Base inicial del nuevo control</small>
+        </article>
+
+        <article>
+          <span>Nuevos desembolsos</span>
+          <strong id="carteraNuevosDesembolsos">$0</strong>
+          <small>Desde el nuevo control</small>
+        </article>
+
+        <article>
+          <span>Capital recuperado</span>
+          <strong id="carteraCapitalRecuperado">$0</strong>
+          <small>Abonos a capital desde Punto Cero</small>
+        </article>
+
+      </div>
+
+
+      <!-- CONTROL -->
+
+      <div class="grid2">
+
+        <section class="panel">
+
+          <h3>Estado de la cartera</h3>
+
+          <div class="metric">
+            <span>Préstamos con saldo</span>
+            <b id="carteraPrestamosConSaldo">0</b>
+          </div>
+
+          <div class="metric">
+            <span>Inicio control</span>
+            <b id="carteraInicioControl">0</b>
+          </div>
+
+          <div class="metric">
+            <span>Al día</span>
+            <b id="carteraAlDia">0</b>
+          </div>
+
+          <div class="metric">
+            <span>Próximos</span>
+            <b id="carteraProximos">0</b>
+          </div>
+
+        </section>
+
+
+        <section class="panel">
+
+          <h3>Alertas</h3>
+
+          <div class="metric">
+            <span>Vencidos</span>
+            <b id="carteraVencidos">0</b>
+          </div>
+
+          <div class="metric">
+            <span>Mora prolongada</span>
+            <b id="carteraMoraProlongada">0</b>
+          </div>
+
+          <div class="metric">
+            <span>Pagados</span>
+            <b id="carteraPagados">0</b>
+          </div>
+
+          <div class="metric">
+            <span>Capital mostrado</span>
+            <b id="carteraCapitalMostrado">$0</b>
+          </div>
+
+        </section>
+
+      </div>
+
+
+      <!-- FILTROS -->
+
+      <section class="panel">
+
+        <div class="search-row">
+
+          <div>
+            <h3>Detalle de cartera</h3>
+            <p class="help-text">
+              Los préstamos anteriores al nuevo control se identifican
+              como Inicio control y no heredan mora histórica.
+            </p>
+          </div>
+
+          <input
+            id="buscarCartera"
+            placeholder="Buscar cliente"
+          >
+
+        </div>
+
+
+        <div class="form-grid">
+
+          <div>
+            <label>Filtrar por estado</label>
+
+            <select id="filtroCarteraEstado">
+              <option value="">Todos</option>
+              <option value="INICIO_CONTROL">Inicio control</option>
+              <option value="AL_DIA">Al día</option>
+              <option value="PROXIMO">Próximo</option>
+              <option value="VENCIDO">Vencido</option>
+              <option value="MORA_PROLONGADA">Mora prolongada</option>
+              <option value="PAGADO">Pagado</option>
+              <option value="SIN_FECHA">Sin fecha</option>
+            </select>
+          </div>
+
+          <div>
+            <label>Registros visibles</label>
+            <div id="carteraRegistrosVisibles" class="total-pago">0</div>
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <!-- TABLA -->
+
+      <section class="panel">
+
+        <div class="table-wrap">
+
+          <table>
+
+            <thead>
+              <tr>
+                <th>Cliente</th>
+                <th>Fecha préstamo</th>
+                <th>Capital inicial</th>
+                <th>Saldo referencia</th>
+                <th>Próximo pago</th>
+                <th>Estado</th>
+                <th>Días mora</th>
+              </tr>
+            </thead>
+
+            <tbody id="carteraDetalleBody">
+
+              <tr>
+                <td colspan="7">
+                  Cargando cartera...
+                </td>
+              </tr>
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+        <div id="carteraMsg" class="msg"></div>
+
+      </section>
+
+    </section>
+    
         <!-- CIERRES -->
 
     <section id="cierres" class="page hidden">
