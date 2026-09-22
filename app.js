@@ -96,12 +96,17 @@ let prestamosPagoCache = [];
 
 
 /* =========================================================
-   SESIÓN
+   SESIÓN Y PERFIL DEL USUARIO
 ========================================================= */
+
+let perfilUsuarioActual = null;
+
 
 async function mostrarSesion(session) {
 
   if (!session) {
+
+    perfilUsuarioActual = null;
 
     $('loginView').classList.remove('hidden');
     $('appView').classList.add('hidden');
@@ -110,12 +115,85 @@ async function mostrarSesion(session) {
   }
 
 
+  /* =====================================================
+     CONSULTAR PERFIL DEL USUARIO
+  ===================================================== */
+
+  const {
+    data: perfil,
+    error: perfilError
+  } =
+  await supabase
+    .from('perfiles_aj')
+    .select(`
+      user_id,
+      nombre,
+      rol,
+      activo
+    `)
+    .eq(
+      'user_id',
+      session.user.id
+    )
+    .maybeSingle();
+
+
+  /* =====================================================
+     BLOQUEAR USUARIO SIN PERFIL O INACTIVO
+  ===================================================== */
+
+  if (
+    perfilError ||
+    !perfil ||
+    perfil.activo !== true
+  ) {
+
+    console.error(
+      'Error consultando perfil:',
+      perfilError
+    );
+
+    perfilUsuarioActual = null;
+
+    await supabase.auth.signOut();
+
+    $('appView').classList.add('hidden');
+    $('loginView').classList.remove('hidden');
+
+    $('loginMsg').textContent =
+      'Este usuario no tiene autorización para ingresar.';
+
+    return;
+  }
+
+
+  /* =====================================================
+     GUARDAR PERFIL EN MEMORIA
+  ===================================================== */
+
+  perfilUsuarioActual =
+    perfil;
+
+
+  /* =====================================================
+     MOSTRAR APLICACIÓN
+  ===================================================== */
+
   $('loginView').classList.add('hidden');
   $('appView').classList.remove('hidden');
 
-  $('userChip').textContent =
-    session.user.email || 'Usuario';
 
+  /* =====================================================
+     IDENTIFICACIÓN DEL USUARIO
+  ===================================================== */
+
+  $('userChip').textContent =
+    `${perfil.nombre || session.user.email} · ${perfil.rol}`;
+
+
+  /* =====================================================
+     CARGAR DASHBOARD
+  ===================================================== */
 
   await cargarDashboard();
 
