@@ -208,359 +208,590 @@ mostrarSesion(session);
 
 async function cargarDashboard() {
 
-  const [
-    capitalRes,
-    cicloRes,
-    prestamosRes,
-    semaforoRes
-  ] =
-  await Promise.all([
+  try {
 
-    supabase
-      .from('capital_operativo_aj')
-      .select('*')
-      .single(),
+    /* =====================================================
+       1. CONSULTAS PRINCIPALES
+    ===================================================== */
 
-    supabase
-      .from('ciclo_actual_aj')
-      .select('*')
-      .single(),
+    const [
+      capitalRes,
+      cicloRes,
+      prestamosRes,
+      semaforoRes,
+      cajaRes,
+      tercerosRes,
+      deudasRes
+    ] = await Promise.all([
 
-    supabase
-      .from('prestamos')
-      .select(`
-        id,
-        cliente_id,
-        fecha_prestamo,
-        capital_inicial,
-        capital_pendiente,
-        estado,
-        control_nuevo,
-        clientes(nombre)
-      `)
-      .gt('capital_pendiente', 0)
-      .neq('estado', 'CANCELADO')
-      .order(
-        'fecha_prestamo',
-        {
-          ascending: true
-        }
-      ),
+      /* Capital operativo oficial */
+      supabase
+        .from('capital_operativo_aj')
+        .select('*')
+        .single(),
 
-    supabase
-      .from('semaforo_operativo_aj')
-      .select('*')
+      /* Ciclo actual */
+      supabase
+        .from('ciclo_actual_aj')
+        .select('*')
+        .single(),
 
-  ]);
+      /* Préstamos con saldo pendiente */
+      supabase
+        .from('prestamos')
+        .select(`
+          id,
+          cliente_id,
+          fecha_prestamo,
+          capital_inicial,
+          capital_pendiente,
+          estado,
+          control_nuevo,
+          clientes(nombre)
+        `)
+        .gt('capital_pendiente', 0)
+        .neq('estado', 'CANCELADO')
+        .order(
+          'fecha_prestamo',
+          {
+            ascending: true
+          }
+        ),
+
+      /* Semáforo operativo */
+      supabase
+        .from('semaforo_operativo_aj')
+        .select('*'),
+
+      /* Caja A&J por socio */
+      supabase
+        .from('resumen_caja_socios')
+        .select('*'),
+
+      /* Dinero de terceros */
+      supabase
+        .from('resumen_dinero_terceros')
+        .select('*'),
+
+      /* Deudas de A&J con socios */
+      supabase
+        .from('resumen_cuentas_socios_aj')
+        .select('*')
+
+    ]);
 
 
-  if (capitalRes.error) {
+    /* =====================================================
+       2. MOSTRAR ERRORES EN CONSOLA
+    ===================================================== */
 
-    console.error(
-      'Error capital:',
-      capitalRes.error
-    );
-
-  }
-
-
-  if (capitalRes.data) {
-
-    $('capitalPrestado').textContent =
-      money(
-        capitalRes.data
-          .capital_actual_prestado
+    if (capitalRes.error) {
+      console.error(
+        'Error capital:',
+        capitalRes.error
       );
-
-
-    $('clientesSaldo').textContent =
-      'Punto Cero: $23.457.000';
-
-  }
-
-
-  if (cicloRes.error) {
-
-    console.error(
-      'Error ciclo:',
-      cicloRes.error
-    );
-
-  }
-
-
-  if (cicloRes.data) {
-
-    const c =
-      cicloRes.data;
-
-
-    $('interesesCiclo').textContent =
-      money(
-        c.intereses_cobrados
-      );
-
-
-    $('resultadoCiclo').textContent =
-      money(
-        c.resultado_actual
-      );
-
-
-    $('cuotaCiclo').textContent =
-      money(
-        c.cuota_bancaria_pagada
-      );
-
-
-    $('andresProv').textContent =
-      money(
-        c.participacion_andres_provisional
-      );
-
-
-    $('juanProv').textContent =
-      money(
-        c.participacion_juan_provisional
-      );
-
-
-    $('cycleText').textContent =
-      `Ciclo actual: ${mostrarFecha(c.fecha_inicio)} → ${mostrarFecha(c.fecha_fin)}`;
-
-  }
-
-
-  if (prestamosRes.error) {
-
-    console.error(
-      'Error préstamos:',
-      prestamosRes.error
-    );
-
-  }
-
-
-  if (semaforoRes.error) {
-
-    console.error(
-      'Error semáforo:',
-      semaforoRes.error
-    );
-
-  }
-
-
-  const prestamos =
-    prestamosRes.data || [];
-
-  const semaforos =
-    semaforoRes.data || [];
-
-
-  let vencido = 0;
-
-
-  semaforos.forEach(s => {
-
-    if (
-      s.semaforo === 'VENCIDO' ||
-      s.semaforo === 'MORA_PROLONGADA'
-    ) {
-
-      const p =
-        prestamos.find(
-          x =>
-            Number(x.id) ===
-            Number(s.prestamo_id)
-        );
-
-
-      vencido +=
-        Number(
-          p?.capital_pendiente ||
-          0
-        );
-
     }
 
-  });
-
-
-  $('capitalVencido').textContent =
-    money(vencido);
-
-
-  $('carteraBody').innerHTML = '';
-
-
-  if (!prestamos.length) {
-
-    $('carteraBody').innerHTML =
-      `
-      <tr>
-        <td colspan="5">
-          No hay cartera pendiente.
-        </td>
-      </tr>
-      `;
-
-    return;
-
-  }
-
-
-  prestamos.forEach(p => {
-
-    const s =
-      semaforos.find(
-        x =>
-          Number(x.prestamo_id) ===
-          Number(p.id)
+    if (cicloRes.error) {
+      console.error(
+        'Error ciclo:',
+        cicloRes.error
       );
+    }
+
+    if (prestamosRes.error) {
+      console.error(
+        'Error préstamos:',
+        prestamosRes.error
+      );
+    }
+
+    if (semaforoRes.error) {
+      console.error(
+        'Error semáforo:',
+        semaforoRes.error
+      );
+    }
+
+    if (cajaRes.error) {
+      console.error(
+        'Error caja:',
+        cajaRes.error
+      );
+    }
+
+    if (tercerosRes.error) {
+      console.error(
+        'Error dinero terceros:',
+        tercerosRes.error
+      );
+    }
+
+    if (deudasRes.error) {
+      console.error(
+        'Error cuentas socios:',
+        deudasRes.error
+      );
+    }
 
 
-    const estado =
-      s?.semaforo ||
-      'INICIO_CONTROL';
+    /* =====================================================
+       3. CAPITAL OPERATIVO
+    ===================================================== */
+
+    const capital =
+      capitalRes.data || {};
 
 
-    const dias =
+    const capitalActual =
       Number(
-        s?.dias_mora_control_nuevo ||
+        capital.capital_actual_prestado ||
         0
       );
 
 
-    let clase =
-      'green';
+    const puntoCero =
+      Number(
+        capital.capital_prestado_punto_cero ||
+        0
+      );
 
-    let etiqueta =
-      'INICIO NUEVO CONTROL';
+
+    const nuevosDesembolsos =
+      Number(
+        capital.nuevos_desembolsos ||
+        0
+      );
 
 
-    if (
-      estado ===
-      'MORA_PROLONGADA'
-    ) {
+    const capitalRecuperado =
+      Number(
+        capital.capital_recuperado_desde_punto_cero ||
+        0
+      );
 
-      clase =
-        'black';
 
-      etiqueta =
-        'MORA PROLONGADA';
-
-    }
-
-    else if (
-      estado ===
-      'VENCIDO'
-    ) {
-
-      clase =
-        'red';
-
-      etiqueta =
-        'VENCIDO';
-
-    }
-
-    else if (
-      estado ===
-      'PROXIMO'
-    ) {
-
-      clase =
-        'yellow';
-
-      etiqueta =
-        'PRÓXIMO A VENCER';
-
-    }
-
-    else if (
-      estado ===
-      'AL_DIA'
-    ) {
-
-      etiqueta =
-        'AL DÍA';
-
-    }
-
-    else if (
-      estado ===
-      'PAGADO'
-    ) {
-
-      etiqueta =
-        'PAGADO';
-
-    }
-
-    else if (
-      estado ===
-      'SIN_FECHA'
-    ) {
-
-      clase =
-        'yellow';
-
-      etiqueta =
-        'SIN FECHA';
-
+    if ($('capitalPrestado')) {
+      $('capitalPrestado').textContent =
+        money(capitalActual);
     }
 
 
-    $('carteraBody').insertAdjacentHTML(
-      'beforeend',
-      `
-      <tr>
+    if ($('clientesSaldo')) {
+      $('clientesSaldo').textContent =
+        'Capital operativo vigente';
+    }
 
-        <td>
-          <strong>
-            ${escapeHtml(
-              p.clientes?.nombre ||
-              'Cliente'
+
+    if ($('inicioPuntoCero')) {
+      $('inicioPuntoCero').textContent =
+        money(puntoCero);
+    }
+
+
+    if ($('inicioNuevosDesembolsos')) {
+      $('inicioNuevosDesembolsos').textContent =
+        money(nuevosDesembolsos);
+    }
+
+
+    if ($('inicioCapitalRecuperado')) {
+      $('inicioCapitalRecuperado').textContent =
+        money(capitalRecuperado);
+    }
+
+
+    /* =====================================================
+       4. CICLO ACTUAL
+    ===================================================== */
+
+    const ciclo =
+      cicloRes.data || {};
+
+
+    if ($('interesesCiclo')) {
+      $('interesesCiclo').textContent =
+        money(
+          ciclo.intereses_cobrados ||
+          0
+        );
+    }
+
+
+    if ($('resultadoCiclo')) {
+      $('resultadoCiclo').textContent =
+        money(
+          ciclo.resultado_actual ||
+          0
+        );
+    }
+
+
+    if ($('cuotaCiclo')) {
+      $('cuotaCiclo').textContent =
+        money(
+          ciclo.cuota_bancaria_pagada ||
+          0
+        );
+    }
+
+
+    if ($('andresProv')) {
+      $('andresProv').textContent =
+        money(
+          ciclo.participacion_andres_provisional ||
+          0
+        );
+    }
+
+
+    if ($('juanProv')) {
+      $('juanProv').textContent =
+        money(
+          ciclo.participacion_juan_provisional ||
+          0
+        );
+    }
+
+
+    /* =====================================================
+       5. CAJA A&J DISPONIBLE
+    ===================================================== */
+
+    const caja =
+      cajaRes.data || [];
+
+
+    const cajaEmpresa =
+      caja.reduce(
+        (total, fila) =>
+          total +
+          Number(
+            fila.saldo_calculado ||
+            0
+          ),
+        0
+      );
+
+
+    if ($('inicioCajaEmpresa')) {
+      $('inicioCajaEmpresa').textContent =
+        money(cajaEmpresa);
+    }
+
+
+    /* =====================================================
+       6. DEUDA DE A&J CON SOCIOS
+    ===================================================== */
+
+    const deudas =
+      deudasRes.data || [];
+
+
+    const deudaSocios =
+      deudas.reduce(
+        (total, fila) =>
+          total +
+          Number(
+            fila.empresa_debe_socio ||
+            0
+          ),
+        0
+      );
+
+
+    if ($('inicioDeudaSocios')) {
+      $('inicioDeudaSocios').textContent =
+        money(deudaSocios);
+    }
+
+
+    /* =====================================================
+       7. DINERO DE TERCEROS
+    ===================================================== */
+
+    const terceros =
+      tercerosRes.data || [];
+
+
+    const dineroTerceros =
+      terceros.reduce(
+        (total, fila) =>
+          total +
+          Number(
+            fila.saldo_terceros ||
+            0
+          ),
+        0
+      );
+
+
+    if ($('inicioDineroTerceros')) {
+      $('inicioDineroTerceros').textContent =
+        money(dineroTerceros);
+    }
+
+
+    /* =====================================================
+       8. PRÉSTAMOS Y SEMÁFOROS
+    ===================================================== */
+
+    const prestamos =
+      prestamosRes.data || [];
+
+
+    const semaforos =
+      semaforoRes.data || [];
+
+
+    /* =====================================================
+       9. CAPITAL VENCIDO
+    ===================================================== */
+
+    let vencido = 0;
+
+
+    semaforos.forEach(s => {
+
+      if (
+        s.semaforo === 'VENCIDO' ||
+        s.semaforo === 'MORA_PROLONGADA'
+      ) {
+
+        const prestamo =
+          prestamos.find(
+            p =>
+              Number(p.id) ===
+              Number(s.prestamo_id)
+          );
+
+
+        if (prestamo) {
+
+          vencido +=
+            Number(
+              prestamo.capital_pendiente ||
+              0
+            );
+
+        }
+
+      }
+
+    });
+
+
+    if ($('capitalVencido')) {
+      $('capitalVencido').textContent =
+        money(vencido);
+    }
+
+
+    /* =====================================================
+       10. TABLA SEGUIMIENTO DE CARTERA
+    ===================================================== */
+
+    const carteraBody =
+      $('carteraBody');
+
+
+    if (!carteraBody) {
+      return;
+    }
+
+
+    carteraBody.innerHTML = '';
+
+
+    if (!prestamos.length) {
+
+      carteraBody.innerHTML = `
+        <tr>
+          <td colspan="5">
+            No hay cartera pendiente.
+          </td>
+        </tr>
+      `;
+
+      return;
+    }
+
+
+    prestamos.forEach(p => {
+
+      const s =
+        semaforos.find(
+          x =>
+            Number(x.prestamo_id) ===
+            Number(p.id)
+        );
+
+
+      const estado =
+        s?.semaforo ||
+        'INICIO_CONTROL';
+
+
+      const dias =
+        Number(
+          s?.dias_mora_control_nuevo ||
+          0
+        );
+
+
+      let clase =
+        'green';
+
+
+      let etiqueta =
+        'INICIO NUEVO CONTROL';
+
+
+      if (
+        estado === 'MORA_PROLONGADA'
+      ) {
+
+        clase =
+          'black';
+
+        etiqueta =
+          'MORA PROLONGADA';
+
+      }
+
+      else if (
+        estado === 'VENCIDO'
+      ) {
+
+        clase =
+          'red';
+
+        etiqueta =
+          'VENCIDO';
+
+      }
+
+      else if (
+        estado === 'PROXIMO'
+      ) {
+
+        clase =
+          'yellow';
+
+        etiqueta =
+          'PRÓXIMO A VENCER';
+
+      }
+
+      else if (
+        estado === 'AL_DIA'
+      ) {
+
+        clase =
+          'green';
+
+        etiqueta =
+          'AL DÍA';
+
+      }
+
+      else if (
+        estado === 'PAGADO'
+      ) {
+
+        clase =
+          'green';
+
+        etiqueta =
+          'PAGADO';
+
+      }
+
+      else if (
+        estado === 'SIN_FECHA'
+      ) {
+
+        clase =
+          'yellow';
+
+        etiqueta =
+          'SIN FECHA';
+
+      }
+
+
+      carteraBody.insertAdjacentHTML(
+        'beforeend',
+        `
+        <tr>
+
+          <td>
+            <strong>
+              ${escapeHtml(
+                p.clientes?.nombre ||
+                'Cliente'
+              )}
+            </strong>
+          </td>
+
+          <td>
+            <strong>
+              ${money(
+                p.capital_pendiente
+              )}
+            </strong>
+          </td>
+
+          <td>
+            ${mostrarFecha(
+              p.fecha_prestamo
             )}
-          </strong>
-        </td>
+          </td>
 
-        <td>
-          <strong>
-            ${money(
-              p.capital_pendiente
-            )}
-          </strong>
-        </td>
+          <td>
+            <span class="badge ${clase}">
+              ${etiqueta}
+            </span>
+          </td>
 
-        <td>
-          ${mostrarFecha(
-            p.fecha_prestamo
-          )}
-        </td>
+          <td>
+            ${
+              estado === 'INICIO_CONTROL'
+                ? 0
+                : dias
+            }
+          </td>
 
-        <td>
-          <span class="badge ${clase}">
-            ${etiqueta}
-          </span>
-        </td>
+        </tr>
+        `
+      );
 
-        <td>
-          ${
-            estado === 'INICIO_CONTROL'
-              ? 0
-              : dias
-          }
-        </td>
+    });
 
-      </tr>
-      `
+
+  } catch (error) {
+
+    console.error(
+      'Error general cargando Dashboard:',
+      error
     );
 
-  });
+
+    if ($('clientesSaldo')) {
+
+      $('clientesSaldo').textContent =
+        'Error al cargar información';
+
+    }
+
+  }
 
 }
+
+
+/* =========================================================
+   FIN DASHBOARD
+========================================================= */
 
 
 /* =========================================================
