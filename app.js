@@ -8430,9 +8430,8 @@ function aplicarPermisosEdicion() {
 
 
   /*
-    El usuario CONSULTA nunca debe
-    tener visible el formulario
-    para registrar clientes.
+    CONSULTA nunca puede tener visible
+    el formulario para crear clientes.
   */
 
   if (
@@ -8445,6 +8444,77 @@ function aplicarPermisosEdicion() {
       .add('hidden');
 
   }
+
+
+  /* =====================================================
+     CAJA
+  ===================================================== */
+
+  /*
+    Estos cuatro formularios generan movimientos
+    y solamente deben estar disponibles para ADMIN.
+  */
+
+  const formulariosCaja = [
+    'cuotaBancoForm',
+    'transferenciaForm',
+    'retiroUtilidadForm',
+    'salidaTercerosForm'
+  ];
+
+
+  formulariosCaja.forEach(
+    idFormulario => {
+
+      const formulario =
+        $(idFormulario);
+
+
+      if (!formulario) {
+        return;
+      }
+
+
+      /*
+        Buscamos el panel completo que contiene
+        cada formulario.
+      */
+
+      const panel =
+        formulario.closest(
+          '.panel'
+        );
+
+
+      if (!panel) {
+        return;
+      }
+
+
+      /*
+        CONSULTA:
+        ocultamos completamente el panel.
+
+        ADMIN:
+        garantizamos que vuelva a mostrarse.
+      */
+
+      if (esConsulta) {
+
+        panel
+          .classList
+          .add('hidden');
+
+      } else {
+
+        panel
+          .classList
+          .remove('hidden');
+
+      }
+
+    }
+  );
 
 }
 
