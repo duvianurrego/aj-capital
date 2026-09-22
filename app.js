@@ -5073,9 +5073,14 @@ $('pagoDeudaSocioForm')
 
 /*
   Pago seleccionado temporalmente para corregir receptor.
-  No modifica nada hasta presionar "Confirmar corrección".
 */
 let pagoCorreccionReceptor = null;
+
+
+/*
+  Pago seleccionado temporalmente para corregir valores.
+*/
+let pagoCorreccionValores = null;
 
 
 /* =========================================================
@@ -5094,9 +5099,7 @@ async function prepararHistorial() {
   } =
   await supabase
     .from('clientes')
-    .select(
-      'id,nombre'
-    )
+    .select('id,nombre')
     .order(
       'nombre',
       {
@@ -5404,17 +5407,29 @@ function renderHistorial(lista) {
       );
 
 
-    const botonCorreccion =
+    const acciones =
       x.anulado
         ? '—'
         : `
-          <button
-            type="button"
-            class="secondary corregir-receptor-btn"
-            data-pago-id="${pagoId}"
-          >
-            Corregir receptor
-          </button>
+          <div class="form-actions">
+
+            <button
+              type="button"
+              class="secondary corregir-receptor-btn"
+              data-pago-id="${pagoId}"
+            >
+              Corregir receptor
+            </button>
+
+            <button
+              type="button"
+              class="secondary corregir-valores-btn"
+              data-pago-id="${pagoId}"
+            >
+              Corregir valores
+            </button>
+
+          </div>
         `;
 
 
@@ -5479,19 +5494,17 @@ function renderHistorial(lista) {
                   : 'green'
               }"
             >
-
               ${
                 x.anulado
                   ? 'ANULADO'
                   : 'VÁLIDO'
               }
-
             </span>
 
           </td>
 
           <td>
-            ${botonCorreccion}
+            ${acciones}
           </td>
 
         </tr>
@@ -5499,33 +5512,32 @@ function renderHistorial(lista) {
       );
 
 
-    /*
-      Guardamos la información necesaria directamente
-      en el botón mediante dataset.
-    */
-
     if (!x.anulado) {
 
-      const botones =
+      /*
+        DATOS PARA CORREGIR RECEPTOR
+      */
+
+      const botonesReceptor =
         document.querySelectorAll(
           '.corregir-receptor-btn'
         );
 
 
-      const boton =
-        botones[
-          botones.length - 1
+      const botonReceptor =
+        botonesReceptor[
+          botonesReceptor.length - 1
         ];
 
 
-      if (boton) {
+      if (botonReceptor) {
 
-        boton.dataset.cliente =
+        botonReceptor.dataset.cliente =
           x.cliente ||
           '—';
 
 
-        boton.dataset.valor =
+        botonReceptor.dataset.valor =
           String(
             Number(
               x.valor_total ||
@@ -5534,13 +5546,13 @@ function renderHistorial(lista) {
           );
 
 
-        boton.dataset.socioReceptorId =
+        botonReceptor.dataset.socioReceptorId =
           String(
             socioReceptorId
           );
 
 
-        boton.dataset.recibidoPor =
+        botonReceptor.dataset.recibidoPor =
           x.recibido_por ||
           (
             socioReceptorId === 1
@@ -5548,6 +5560,80 @@ function renderHistorial(lista) {
               : socioReceptorId === 2
                 ? 'Juan'
                 : '—'
+          );
+
+      }
+
+
+      /*
+        DATOS PARA CORREGIR VALORES
+      */
+
+      const botonesValores =
+        document.querySelectorAll(
+          '.corregir-valores-btn'
+        );
+
+
+      const botonValores =
+        botonesValores[
+          botonesValores.length - 1
+        ];
+
+
+      if (botonValores) {
+
+        botonValores.dataset.cliente =
+          x.cliente ||
+          '—';
+
+
+        botonValores.dataset.fecha =
+          x.fecha_pago ||
+          '';
+
+
+        botonValores.dataset.socioReceptorId =
+          String(
+            socioReceptorId
+          );
+
+
+        botonValores.dataset.recibidoPor =
+          x.recibido_por ||
+          (
+            socioReceptorId === 1
+              ? 'Andrés Urrego'
+              : socioReceptorId === 2
+                ? 'Juan'
+                : '—'
+          );
+
+
+        botonValores.dataset.interes =
+          String(
+            Number(
+              x.valor_interes ||
+              0
+            )
+          );
+
+
+        botonValores.dataset.capital =
+          String(
+            Number(
+              x.valor_capital ||
+              0
+            )
+          );
+
+
+        botonValores.dataset.total =
+          String(
+            Number(
+              x.valor_total ||
+              0
+            )
           );
 
       }
@@ -5569,7 +5655,15 @@ function renderHistorial(lista) {
 
 function abrirCorreccionReceptor(datos) {
 
+  /*
+    Cerramos el panel de valores si estuviera abierto.
+  */
+
+  cerrarCorreccionValores();
+
+
   pagoCorreccionReceptor = {
+
     pagoId:
       Number(
         datos.pagoId
@@ -5593,6 +5687,7 @@ function abrirCorreccionReceptor(datos) {
     recibidoPor:
       datos.recibidoPor ||
       '—'
+
   };
 
 
@@ -5613,12 +5708,6 @@ function abrirCorreccionReceptor(datos) {
   $('corregirReceptorActual').textContent =
     pagoCorreccionReceptor.recibidoPor;
 
-
-  /*
-    Como solamente existen Andrés y Juan,
-    dejamos preseleccionado automáticamente
-    el receptor contrario.
-  */
 
   if (
     pagoCorreccionReceptor.socioActual === 1
@@ -5672,41 +5761,478 @@ function cerrarCorreccionReceptor() {
     null;
 
 
-  $('corregirNuevoReceptor').value =
+  if ($('corregirNuevoReceptor')) {
+
+    $('corregirNuevoReceptor').value =
+      '';
+
+  }
+
+
+  if ($('corregirReceptorMsg')) {
+
+    $('corregirReceptorMsg').textContent =
+      '';
+
+  }
+
+
+  if ($('corregirPagoNumero')) {
+
+    $('corregirPagoNumero').textContent =
+      '—';
+
+  }
+
+
+  if ($('corregirPagoCliente')) {
+
+    $('corregirPagoCliente').textContent =
+      '—';
+
+  }
+
+
+  if ($('corregirPagoValor')) {
+
+    $('corregirPagoValor').textContent =
+      '$0';
+
+  }
+
+
+  if ($('corregirReceptorActual')) {
+
+    $('corregirReceptorActual').textContent =
+      '—';
+
+  }
+
+
+  if ($('corregirReceptorPanel')) {
+
+    $('corregirReceptorPanel')
+      .classList
+      .add(
+        'hidden'
+      );
+
+  }
+
+}
+
+
+/* =========================================================
+   ABRIR PANEL CORREGIR VALORES
+========================================================= */
+
+function abrirCorreccionValores(datos) {
+
+  /*
+    Cerramos el panel de receptor si estuviera abierto.
+  */
+
+  cerrarCorreccionReceptor();
+
+
+  pagoCorreccionValores = {
+
+    pagoId:
+      Number(
+        datos.pagoId
+      ),
+
+    cliente:
+      datos.cliente ||
+      '—',
+
+    fecha:
+      datos.fecha ||
+      '',
+
+    recibidoPor:
+      datos.recibidoPor ||
+      '—',
+
+    socioReceptorId:
+      Number(
+        datos.socioReceptorId
+      ),
+
+    interesActual:
+      Number(
+        datos.interes ||
+        0
+      ),
+
+    capitalActual:
+      Number(
+        datos.capital ||
+        0
+      ),
+
+    totalActual:
+      Number(
+        datos.total ||
+        0
+      )
+
+  };
+
+
+  $('corregirValoresPagoNumero').textContent =
+    `Pago #${pagoCorreccionValores.pagoId}`;
+
+
+  $('corregirValoresCliente').textContent =
+    pagoCorreccionValores.cliente;
+
+
+  $('corregirValoresReceptor').textContent =
+    pagoCorreccionValores.recibidoPor;
+
+
+  $('corregirValoresFecha').textContent =
+    pagoCorreccionValores.fecha
+      ? mostrarFecha(
+          pagoCorreccionValores.fecha
+        )
+      : '—';
+
+
+  $('corregirInteresActual').textContent =
+    money(
+      pagoCorreccionValores.interesActual
+    );
+
+
+  $('corregirCapitalActual').textContent =
+    money(
+      pagoCorreccionValores.capitalActual
+    );
+
+
+  $('corregirTotalActual').textContent =
+    money(
+      pagoCorreccionValores.totalActual
+    );
+
+
+  /*
+    Los campos editables empiezan con los valores actuales.
+    Así se reduce el riesgo de modificar accidentalmente
+    el componente equivocado.
+  */
+
+  $('corregirNuevoInteres').value =
+    String(
+      pagoCorreccionValores.interesActual
+    );
+
+
+  $('corregirNuevoCapital').value =
+    String(
+      pagoCorreccionValores.capitalActual
+    );
+
+
+  $('corregirValoresMsg').textContent =
     '';
 
 
-  $('corregirReceptorMsg').textContent =
-    '';
+  actualizarImpactoCorreccionValores();
 
 
-  $('corregirPagoNumero').textContent =
-    '—';
-
-
-  $('corregirPagoCliente').textContent =
-    '—';
-
-
-  $('corregirPagoValor').textContent =
-    '$0';
-
-
-  $('corregirReceptorActual').textContent =
-    '—';
-
-
-  $('corregirReceptorPanel')
+  $('corregirValoresPanel')
     .classList
-    .add(
+    .remove(
       'hidden'
+    );
+
+
+  $('corregirValoresPanel')
+    .scrollIntoView({
+      behavior: 'smooth',
+      block: 'start'
+    });
+
+}
+
+
+/* =========================================================
+   CALCULAR IMPACTO DE CORREGIR VALORES
+========================================================= */
+
+function actualizarImpactoCorreccionValores() {
+
+  if (!pagoCorreccionValores) {
+
+    if ($('corregirNuevoTotal')) {
+      $('corregirNuevoTotal').textContent =
+        '$0';
+    }
+
+
+    if ($('corregirDiferenciaInteres')) {
+      $('corregirDiferenciaInteres').textContent =
+        '$0';
+    }
+
+
+    if ($('corregirDiferenciaCapital')) {
+      $('corregirDiferenciaCapital').textContent =
+        '$0';
+    }
+
+
+    if ($('corregirDiferenciaTotal')) {
+      $('corregirDiferenciaTotal').textContent =
+        '$0';
+    }
+
+
+    return;
+
+  }
+
+
+  const nuevoInteres =
+    Number(
+      $('corregirNuevoInteres').value ||
+      0
+    );
+
+
+  const nuevoCapital =
+    Number(
+      $('corregirNuevoCapital').value ||
+      0
+    );
+
+
+  const nuevoTotal =
+    nuevoInteres +
+    nuevoCapital;
+
+
+  const diferenciaInteres =
+    nuevoInteres -
+    pagoCorreccionValores.interesActual;
+
+
+  const diferenciaCapital =
+    nuevoCapital -
+    pagoCorreccionValores.capitalActual;
+
+
+  const diferenciaTotal =
+    nuevoTotal -
+    pagoCorreccionValores.totalActual;
+
+
+  $('corregirNuevoTotal').textContent =
+    money(
+      nuevoTotal
+    );
+
+
+  $('corregirDiferenciaInteres').textContent =
+    formatearDiferenciaDinero(
+      diferenciaInteres
+    );
+
+
+  $('corregirDiferenciaCapital').textContent =
+    formatearDiferenciaDinero(
+      diferenciaCapital
+    );
+
+
+  $('corregirDiferenciaTotal').textContent =
+    formatearDiferenciaDinero(
+      diferenciaTotal
     );
 
 }
 
 
 /* =========================================================
-   DETECTAR BOTÓN CORREGIR RECEPTOR EN LA TABLA
+   FORMATEAR DIFERENCIAS
+========================================================= */
+
+function formatearDiferenciaDinero(valor) {
+
+  const numero =
+    Number(
+      valor ||
+      0
+    );
+
+
+  if (numero > 0) {
+
+    return '+' +
+      money(
+        numero
+      );
+
+  }
+
+
+  if (numero < 0) {
+
+    return '-' +
+      money(
+        Math.abs(
+          numero
+        )
+      );
+
+  }
+
+
+  return money(0);
+
+}
+
+
+/* =========================================================
+   CERRAR PANEL CORREGIR VALORES
+========================================================= */
+
+function cerrarCorreccionValores() {
+
+  pagoCorreccionValores =
+    null;
+
+
+  if ($('corregirValoresPagoNumero')) {
+
+    $('corregirValoresPagoNumero').textContent =
+      '—';
+
+  }
+
+
+  if ($('corregirValoresCliente')) {
+
+    $('corregirValoresCliente').textContent =
+      '—';
+
+  }
+
+
+  if ($('corregirValoresReceptor')) {
+
+    $('corregirValoresReceptor').textContent =
+      '—';
+
+  }
+
+
+  if ($('corregirValoresFecha')) {
+
+    $('corregirValoresFecha').textContent =
+      '—';
+
+  }
+
+
+  if ($('corregirInteresActual')) {
+
+    $('corregirInteresActual').textContent =
+      '$0';
+
+  }
+
+
+  if ($('corregirCapitalActual')) {
+
+    $('corregirCapitalActual').textContent =
+      '$0';
+
+  }
+
+
+  if ($('corregirTotalActual')) {
+
+    $('corregirTotalActual').textContent =
+      '$0';
+
+  }
+
+
+  if ($('corregirNuevoInteres')) {
+
+    $('corregirNuevoInteres').value =
+      '0';
+
+  }
+
+
+  if ($('corregirNuevoCapital')) {
+
+    $('corregirNuevoCapital').value =
+      '0';
+
+  }
+
+
+  if ($('corregirNuevoTotal')) {
+
+    $('corregirNuevoTotal').textContent =
+      '$0';
+
+  }
+
+
+  if ($('corregirDiferenciaInteres')) {
+
+    $('corregirDiferenciaInteres').textContent =
+      '$0';
+
+  }
+
+
+  if ($('corregirDiferenciaCapital')) {
+
+    $('corregirDiferenciaCapital').textContent =
+      '$0';
+
+  }
+
+
+  if ($('corregirDiferenciaTotal')) {
+
+    $('corregirDiferenciaTotal').textContent =
+      '$0';
+
+  }
+
+
+  if ($('corregirValoresMsg')) {
+
+    $('corregirValoresMsg').textContent =
+      '';
+
+  }
+
+
+  if ($('corregirValoresPanel')) {
+
+    $('corregirValoresPanel')
+      .classList
+      .add(
+        'hidden'
+      );
+
+  }
+
+}
+
+
+/* =========================================================
+   DETECTAR BOTONES DE ACCIONES EN HISTORIAL
 ========================================================= */
 
 if ($('historialBody')) {
@@ -5716,20 +6242,44 @@ if ($('historialBody')) {
       'click',
       e => {
 
-        const boton =
+        /*
+          CORREGIR RECEPTOR
+        */
+
+        const botonReceptor =
           e.target.closest(
             '.corregir-receptor-btn'
           );
 
 
-        if (!boton) {
+        if (botonReceptor) {
+
+          abrirCorreccionReceptor(
+            botonReceptor.dataset
+          );
+
           return;
+
         }
 
 
-        abrirCorreccionReceptor(
-          boton.dataset
-        );
+        /*
+          CORREGIR VALORES
+        */
+
+        const botonValores =
+          e.target.closest(
+            '.corregir-valores-btn'
+          );
+
+
+        if (botonValores) {
+
+          abrirCorreccionValores(
+            botonValores.dataset
+          );
+
+        }
 
       }
     );
@@ -5738,7 +6288,45 @@ if ($('historialBody')) {
 
 
 /* =========================================================
-   CANCELAR CORRECCIÓN
+   ACTUALIZAR CÁLCULOS AL EDITAR INTERÉS
+========================================================= */
+
+if ($('corregirNuevoInteres')) {
+
+  $('corregirNuevoInteres')
+    .addEventListener(
+      'input',
+      () => {
+
+        actualizarImpactoCorreccionValores();
+
+      }
+    );
+
+}
+
+
+/* =========================================================
+   ACTUALIZAR CÁLCULOS AL EDITAR CAPITAL
+========================================================= */
+
+if ($('corregirNuevoCapital')) {
+
+  $('corregirNuevoCapital')
+    .addEventListener(
+      'input',
+      () => {
+
+        actualizarImpactoCorreccionValores();
+
+      }
+    );
+
+}
+
+
+/* =========================================================
+   CANCELAR CORRECCIÓN DE RECEPTOR
 ========================================================= */
 
 if ($('cancelarCorreccionReceptorBtn')) {
@@ -5749,6 +6337,25 @@ if ($('cancelarCorreccionReceptorBtn')) {
       () => {
 
         cerrarCorreccionReceptor();
+
+      }
+    );
+
+}
+
+
+/* =========================================================
+   CANCELAR CORRECCIÓN DE VALORES
+========================================================= */
+
+if ($('cancelarCorreccionValoresBtn')) {
+
+  $('cancelarCorreccionValoresBtn')
+    .addEventListener(
+      'click',
+      () => {
+
+        cerrarCorreccionValores();
 
       }
     );
@@ -5852,11 +6459,13 @@ if ($('guardarCorreccionReceptorBtn')) {
         await supabase.rpc(
           'corregir_receptor_pago_aj',
           {
+
             p_pago_id:
               pagoCorreccionReceptor.pagoId,
 
             p_nuevo_socio_id:
               nuevoSocioId
+
           }
         );
 
@@ -5881,20 +6490,8 @@ if ($('guardarCorreccionReceptorBtn')) {
           'Receptor corregido correctamente.';
 
 
-        /*
-          Recargamos el historial para reflejar
-          inmediatamente el cambio.
-        */
-
         await cargarHistorial();
 
-
-        /*
-          Si estas funciones existen en la aplicación,
-          actualizamos también los demás módulos.
-          typeof evita generar error si alguna tiene
-          otro nombre o no existe.
-        */
 
         if (
           typeof cargarDashboard ===
@@ -5920,15 +6517,291 @@ if ($('guardarCorreccionReceptorBtn')) {
           false;
 
 
-        /*
-          Cerramos el panel después de una pequeña
-          espera para que se alcance a ver el mensaje.
-        */
-
         setTimeout(
           () => {
 
             cerrarCorreccionReceptor();
+
+          },
+          700
+        );
+
+      }
+    );
+
+}
+
+
+/* =========================================================
+   GUARDAR CORRECCIÓN DE VALORES
+========================================================= */
+
+if ($('guardarCorreccionValoresBtn')) {
+
+  $('guardarCorreccionValoresBtn')
+    .addEventListener(
+      'click',
+      async () => {
+
+        if (!pagoCorreccionValores) {
+
+          $('corregirValoresMsg').textContent =
+            'No hay un pago seleccionado.';
+
+          return;
+
+        }
+
+
+        const nuevoInteres =
+          Number(
+            $('corregirNuevoInteres')
+              .value
+          );
+
+
+        const nuevoCapital =
+          Number(
+            $('corregirNuevoCapital')
+              .value
+          );
+
+
+        /*
+          Validar números.
+        */
+
+        if (
+          !Number.isFinite(
+            nuevoInteres
+          ) ||
+          !Number.isFinite(
+            nuevoCapital
+          )
+        ) {
+
+          $('corregirValoresMsg').textContent =
+            'Ingrese valores numéricos válidos.';
+
+          return;
+
+        }
+
+
+        /*
+          No permitimos valores negativos.
+        */
+
+        if (
+          nuevoInteres < 0 ||
+          nuevoCapital < 0
+        ) {
+
+          $('corregirValoresMsg').textContent =
+            'Interés y capital no pueden ser negativos.';
+
+          return;
+
+        }
+
+
+        const nuevoTotal =
+          nuevoInteres +
+          nuevoCapital;
+
+
+        if (nuevoTotal <= 0) {
+
+          $('corregirValoresMsg').textContent =
+            'El pago corregido debe ser mayor que cero.';
+
+          return;
+
+        }
+
+
+        /*
+          Debe existir realmente una modificación.
+        */
+
+        if (
+          nuevoInteres ===
+            pagoCorreccionValores.interesActual
+          &&
+          nuevoCapital ===
+            pagoCorreccionValores.capitalActual
+        ) {
+
+          $('corregirValoresMsg').textContent =
+            'No hay ningún valor para corregir.';
+
+          return;
+
+        }
+
+
+        const diferenciaInteres =
+          nuevoInteres -
+          pagoCorreccionValores.interesActual;
+
+
+        const diferenciaCapital =
+          nuevoCapital -
+          pagoCorreccionValores.capitalActual;
+
+
+        const diferenciaTotal =
+          nuevoTotal -
+          pagoCorreccionValores.totalActual;
+
+
+        /*
+          Confirmación detallada ANTES → DESPUÉS.
+        */
+
+        const confirmar =
+          confirm(
+            `¿CONFIRMA LA CORRECCIÓN DEL PAGO #${pagoCorreccionValores.pagoId}?\n\n` +
+
+            `Cliente: ${pagoCorreccionValores.cliente}\n` +
+            `Receptor: ${pagoCorreccionValores.recibidoPor}\n\n` +
+
+            `VALORES ACTUALES\n` +
+            `Interés: ${money(pagoCorreccionValores.interesActual)}\n` +
+            `Capital: ${money(pagoCorreccionValores.capitalActual)}\n` +
+            `Total: ${money(pagoCorreccionValores.totalActual)}\n\n` +
+
+            `VALORES CORRECTOS\n` +
+            `Interés: ${money(nuevoInteres)}\n` +
+            `Capital: ${money(nuevoCapital)}\n` +
+            `Total: ${money(nuevoTotal)}\n\n` +
+
+            `DIFERENCIAS\n` +
+            `Interés: ${formatearDiferenciaDinero(diferenciaInteres)}\n` +
+            `Capital: ${formatearDiferenciaDinero(diferenciaCapital)}\n` +
+            `Total: ${formatearDiferenciaDinero(diferenciaTotal)}\n\n` +
+
+            `Si cambia el capital, también cambiará el saldo pendiente del préstamo.\n\n` +
+
+            `¿Desea continuar?`
+          );
+
+
+        if (!confirmar) {
+          return;
+        }
+
+
+        const botonGuardar =
+          $('guardarCorreccionValoresBtn');
+
+
+        botonGuardar.disabled =
+          true;
+
+
+        $('corregirValoresMsg').textContent =
+          'Corrigiendo valores...';
+
+
+        const {
+          error
+        } =
+        await supabase.rpc(
+          'corregir_valores_pago_aj',
+          {
+
+            p_pago_id:
+              pagoCorreccionValores.pagoId,
+
+            p_nuevo_interes:
+              nuevoInteres,
+
+            p_nuevo_capital:
+              nuevoCapital
+
+          }
+        );
+
+
+        if (error) {
+
+          botonGuardar.disabled =
+            false;
+
+
+          $('corregirValoresMsg').textContent =
+            'No fue posible corregir los valores: ' +
+            error.message;
+
+
+          return;
+
+        }
+
+
+        $('corregirValoresMsg').textContent =
+          'Valores corregidos correctamente.';
+
+
+        /*
+          Recargar historial.
+        */
+
+        await cargarHistorial();
+
+
+        /*
+          Actualizar Inicio.
+        */
+
+        if (
+          typeof cargarDashboard ===
+          'function'
+        ) {
+
+          await cargarDashboard();
+
+        }
+
+
+        /*
+          Actualizar cuentas de socios.
+        */
+
+        if (
+          typeof cargarCuentasSocios ===
+          'function'
+        ) {
+
+          await cargarCuentasSocios();
+
+        }
+
+
+        /*
+          Si existe alguna función específica de cartera,
+          la actualizamos también.
+        */
+
+        if (
+          typeof cargarCartera ===
+          'function'
+        ) {
+
+          await cargarCartera();
+
+        }
+
+
+        botonGuardar.disabled =
+          false;
+
+
+        setTimeout(
+          () => {
+
+            cerrarCorreccionValores();
 
           },
           700
@@ -5952,6 +6825,9 @@ if ($('consultarHistorialBtn')) {
       async () => {
 
         cerrarCorreccionReceptor();
+
+        cerrarCorreccionValores();
+
 
         await cargarHistorial();
 
@@ -5990,6 +6866,8 @@ if ($('limpiarHistorialBtn')) {
 
         cerrarCorreccionReceptor();
 
+        cerrarCorreccionValores();
+
 
         await cargarHistorial();
 
@@ -5997,6 +6875,7 @@ if ($('limpiarHistorialBtn')) {
     );
 
 }
+
 
 /* =========================================================
    FIN HISTORIAL
