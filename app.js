@@ -5778,6 +5778,7 @@ async function cargarHistorialCierres() {
 
 /* =========================================================
    PINTAR HISTORIAL DE CIERRES
+   INCLUYE TOTALES HISTÓRICOS
 ========================================================= */
 
 function renderHistorialCierres(lista) {
@@ -5802,7 +5803,89 @@ function renderHistorialCierres(lista) {
   }
 
 
-  $('cierresBody').innerHTML =
+  /* =======================================================
+     CALCULAR TOTALES HISTÓRICOS
+  ======================================================= */
+
+  const totalIntereses =
+    lista.reduce(
+      (total, x) =>
+        total +
+        Number(
+          x.intereses_cobrados ||
+          0
+        ),
+      0
+    );
+
+
+  const totalCuotasBanco =
+    lista.reduce(
+      (total, x) =>
+        total +
+        Number(
+          x.cuota_bancaria ||
+          0
+        ),
+      0
+    );
+
+
+  const totalResultado =
+    lista.reduce(
+      (total, x) =>
+        total +
+        Number(
+          x.utilidad_neta ||
+          0
+        ),
+      0
+    );
+
+
+  const totalAndres =
+    lista.reduce(
+      (total, x) =>
+        total +
+        Number(
+          x.participacion_andres ||
+          0
+        ),
+      0
+    );
+
+
+  const totalJuan =
+    lista.reduce(
+      (total, x) =>
+        total +
+        Number(
+          x.participacion_juan ||
+          0
+        ),
+      0
+    );
+
+
+  /* =======================================================
+     CONTAR CUOTAS BANCARIAS REGISTRADAS
+  ======================================================= */
+
+  const cantidadCuotas =
+    lista.filter(
+      x =>
+        Number(
+          x.cuota_bancaria ||
+          0
+        ) > 0
+    ).length;
+
+
+  /* =======================================================
+     PINTAR CIERRES
+  ======================================================= */
+
+  const filas =
     lista
       .map(
         x => {
@@ -5890,6 +5973,87 @@ function renderHistorialCierres(lista) {
         }
       )
       .join('');
+
+
+  /* =======================================================
+     FILA FINAL DE TOTALES
+  ======================================================= */
+
+  const filaTotales =
+    `
+      <tr class="fila-totales-cierres">
+
+        <td>
+          <strong>
+            TOTALES
+          </strong>
+        </td>
+
+        <td>
+          <strong>
+            ${lista.length} cierres
+          </strong>
+        </td>
+
+        <td>
+          <strong>
+            ${money(
+              totalIntereses
+            )}
+          </strong>
+        </td>
+
+        <td>
+          <strong>
+            ${money(
+              totalCuotasBanco
+            )}
+          </strong>
+
+          <br>
+
+          <small>
+            ${cantidadCuotas} cuota(s)
+          </small>
+        </td>
+
+        <td>
+          <strong>
+            ${money(
+              totalResultado
+            )}
+          </strong>
+        </td>
+
+        <td>
+          <strong>
+            ${money(
+              totalAndres
+            )}
+          </strong>
+        </td>
+
+        <td>
+          <strong>
+            ${money(
+              totalJuan
+            )}
+          </strong>
+        </td>
+
+        <td>
+          <span class="badge green">
+            ACUMULADO
+          </span>
+        </td>
+
+      </tr>
+    `;
+
+
+  $('cierresBody').innerHTML =
+    filas +
+    filaTotales;
 
 
   $('cierresHistorialMsg').textContent =
