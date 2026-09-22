@@ -5068,6 +5068,1085 @@ $('pagoDeudaSocioForm')
 
 
 /* =========================================================
+   CIERRES
+========================================================= */
+
+let cierrePreviewDatos = null;
+
+
+/* =========================================================
+   CARGAR MÓDULO DE CIERRES
+========================================================= */
+
+async function cargarCierres() {
+
+  $('cierreMsg').textContent =
+    'Cargando cierre...';
+
+  /*
+    Si no hay fecha seleccionada, usamos la fecha_fin
+    que determina ciclo_actual_aj.
+  */
+
+  const {
+    data,
+    error
+  } =
+  await supabase
+    .from('ciclo_actual_aj')
+    .select('*')
+    .single();
+
+
+  if (error) {
+
+    $('cierreMsg').textContent =
+      'Error cargando ciclo actual: ' +
+      error.message;
+
+    return;
+
+  }
+
+
+  if (
+    !$('cierreFechaFin').value &&
+    data?.fecha_fin
+  ) {
+
+    $('cierreFechaFin').value =
+      data.fecha_fin;
+
+  }
+
+
+  await actualizarPrevisualizacionCierre();
+
+  await cargarHistorialCierres();
+
+}
+
+
+/* =========================================================
+   CALCULAR FECHA INICIO 21 → 20
+========================================================= */
+
+function calcularInicioCicloCierre(fechaFin) {
+
+  if (!fechaFin) {
+    return null;
+  }
+
+
+  const partes =
+    fechaFin
+      .split('-')
+      .map(Number);
+
+
+  if (partes.length !== 3) {
+    return null;
+  }
+
+
+  const [
+    anio,
+    mes,
+    dia
+  ] = partes;
+
+
+  if (dia !== 20) {
+    return null;
+  }
+
+
+  /*
+    Para cierre 20/09/2026:
+    inicio = 21/08/2026
+  */
+
+  const fecha =
+    new Date(
+      anio,
+      mes - 2,
+      21
+    );
+
+
+  const y =
+    fecha.getFullYear();
+
+
+  const m =
+    String(
+      fecha.getMonth() + 1
+    ).padStart(
+      2,
+      '0'
+    );
+
+
+  const d =
+    String(
+      fecha.getDate()
+    ).padStart(
+      2,
+      '0'
+    );
+
+
+  return `${y}-${m}-${d}`;
+
+}
+
+
+/* =========================================================
+   ACTUALIZAR PREVISUALIZACIÓN
+========================================================= */
+
+async function actualizarPrevisualizacionCierre() {
+
+  const fechaFin =
+    $('cierreFechaFin').value;
+
+
+  cierrePreviewDatos =
+    null;
+
+
+  $('ejecutarCierreBtn').disabled =
+    true;
+
+
+  if (!fechaFin) {
+
+    $('cierreEstado').textContent =
+      'Seleccione fecha';
+
+    $('cierreMsg').textContent =
+      'Seleccione una fecha de cierre.';
+
+    return;
+
+  }
+
+
+  const fechaInicio =
+    calcularInicioCicloCierre(
+      fechaFin
+    );
+
+
+  if (!fechaInicio) {
+
+    $('cierreEstado').textContent =
+      'Fecha inválida';
+
+    $('cierreMsg').textContent =
+      'Los ciclos A&J únicamente pueden cerrar el día 20.';
+
+    limpiarResumenCierre();
+
+    return;
+
+  }
+
+
+  $('cierreMsg').textContent =
+    'Calculando previsualización...';
+
+
+  /*
+    Comprobar primero si este ciclo ya está cerrado.
+  */
+
+  const {
+    data: cierreExistente,
+    error: errorCierre
+  } =
+  await supabase
+    .from('cierres')
+    .select(
+      'id,numero_mes,estado'
+    )
+    .eq(
+      'fecha_inicio',
+      fechaInicio
+    )
+    .eq(
+      'fecha_fin',
+      fechaFin
+    )
+    .maybeSingle();
+
+
+  if (errorCierre) {
+
+    $('cierreMsg').textContent =
+      'Error verificando cierre: ' +
+      errorCierre.message;
+
+    return;
+
+  }
+
+
+  /*
+    INTERESES COBRADOS
+  */
+
+  const {
+    data: pagos,
+    error: errorPagos
+  } =
+  await supabase
+    .from('pagos')
+    .select(
+      'id,valor_interes'
+    )
+    .eq(
+      'anulado',
+      false
+    )
+    .eq(
+      'control_nuevo',
+      true
+    )
+    .gte(
+      'fecha_pago',
+      fechaInicio
+    )
+    .lte(
+      'fecha_pago',
+      fechaFin
+    );
+
+
+  if (errorPagos) {
+
+    $('cierreMsg').textContent =
+      'Error consultando pagos: ' +
+      errorPagos.message;
+
+    return;
+
+  }
+
+
+  /*
+    CUOTAS BANCARIAS
+
+    IMPORTANTE:
+    La función cerrar_ciclo_aj cuenta todo movimiento
+    PAGO_CUOTA_BANCO dentro del período.
+    Aquí usamos la misma regla.
+  */
+
+  const {
+    data: cuotas,
+    error: errorCuotas
+  } =
+  await supabase
+    .from('movimientos_caja')
+    .select(
+      'id,valor'
+    )
+    .eq(
+      'tipo',
+      'PAGO_CUOTA_BANCO'
+    )
+    .gte(
+      'fecha',
+      fechaInicio
+    )
+    .lte(
+      'fecha',
+      fechaFin
+    );
+
+
+  if (errorCuotas) {
+
+    $('cierreMsg').textContent =
+      'Error consultando cuotas bancarias: ' +
+      errorCuotas.message;
+
+    return;
+
+  }
+
+
+  const intereses =
+    (pagos || [])
+      .reduce(
+        (total, p) =>
+          total +
+          Number(
+            p.valor_interes ||
+            0
+          ),
+        0
+      );
+
+
+  const cuota =
+    (cuotas || [])
+      .reduce(
+        (total, c) =>
+          total +
+          Number(
+            c.valor ||
+            0
+          ),
+        0
+      );
+
+
+  const resultado =
+    intereses -
+    cuota;
+
+
+  let andres =
+    0;
+
+
+  let juan =
+    0;
+
+
+  if (resultado > 0) {
+
+    /*
+      Mismo criterio de cerrar_ciclo_aj:
+      Andrés = resultado / 2 redondeado.
+      Juan = resultado - Andrés.
+    */
+
+    andres =
+      Math.round(
+        (resultado / 2) * 100
+      ) / 100;
+
+
+    juan =
+      resultado -
+      andres;
+
+  }
+
+
+  cierrePreviewDatos = {
+
+    fechaInicio,
+
+    fechaFin,
+
+    intereses,
+
+    cuota,
+
+    resultado,
+
+    andres,
+
+    juan,
+
+    cantidadPagos:
+      (pagos || []).length,
+
+    cantidadCuotas:
+      (cuotas || []).length,
+
+    yaCerrado:
+      Boolean(
+        cierreExistente
+      ),
+
+    cierreExistente
+
+  };
+
+
+  pintarPrevisualizacionCierre(
+    cierrePreviewDatos
+  );
+
+}
+
+
+/* =========================================================
+   PINTAR PREVISUALIZACIÓN
+========================================================= */
+
+function pintarPrevisualizacionCierre(datos) {
+
+  $('cierreFechaInicio').textContent =
+    mostrarFecha(
+      datos.fechaInicio
+    );
+
+
+  $('cierreFechaFinResumen').textContent =
+    mostrarFecha(
+      datos.fechaFin
+    );
+
+
+  $('cierreIntereses').textContent =
+    money(
+      datos.intereses
+    );
+
+
+  $('cierreCuota').textContent =
+    money(
+      datos.cuota
+    );
+
+
+  $('cierreInteresesDetalle').textContent =
+    money(
+      datos.intereses
+    );
+
+
+  $('cierreCuotaDetalle').textContent =
+    money(
+      datos.cuota
+    );
+
+
+  $('cierreResultado').textContent =
+    money(
+      datos.resultado
+    );
+
+
+  $('cierreAndres').textContent =
+    money(
+      datos.andres
+    );
+
+
+  $('cierreJuan').textContent =
+    money(
+      datos.juan
+    );
+
+
+  $('cierreCantidadPagos').textContent =
+    String(
+      datos.cantidadPagos
+    );
+
+
+  $('cierreCantidadCuotas').textContent =
+    String(
+      datos.cantidadCuotas
+    );
+
+
+  $('cierreResultadoControl').textContent =
+    money(
+      datos.resultado
+    );
+
+
+  const advertencia =
+    $('cierreAdvertencia');
+
+
+  advertencia.classList.add(
+    'hidden'
+  );
+
+
+  advertencia.textContent =
+    '';
+
+
+  if (datos.yaCerrado) {
+
+    $('cierreEstado').textContent =
+      'CERRADO';
+
+
+    $('ejecutarCierreBtn').disabled =
+      true;
+
+
+    $('cierreMsg').textContent =
+      `Este ciclo ya fue registrado${
+        datos.cierreExistente?.numero_mes
+          ? ` como cierre N.º ${datos.cierreExistente.numero_mes}`
+          : ''
+      }.`;
+
+    return;
+
+  }
+
+
+  $('cierreEstado').textContent =
+    'LISTO PARA REVISIÓN';
+
+
+  $('ejecutarCierreBtn').disabled =
+    false;
+
+
+  if (datos.cantidadPagos === 0) {
+
+    advertencia.textContent =
+      'Este ciclo no tiene pagos registrados. Verifique la información antes de cerrar.';
+
+
+    advertencia.classList.remove(
+      'hidden'
+    );
+
+  }
+
+
+  if (datos.cantidadCuotas === 0) {
+
+    const mensaje =
+      'No hay cuota bancaria registrada dentro de este ciclo. Verifique que la cuota correspondiente haya sido registrada antes de cerrar.';
+
+
+    advertencia.textContent =
+      advertencia.textContent
+        ? advertencia.textContent +
+          ' ' +
+          mensaje
+        : mensaje;
+
+
+    advertencia.classList.remove(
+      'hidden'
+    );
+
+  }
+
+
+  if (datos.resultado < 0) {
+
+    const mensaje =
+      'El ciclo presenta resultado negativo. No se generará distribución para Andrés ni Juan.';
+
+
+    advertencia.textContent =
+      advertencia.textContent
+        ? advertencia.textContent +
+          ' ' +
+          mensaje
+        : mensaje;
+
+
+    advertencia.classList.remove(
+      'hidden'
+    );
+
+  }
+
+
+  $('cierreMsg').textContent =
+    'Previsualización actualizada. Revise la información antes de cerrar.';
+
+}
+
+
+/* =========================================================
+   LIMPIAR RESUMEN
+========================================================= */
+
+function limpiarResumenCierre() {
+
+  cierrePreviewDatos =
+    null;
+
+
+  $('cierreFechaInicio').textContent =
+    '—';
+
+
+  $('cierreFechaFinResumen').textContent =
+    '—';
+
+
+  $('cierreIntereses').textContent =
+    money(0);
+
+
+  $('cierreCuota').textContent =
+    money(0);
+
+
+  $('cierreInteresesDetalle').textContent =
+    money(0);
+
+
+  $('cierreCuotaDetalle').textContent =
+    money(0);
+
+
+  $('cierreResultado').textContent =
+    money(0);
+
+
+  $('cierreAndres').textContent =
+    money(0);
+
+
+  $('cierreJuan').textContent =
+    money(0);
+
+
+  $('cierreCantidadPagos').textContent =
+    '0';
+
+
+  $('cierreCantidadCuotas').textContent =
+    '0';
+
+
+  $('cierreResultadoControl').textContent =
+    money(0);
+
+
+  $('ejecutarCierreBtn').disabled =
+    true;
+
+}
+
+
+/* =========================================================
+   CARGAR HISTORIAL DE CIERRES
+========================================================= */
+
+async function cargarHistorialCierres() {
+
+  $('cierresHistorialMsg').textContent =
+    'Consultando cierres...';
+
+
+  const {
+    data,
+    error
+  } =
+  await supabase
+    .from('historial_cierres_aj')
+    .select('*')
+    .order(
+      'numero_mes',
+      {
+        ascending: false
+      }
+    );
+
+
+  if (error) {
+
+    $('cierresBody').innerHTML =
+      `
+      <tr>
+        <td colspan="8">
+          ${escapeHtml(
+            error.message
+          )}
+        </td>
+      </tr>
+      `;
+
+
+    $('cierresHistorialMsg').textContent =
+      'No fue posible consultar el historial.';
+
+    return;
+
+  }
+
+
+  renderHistorialCierres(
+    data || []
+  );
+
+}
+
+
+/* =========================================================
+   PINTAR HISTORIAL DE CIERRES
+========================================================= */
+
+function renderHistorialCierres(lista) {
+
+  if (!lista.length) {
+
+    $('cierresBody').innerHTML =
+      `
+      <tr>
+        <td colspan="8">
+          No hay cierres registrados.
+        </td>
+      </tr>
+      `;
+
+
+    $('cierresHistorialMsg').textContent =
+      'No existen cierres registrados.';
+
+    return;
+
+  }
+
+
+  $('cierresBody').innerHTML =
+    lista
+      .map(
+        x => {
+
+          const estado =
+            x.estado ||
+            '—';
+
+
+          return `
+            <tr>
+
+              <td>
+                <strong>
+                  ${escapeHtml(
+                    String(
+                      x.numero_mes ??
+                      '—'
+                    )
+                  )}
+                </strong>
+              </td>
+
+              <td>
+                ${
+                  mostrarFecha(
+                    x.fecha_inicio
+                  )
+                }
+                →
+                ${
+                  mostrarFecha(
+                    x.fecha_fin
+                  )
+                }
+              </td>
+
+              <td>
+                ${money(
+                  x.intereses_cobrados
+                )}
+              </td>
+
+              <td>
+                ${money(
+                  x.cuota_bancaria
+                )}
+              </td>
+
+              <td>
+                <strong>
+                  ${money(
+                    x.utilidad_neta
+                  )}
+                </strong>
+              </td>
+
+              <td>
+                ${money(
+                  x.participacion_andres
+                )}
+              </td>
+
+              <td>
+                ${money(
+                  x.participacion_juan
+                )}
+              </td>
+
+              <td>
+                <span class="badge ${
+                  estado === 'CERRADO'
+                    ? 'green'
+                    : 'black'
+                }">
+                  ${escapeHtml(
+                    estado
+                  )}
+                </span>
+              </td>
+
+            </tr>
+          `;
+
+        }
+      )
+      .join('');
+
+
+  $('cierresHistorialMsg').textContent =
+    `${lista.length} cierre(s) registrado(s).`;
+
+}
+
+
+/* =========================================================
+   BOTÓN ACTUALIZAR PREVISUALIZACIÓN
+========================================================= */
+
+if ($('actualizarCierreBtn')) {
+
+  $('actualizarCierreBtn')
+    .addEventListener(
+      'click',
+      async () => {
+
+        await actualizarPrevisualizacionCierre();
+
+      }
+    );
+
+}
+
+
+/* =========================================================
+   CAMBIO DE FECHA
+========================================================= */
+
+if ($('cierreFechaFin')) {
+
+  $('cierreFechaFin')
+    .addEventListener(
+      'change',
+      async () => {
+
+        /*
+          Al cambiar la fecha invalidamos la previsualización
+          anterior y recalculamos.
+        */
+
+        $('ejecutarCierreBtn').disabled =
+          true;
+
+
+        await actualizarPrevisualizacionCierre();
+
+      }
+    );
+
+}
+
+
+/* =========================================================
+   BOTÓN ACTUALIZAR HISTORIAL
+========================================================= */
+
+if ($('actualizarHistorialCierresBtn')) {
+
+  $('actualizarHistorialCierresBtn')
+    .addEventListener(
+      'click',
+      async () => {
+
+        await cargarHistorialCierres();
+
+      }
+    );
+
+}
+
+
+/* =========================================================
+   EJECUTAR CIERRE
+========================================================= */
+
+if ($('ejecutarCierreBtn')) {
+
+  $('ejecutarCierreBtn')
+    .addEventListener(
+      'click',
+      async () => {
+
+        /*
+          Volvemos a calcular inmediatamente antes de cerrar.
+          Así reducimos el riesgo de cerrar usando una
+          previsualización antigua.
+        */
+
+        await actualizarPrevisualizacionCierre();
+
+
+        if (!cierrePreviewDatos) {
+
+          $('cierreMsg').textContent =
+            'No existe una previsualización válida.';
+
+          return;
+
+        }
+
+
+        if (
+          cierrePreviewDatos.yaCerrado
+        ) {
+
+          $('cierreMsg').textContent =
+            'Este ciclo ya fue cerrado.';
+
+          return;
+
+        }
+
+
+        const fechaFin =
+          cierrePreviewDatos.fechaFin;
+
+
+        const observaciones =
+          $('cierreObservaciones')
+            .value
+            .trim();
+
+
+        const confirmar =
+          confirm(
+            `¿CONFIRMA EL CIERRE DEL CICLO?\n\n` +
+
+            `Ciclo: ${mostrarFecha(cierrePreviewDatos.fechaInicio)} → ${mostrarFecha(fechaFin)}\n\n` +
+
+            `Intereses cobrados: ${money(cierrePreviewDatos.intereses)}\n` +
+
+            `Cuota bancaria: ${money(cierrePreviewDatos.cuota)}\n` +
+
+            `Resultado: ${money(cierrePreviewDatos.resultado)}\n\n` +
+
+            `Andrés: ${money(cierrePreviewDatos.andres)}\n` +
+
+            `Juan: ${money(cierrePreviewDatos.juan)}\n\n` +
+
+            `Después de confirmar, el ciclo quedará registrado como CERRADO.`
+          );
+
+
+        if (!confirmar) {
+          return;
+        }
+
+
+        const boton =
+          $('ejecutarCierreBtn');
+
+
+        boton.disabled =
+          true;
+
+
+        $('cierreMsg').textContent =
+          'Ejecutando cierre...';
+
+
+        const {
+          data,
+          error
+        } =
+        await supabase.rpc(
+          'cerrar_ciclo_aj',
+          {
+
+            p_fecha_fin:
+              fechaFin,
+
+            p_observaciones:
+              observaciones ||
+              null
+
+          }
+        );
+
+
+        if (error) {
+
+          $('cierreMsg').textContent =
+            'No fue posible realizar el cierre: ' +
+            error.message;
+
+
+          boton.disabled =
+            false;
+
+          return;
+
+        }
+
+
+        $('cierreMsg').textContent =
+          `Cierre registrado correctamente${
+            data
+              ? ` — ID ${data}`
+              : ''
+          }.`;
+
+
+        $('cierreObservaciones').value =
+          '';
+
+
+        /*
+          Recargar todo el módulo.
+        */
+
+        await actualizarPrevisualizacionCierre();
+
+        await cargarHistorialCierres();
+
+
+        /*
+          Actualizar Inicio si existe.
+        */
+
+        if (
+          typeof cargarDashboard ===
+          'function'
+        ) {
+
+          await cargarDashboard();
+
+        }
+
+
+        /*
+          Actualizar cuentas de socios si existe.
+        */
+
+        if (
+          typeof cargarCuentasSocios ===
+          'function'
+        ) {
+
+          await cargarCuentasSocios();
+
+        }
+
+      }
+    );
+
+}
+
+
+/* =========================================================
+   FIN CIERRES
+========================================================= */
+   
+
+/* =========================================================
    HISTORIAL
 ========================================================= */
 
@@ -7101,1085 +8180,6 @@ document
           await prepararCuentasSocios();
 
         }
-
-
-      /* =========================================================
-   CIERRES
-========================================================= */
-
-let cierrePreviewDatos = null;
-
-
-/* =========================================================
-   CARGAR MÓDULO DE CIERRES
-========================================================= */
-
-async function cargarCierres() {
-
-  $('cierreMsg').textContent =
-    'Cargando cierre...';
-
-  /*
-    Si no hay fecha seleccionada, usamos la fecha_fin
-    que determina ciclo_actual_aj.
-  */
-
-  const {
-    data,
-    error
-  } =
-  await supabase
-    .from('ciclo_actual_aj')
-    .select('*')
-    .single();
-
-
-  if (error) {
-
-    $('cierreMsg').textContent =
-      'Error cargando ciclo actual: ' +
-      error.message;
-
-    return;
-
-  }
-
-
-  if (
-    !$('cierreFechaFin').value &&
-    data?.fecha_fin
-  ) {
-
-    $('cierreFechaFin').value =
-      data.fecha_fin;
-
-  }
-
-
-  await actualizarPrevisualizacionCierre();
-
-  await cargarHistorialCierres();
-
-}
-
-
-/* =========================================================
-   CALCULAR FECHA INICIO 21 → 20
-========================================================= */
-
-function calcularInicioCicloCierre(fechaFin) {
-
-  if (!fechaFin) {
-    return null;
-  }
-
-
-  const partes =
-    fechaFin
-      .split('-')
-      .map(Number);
-
-
-  if (partes.length !== 3) {
-    return null;
-  }
-
-
-  const [
-    anio,
-    mes,
-    dia
-  ] = partes;
-
-
-  if (dia !== 20) {
-    return null;
-  }
-
-
-  /*
-    Para cierre 20/09/2026:
-    inicio = 21/08/2026
-  */
-
-  const fecha =
-    new Date(
-      anio,
-      mes - 2,
-      21
-    );
-
-
-  const y =
-    fecha.getFullYear();
-
-
-  const m =
-    String(
-      fecha.getMonth() + 1
-    ).padStart(
-      2,
-      '0'
-    );
-
-
-  const d =
-    String(
-      fecha.getDate()
-    ).padStart(
-      2,
-      '0'
-    );
-
-
-  return `${y}-${m}-${d}`;
-
-}
-
-
-/* =========================================================
-   ACTUALIZAR PREVISUALIZACIÓN
-========================================================= */
-
-async function actualizarPrevisualizacionCierre() {
-
-  const fechaFin =
-    $('cierreFechaFin').value;
-
-
-  cierrePreviewDatos =
-    null;
-
-
-  $('ejecutarCierreBtn').disabled =
-    true;
-
-
-  if (!fechaFin) {
-
-    $('cierreEstado').textContent =
-      'Seleccione fecha';
-
-    $('cierreMsg').textContent =
-      'Seleccione una fecha de cierre.';
-
-    return;
-
-  }
-
-
-  const fechaInicio =
-    calcularInicioCicloCierre(
-      fechaFin
-    );
-
-
-  if (!fechaInicio) {
-
-    $('cierreEstado').textContent =
-      'Fecha inválida';
-
-    $('cierreMsg').textContent =
-      'Los ciclos A&J únicamente pueden cerrar el día 20.';
-
-    limpiarResumenCierre();
-
-    return;
-
-  }
-
-
-  $('cierreMsg').textContent =
-    'Calculando previsualización...';
-
-
-  /*
-    Comprobar primero si este ciclo ya está cerrado.
-  */
-
-  const {
-    data: cierreExistente,
-    error: errorCierre
-  } =
-  await supabase
-    .from('cierres')
-    .select(
-      'id,numero_mes,estado'
-    )
-    .eq(
-      'fecha_inicio',
-      fechaInicio
-    )
-    .eq(
-      'fecha_fin',
-      fechaFin
-    )
-    .maybeSingle();
-
-
-  if (errorCierre) {
-
-    $('cierreMsg').textContent =
-      'Error verificando cierre: ' +
-      errorCierre.message;
-
-    return;
-
-  }
-
-
-  /*
-    INTERESES COBRADOS
-  */
-
-  const {
-    data: pagos,
-    error: errorPagos
-  } =
-  await supabase
-    .from('pagos')
-    .select(
-      'id,valor_interes'
-    )
-    .eq(
-      'anulado',
-      false
-    )
-    .eq(
-      'control_nuevo',
-      true
-    )
-    .gte(
-      'fecha_pago',
-      fechaInicio
-    )
-    .lte(
-      'fecha_pago',
-      fechaFin
-    );
-
-
-  if (errorPagos) {
-
-    $('cierreMsg').textContent =
-      'Error consultando pagos: ' +
-      errorPagos.message;
-
-    return;
-
-  }
-
-
-  /*
-    CUOTAS BANCARIAS
-
-    IMPORTANTE:
-    La función cerrar_ciclo_aj cuenta todo movimiento
-    PAGO_CUOTA_BANCO dentro del período.
-    Aquí usamos la misma regla.
-  */
-
-  const {
-    data: cuotas,
-    error: errorCuotas
-  } =
-  await supabase
-    .from('movimientos_caja')
-    .select(
-      'id,valor'
-    )
-    .eq(
-      'tipo',
-      'PAGO_CUOTA_BANCO'
-    )
-    .gte(
-      'fecha',
-      fechaInicio
-    )
-    .lte(
-      'fecha',
-      fechaFin
-    );
-
-
-  if (errorCuotas) {
-
-    $('cierreMsg').textContent =
-      'Error consultando cuotas bancarias: ' +
-      errorCuotas.message;
-
-    return;
-
-  }
-
-
-  const intereses =
-    (pagos || [])
-      .reduce(
-        (total, p) =>
-          total +
-          Number(
-            p.valor_interes ||
-            0
-          ),
-        0
-      );
-
-
-  const cuota =
-    (cuotas || [])
-      .reduce(
-        (total, c) =>
-          total +
-          Number(
-            c.valor ||
-            0
-          ),
-        0
-      );
-
-
-  const resultado =
-    intereses -
-    cuota;
-
-
-  let andres =
-    0;
-
-
-  let juan =
-    0;
-
-
-  if (resultado > 0) {
-
-    /*
-      Mismo criterio de cerrar_ciclo_aj:
-      Andrés = resultado / 2 redondeado.
-      Juan = resultado - Andrés.
-    */
-
-    andres =
-      Math.round(
-        (resultado / 2) * 100
-      ) / 100;
-
-
-    juan =
-      resultado -
-      andres;
-
-  }
-
-
-  cierrePreviewDatos = {
-
-    fechaInicio,
-
-    fechaFin,
-
-    intereses,
-
-    cuota,
-
-    resultado,
-
-    andres,
-
-    juan,
-
-    cantidadPagos:
-      (pagos || []).length,
-
-    cantidadCuotas:
-      (cuotas || []).length,
-
-    yaCerrado:
-      Boolean(
-        cierreExistente
-      ),
-
-    cierreExistente
-
-  };
-
-
-  pintarPrevisualizacionCierre(
-    cierrePreviewDatos
-  );
-
-}
-
-
-/* =========================================================
-   PINTAR PREVISUALIZACIÓN
-========================================================= */
-
-function pintarPrevisualizacionCierre(datos) {
-
-  $('cierreFechaInicio').textContent =
-    mostrarFecha(
-      datos.fechaInicio
-    );
-
-
-  $('cierreFechaFinResumen').textContent =
-    mostrarFecha(
-      datos.fechaFin
-    );
-
-
-  $('cierreIntereses').textContent =
-    money(
-      datos.intereses
-    );
-
-
-  $('cierreCuota').textContent =
-    money(
-      datos.cuota
-    );
-
-
-  $('cierreInteresesDetalle').textContent =
-    money(
-      datos.intereses
-    );
-
-
-  $('cierreCuotaDetalle').textContent =
-    money(
-      datos.cuota
-    );
-
-
-  $('cierreResultado').textContent =
-    money(
-      datos.resultado
-    );
-
-
-  $('cierreAndres').textContent =
-    money(
-      datos.andres
-    );
-
-
-  $('cierreJuan').textContent =
-    money(
-      datos.juan
-    );
-
-
-  $('cierreCantidadPagos').textContent =
-    String(
-      datos.cantidadPagos
-    );
-
-
-  $('cierreCantidadCuotas').textContent =
-    String(
-      datos.cantidadCuotas
-    );
-
-
-  $('cierreResultadoControl').textContent =
-    money(
-      datos.resultado
-    );
-
-
-  const advertencia =
-    $('cierreAdvertencia');
-
-
-  advertencia.classList.add(
-    'hidden'
-  );
-
-
-  advertencia.textContent =
-    '';
-
-
-  if (datos.yaCerrado) {
-
-    $('cierreEstado').textContent =
-      'CERRADO';
-
-
-    $('ejecutarCierreBtn').disabled =
-      true;
-
-
-    $('cierreMsg').textContent =
-      `Este ciclo ya fue registrado${
-        datos.cierreExistente?.numero_mes
-          ? ` como cierre N.º ${datos.cierreExistente.numero_mes}`
-          : ''
-      }.`;
-
-    return;
-
-  }
-
-
-  $('cierreEstado').textContent =
-    'LISTO PARA REVISIÓN';
-
-
-  $('ejecutarCierreBtn').disabled =
-    false;
-
-
-  if (datos.cantidadPagos === 0) {
-
-    advertencia.textContent =
-      'Este ciclo no tiene pagos registrados. Verifique la información antes de cerrar.';
-
-
-    advertencia.classList.remove(
-      'hidden'
-    );
-
-  }
-
-
-  if (datos.cantidadCuotas === 0) {
-
-    const mensaje =
-      'No hay cuota bancaria registrada dentro de este ciclo. Verifique que la cuota correspondiente haya sido registrada antes de cerrar.';
-
-
-    advertencia.textContent =
-      advertencia.textContent
-        ? advertencia.textContent +
-          ' ' +
-          mensaje
-        : mensaje;
-
-
-    advertencia.classList.remove(
-      'hidden'
-    );
-
-  }
-
-
-  if (datos.resultado < 0) {
-
-    const mensaje =
-      'El ciclo presenta resultado negativo. No se generará distribución para Andrés ni Juan.';
-
-
-    advertencia.textContent =
-      advertencia.textContent
-        ? advertencia.textContent +
-          ' ' +
-          mensaje
-        : mensaje;
-
-
-    advertencia.classList.remove(
-      'hidden'
-    );
-
-  }
-
-
-  $('cierreMsg').textContent =
-    'Previsualización actualizada. Revise la información antes de cerrar.';
-
-}
-
-
-/* =========================================================
-   LIMPIAR RESUMEN
-========================================================= */
-
-function limpiarResumenCierre() {
-
-  cierrePreviewDatos =
-    null;
-
-
-  $('cierreFechaInicio').textContent =
-    '—';
-
-
-  $('cierreFechaFinResumen').textContent =
-    '—';
-
-
-  $('cierreIntereses').textContent =
-    money(0);
-
-
-  $('cierreCuota').textContent =
-    money(0);
-
-
-  $('cierreInteresesDetalle').textContent =
-    money(0);
-
-
-  $('cierreCuotaDetalle').textContent =
-    money(0);
-
-
-  $('cierreResultado').textContent =
-    money(0);
-
-
-  $('cierreAndres').textContent =
-    money(0);
-
-
-  $('cierreJuan').textContent =
-    money(0);
-
-
-  $('cierreCantidadPagos').textContent =
-    '0';
-
-
-  $('cierreCantidadCuotas').textContent =
-    '0';
-
-
-  $('cierreResultadoControl').textContent =
-    money(0);
-
-
-  $('ejecutarCierreBtn').disabled =
-    true;
-
-}
-
-
-/* =========================================================
-   CARGAR HISTORIAL DE CIERRES
-========================================================= */
-
-async function cargarHistorialCierres() {
-
-  $('cierresHistorialMsg').textContent =
-    'Consultando cierres...';
-
-
-  const {
-    data,
-    error
-  } =
-  await supabase
-    .from('historial_cierres_aj')
-    .select('*')
-    .order(
-      'numero_mes',
-      {
-        ascending: false
-      }
-    );
-
-
-  if (error) {
-
-    $('cierresBody').innerHTML =
-      `
-      <tr>
-        <td colspan="8">
-          ${escapeHtml(
-            error.message
-          )}
-        </td>
-      </tr>
-      `;
-
-
-    $('cierresHistorialMsg').textContent =
-      'No fue posible consultar el historial.';
-
-    return;
-
-  }
-
-
-  renderHistorialCierres(
-    data || []
-  );
-
-}
-
-
-/* =========================================================
-   PINTAR HISTORIAL DE CIERRES
-========================================================= */
-
-function renderHistorialCierres(lista) {
-
-  if (!lista.length) {
-
-    $('cierresBody').innerHTML =
-      `
-      <tr>
-        <td colspan="8">
-          No hay cierres registrados.
-        </td>
-      </tr>
-      `;
-
-
-    $('cierresHistorialMsg').textContent =
-      'No existen cierres registrados.';
-
-    return;
-
-  }
-
-
-  $('cierresBody').innerHTML =
-    lista
-      .map(
-        x => {
-
-          const estado =
-            x.estado ||
-            '—';
-
-
-          return `
-            <tr>
-
-              <td>
-                <strong>
-                  ${escapeHtml(
-                    String(
-                      x.numero_mes ??
-                      '—'
-                    )
-                  )}
-                </strong>
-              </td>
-
-              <td>
-                ${
-                  mostrarFecha(
-                    x.fecha_inicio
-                  )
-                }
-                →
-                ${
-                  mostrarFecha(
-                    x.fecha_fin
-                  )
-                }
-              </td>
-
-              <td>
-                ${money(
-                  x.intereses_cobrados
-                )}
-              </td>
-
-              <td>
-                ${money(
-                  x.cuota_bancaria
-                )}
-              </td>
-
-              <td>
-                <strong>
-                  ${money(
-                    x.utilidad_neta
-                  )}
-                </strong>
-              </td>
-
-              <td>
-                ${money(
-                  x.participacion_andres
-                )}
-              </td>
-
-              <td>
-                ${money(
-                  x.participacion_juan
-                )}
-              </td>
-
-              <td>
-                <span class="badge ${
-                  estado === 'CERRADO'
-                    ? 'green'
-                    : 'black'
-                }">
-                  ${escapeHtml(
-                    estado
-                  )}
-                </span>
-              </td>
-
-            </tr>
-          `;
-
-        }
-      )
-      .join('');
-
-
-  $('cierresHistorialMsg').textContent =
-    `${lista.length} cierre(s) registrado(s).`;
-
-}
-
-
-/* =========================================================
-   BOTÓN ACTUALIZAR PREVISUALIZACIÓN
-========================================================= */
-
-if ($('actualizarCierreBtn')) {
-
-  $('actualizarCierreBtn')
-    .addEventListener(
-      'click',
-      async () => {
-
-        await actualizarPrevisualizacionCierre();
-
-      }
-    );
-
-}
-
-
-/* =========================================================
-   CAMBIO DE FECHA
-========================================================= */
-
-if ($('cierreFechaFin')) {
-
-  $('cierreFechaFin')
-    .addEventListener(
-      'change',
-      async () => {
-
-        /*
-          Al cambiar la fecha invalidamos la previsualización
-          anterior y recalculamos.
-        */
-
-        $('ejecutarCierreBtn').disabled =
-          true;
-
-
-        await actualizarPrevisualizacionCierre();
-
-      }
-    );
-
-}
-
-
-/* =========================================================
-   BOTÓN ACTUALIZAR HISTORIAL
-========================================================= */
-
-if ($('actualizarHistorialCierresBtn')) {
-
-  $('actualizarHistorialCierresBtn')
-    .addEventListener(
-      'click',
-      async () => {
-
-        await cargarHistorialCierres();
-
-      }
-    );
-
-}
-
-
-/* =========================================================
-   EJECUTAR CIERRE
-========================================================= */
-
-if ($('ejecutarCierreBtn')) {
-
-  $('ejecutarCierreBtn')
-    .addEventListener(
-      'click',
-      async () => {
-
-        /*
-          Volvemos a calcular inmediatamente antes de cerrar.
-          Así reducimos el riesgo de cerrar usando una
-          previsualización antigua.
-        */
-
-        await actualizarPrevisualizacionCierre();
-
-
-        if (!cierrePreviewDatos) {
-
-          $('cierreMsg').textContent =
-            'No existe una previsualización válida.';
-
-          return;
-
-        }
-
-
-        if (
-          cierrePreviewDatos.yaCerrado
-        ) {
-
-          $('cierreMsg').textContent =
-            'Este ciclo ya fue cerrado.';
-
-          return;
-
-        }
-
-
-        const fechaFin =
-          cierrePreviewDatos.fechaFin;
-
-
-        const observaciones =
-          $('cierreObservaciones')
-            .value
-            .trim();
-
-
-        const confirmar =
-          confirm(
-            `¿CONFIRMA EL CIERRE DEL CICLO?\n\n` +
-
-            `Ciclo: ${mostrarFecha(cierrePreviewDatos.fechaInicio)} → ${mostrarFecha(fechaFin)}\n\n` +
-
-            `Intereses cobrados: ${money(cierrePreviewDatos.intereses)}\n` +
-
-            `Cuota bancaria: ${money(cierrePreviewDatos.cuota)}\n` +
-
-            `Resultado: ${money(cierrePreviewDatos.resultado)}\n\n` +
-
-            `Andrés: ${money(cierrePreviewDatos.andres)}\n` +
-
-            `Juan: ${money(cierrePreviewDatos.juan)}\n\n` +
-
-            `Después de confirmar, el ciclo quedará registrado como CERRADO.`
-          );
-
-
-        if (!confirmar) {
-          return;
-        }
-
-
-        const boton =
-          $('ejecutarCierreBtn');
-
-
-        boton.disabled =
-          true;
-
-
-        $('cierreMsg').textContent =
-          'Ejecutando cierre...';
-
-
-        const {
-          data,
-          error
-        } =
-        await supabase.rpc(
-          'cerrar_ciclo_aj',
-          {
-
-            p_fecha_fin:
-              fechaFin,
-
-            p_observaciones:
-              observaciones ||
-              null
-
-          }
-        );
-
-
-        if (error) {
-
-          $('cierreMsg').textContent =
-            'No fue posible realizar el cierre: ' +
-            error.message;
-
-
-          boton.disabled =
-            false;
-
-          return;
-
-        }
-
-
-        $('cierreMsg').textContent =
-          `Cierre registrado correctamente${
-            data
-              ? ` — ID ${data}`
-              : ''
-          }.`;
-
-
-        $('cierreObservaciones').value =
-          '';
-
-
-        /*
-          Recargar todo el módulo.
-        */
-
-        await actualizarPrevisualizacionCierre();
-
-        await cargarHistorialCierres();
-
-
-        /*
-          Actualizar Inicio si existe.
-        */
-
-        if (
-          typeof cargarDashboard ===
-          'function'
-        ) {
-
-          await cargarDashboard();
-
-        }
-
-
-        /*
-          Actualizar cuentas de socios si existe.
-        */
-
-        if (
-          typeof cargarCuentasSocios ===
-          'function'
-        ) {
-
-          await cargarCuentasSocios();
-
-        }
-
-      }
-    );
-
-}
-
-
-/* =========================================================
-   FIN CIERRES
-========================================================= */
 
 
         /* ===============================================
