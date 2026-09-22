@@ -175,27 +175,36 @@ async function mostrarSesion(session) {
     perfil;
 
 
-  /* =====================================================
-     MOSTRAR APLICACIÓN
-  ===================================================== */
+ /* =====================================================
+   MOSTRAR APLICACIÓN
+===================================================== */
 
-  $('loginView').classList.add('hidden');
-  $('appView').classList.remove('hidden');
-
-
-  /* =====================================================
-     IDENTIFICACIÓN DEL USUARIO
-  ===================================================== */
-
-  $('userChip').textContent =
-    `${perfil.nombre || session.user.email} · ${perfil.rol}`;
+$('loginView').classList.add('hidden');
+$('appView').classList.remove('hidden');
 
 
-  /* =====================================================
-     CARGAR DASHBOARD
-  ===================================================== */
+/* =====================================================
+   IDENTIFICACIÓN DEL USUARIO
+===================================================== */
 
-  await cargarDashboard();
+$('userChip').textContent =
+  `${perfil.nombre || session.user.email} · ${perfil.rol}`;
+
+
+/* =====================================================
+   APLICAR PERMISOS DEL USUARIO
+===================================================== */
+
+aplicarPermisosNavegacion();
+
+aplicarPermisosEdicion();
+
+
+/* =====================================================
+   CARGAR DASHBOARD
+===================================================== */
+
+await cargarDashboard();
 
 }
 
