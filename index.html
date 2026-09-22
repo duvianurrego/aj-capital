@@ -68,116 +68,163 @@
     </header>
 
 
-    <!-- INICIO -->
+    <!-- =========================================================
+     INICIO / DASHBOARD
+========================================================= -->
 
-    <section id="inicio" class="page">
+<section id="inicio" class="page">
 
-      <div class="cards">
+  <!-- =====================================================
+       TARJETAS PRINCIPALES
+  ====================================================== -->
 
-        <article>
-  <span>Capital actualmente prestado</span>
-  <strong id="capitalPrestado">$0</strong>
-  <small id="clientesSaldo">
-    Cargando capital...
-  </small>
-</article>
+  <div class="cards">
 
-        <article>
-          <span>Intereses del ciclo</span>
-          <strong id="interesesCiclo">$0</strong>
-          <small>Realmente cobrados</small>
-        </article>
+    <article>
+      <span>Capital actualmente prestado</span>
+      <strong id="capitalPrestado">$0</strong>
+      <small id="clientesSaldo">
+        Cargando capital...
+      </small>
+    </article>
 
-        <article>
-          <span>Cartera vencida</span>
-          <strong id="capitalVencido">$0</strong>
-          <small>Desde el nuevo control</small>
-        </article>
+    <article>
+      <span>Intereses del ciclo</span>
+      <strong id="interesesCiclo">$0</strong>
+      <small>Realmente cobrados</small>
+    </article>
 
-        <article>
-          <span>Resultado del ciclo</span>
-          <strong id="resultadoCiclo">$0</strong>
-          <small>Antes del reparto</small>
-        </article>
+    <article>
+      <span>Cartera vencida</span>
+      <strong id="capitalVencido">$0</strong>
+      <small>Capital actualmente vencido</small>
+    </article>
 
+    <article>
+      <span>Resultado del ciclo</span>
+      <strong id="resultadoCiclo">$0</strong>
+      <small>Antes del reparto</small>
+    </article>
+
+  </div>
+
+
+  <!-- =====================================================
+       RESUMEN FINANCIERO
+  ====================================================== -->
+
+  <div class="grid2">
+
+    <!-- ===================================================
+         CICLO ACTUAL
+    ==================================================== -->
+
+    <section class="panel">
+
+      <h3>Ciclo actual 20 → 20</h3>
+
+      <div class="metric">
+        <span>Cuota bancaria pagada</span>
+        <b id="cuotaCiclo">$0</b>
       </div>
 
-
-      <div class="grid2">
-
-        <section class="panel">
-          <h3>Ciclo actual 20 → 20</h3>
-
-          <div class="metric">
-            <span>Cuota bancaria pagada</span>
-            <b id="cuotaCiclo">$0</b>
-          </div>
-
-          <div class="metric">
-            <span>Andrés — provisional</span>
-            <b id="andresProv">$0</b>
-          </div>
-
-          <div class="metric">
-            <span>Juan — provisional</span>
-            <b id="juanProv">$0</b>
-          </div>
-        </section>
-
-
-        <section class="panel">
-          <h3>Punto Cero</h3>
-
-          <div class="metric">
-            <span>Capital prestado</span>
-            <b>$23.457.000</b>
-          </div>
-
-          <div class="metric">
-            <span>Mamá Yaneth por cobrar</span>
-            <b>$100.000</b>
-          </div>
-
-          <div class="metric">
-            <span>Caja Juan inicial</span>
-            <b>$285.200</b>
-          </div>
-
-          <div class="metric">
-            <span>Deuda histórica con Andrés</span>
-            <b>$729.200</b>
-          </div>
-
-          <div class="metric muted">
-            <span>Andrés fuera de operación</span>
-            <b>$6.000.000</b>
-          </div>
-        </section>
-
+      <div class="metric">
+        <span>Andrés — provisional</span>
+        <b id="andresProv">$0</b>
       </div>
 
-
-      <section class="panel">
-        <h3>Seguimiento de cartera — nuevo control</h3>
-
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Cliente</th>
-                <th>Capital actual</th>
-                <th>Fecha préstamo</th>
-                <th>Estado</th>
-                <th>Días mora</th>
-              </tr>
-            </thead>
-            <tbody id="carteraBody"></tbody>
-          </table>
-        </div>
-      </section>
+      <div class="metric">
+        <span>Juan — provisional</span>
+        <b id="juanProv">$0</b>
+      </div>
 
     </section>
 
+
+    <!-- ===================================================
+         SITUACIÓN FINANCIERA A&J
+    ==================================================== -->
+
+    <section class="panel">
+
+      <h3>Situación financiera A&J</h3>
+
+      <div class="metric">
+        <span>Capital Punto Cero</span>
+        <b id="inicioPuntoCero">$0</b>
+      </div>
+
+      <div class="metric">
+        <span>Nuevos desembolsos</span>
+        <b id="inicioNuevosDesembolsos">$0</b>
+      </div>
+
+      <div class="metric">
+        <span>Capital recuperado</span>
+        <b id="inicioCapitalRecuperado">$0</b>
+      </div>
+
+      <div class="metric">
+        <span>Caja A&J disponible</span>
+        <b id="inicioCajaEmpresa">$0</b>
+      </div>
+
+      <div class="metric">
+        <span>A&J debe a socios</span>
+        <b id="inicioDeudaSocios">$0</b>
+      </div>
+
+      <div class="metric">
+        <span>Dinero de terceros</span>
+        <b id="inicioDineroTerceros">$0</b>
+      </div>
+
+    </section>
+
+  </div>
+
+
+  <!-- =====================================================
+       SEGUIMIENTO DE CARTERA
+  ====================================================== -->
+
+  <section class="panel">
+
+    <h3>Seguimiento de cartera — nuevo control</h3>
+
+    <div class="table-wrap">
+
+      <table>
+
+        <thead>
+          <tr>
+            <th>Cliente</th>
+            <th>Capital actual</th>
+            <th>Fecha préstamo</th>
+            <th>Estado</th>
+            <th>Días mora</th>
+          </tr>
+        </thead>
+
+        <tbody id="carteraBody">
+          <tr>
+            <td colspan="5">
+              Cargando cartera...
+            </td>
+          </tr>
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </section>
+
+</section>
+
+<!-- =========================================================
+     FIN INICIO / DASHBOARD
+========================================================= -->
 
     <!-- CLIENTES -->
 
