@@ -5071,6 +5071,17 @@ $('pagoDeudaSocioForm')
    HISTORIAL
 ========================================================= */
 
+/*
+  Pago seleccionado temporalmente para corregir receptor.
+  No modifica nada hasta presionar "Confirmar corrección".
+*/
+let pagoCorreccionReceptor = null;
+
+
+/* =========================================================
+   PREPARAR HISTORIAL
+========================================================= */
+
 async function prepararHistorial() {
 
   $('historialMsg').textContent =
@@ -5191,6 +5202,10 @@ async function cargarHistorial() {
   }
 
 
+  $('historialMsg').textContent =
+    'Consultando movimientos...';
+
+
   let q =
     supabase
       .from('historial_pagos_aj')
@@ -5263,6 +5278,7 @@ async function cargarHistorial() {
   if (error) {
 
     $('historialMsg').textContent =
+      'Error consultando historial: ' +
       error.message;
 
     return;
@@ -5351,7 +5367,7 @@ function renderHistorial(lista) {
     $('historialBody').innerHTML =
       `
       <tr>
-        <td colspan="8">
+        <td colspan="9">
           No hay movimientos.
         </td>
       </tr>
@@ -5369,6 +5385,39 @@ function renderHistorial(lista) {
 
   lista.forEach(x => {
 
+    const pagoId =
+      Number(
+        x.pago_id
+      );
+
+
+    const socioReceptorId =
+      Number(
+        x.socio_receptor_id
+      );
+
+
+    const clienteSeguro =
+      escapeHtml(
+        x.cliente ||
+        '—'
+      );
+
+
+    const botonCorreccion =
+      x.anulado
+        ? '—'
+        : `
+          <button
+            type="button"
+            class="secondary corregir-receptor-btn"
+            data-pago-id="${pagoId}"
+          >
+            Corregir receptor
+          </button>
+        `;
+
+
     $('historialBody')
       .insertAdjacentHTML(
         'beforeend',
@@ -5383,10 +5432,7 @@ function renderHistorial(lista) {
 
           <td>
             <strong>
-              ${escapeHtml(
-                x.cliente ||
-                '—'
-              )}
+              ${clienteSeguro}
             </strong>
           </td>
 
@@ -5425,20 +5471,471 @@ function renderHistorial(lista) {
           </td>
 
           <td>
-            <span class="badge ${x.anulado ? 'red' : 'green'}">
-              ${x.anulado ? 'ANULADO' : 'VÁLIDO'}
+
+            <span
+              class="badge ${
+                x.anulado
+                  ? 'red'
+                  : 'green'
+              }"
+            >
+
+              ${
+                x.anulado
+                  ? 'ANULADO'
+                  : 'VÁLIDO'
+              }
+
             </span>
+
+          </td>
+
+          <td>
+            ${botonCorreccion}
           </td>
 
         </tr>
         `
       );
 
+
+    /*
+      Guardamos la información necesaria directamente
+      en el botón mediante dataset.
+    */
+
+    if (!x.anulado) {
+
+      const botones =
+        document.querySelectorAll(
+          '.corregir-receptor-btn'
+        );
+
+
+      const boton =
+        botones[
+          botones.length - 1
+        ];
+
+
+      if (boton) {
+
+        boton.dataset.cliente =
+          x.cliente ||
+          '—';
+
+
+        boton.dataset.valor =
+          String(
+            Number(
+              x.valor_total ||
+              0
+            )
+          );
+
+
+        boton.dataset.socioReceptorId =
+          String(
+            socioReceptorId
+          );
+
+
+        boton.dataset.recibidoPor =
+          x.recibido_por ||
+          (
+            socioReceptorId === 1
+              ? 'Andrés Urrego'
+              : socioReceptorId === 2
+                ? 'Juan'
+                : '—'
+          );
+
+      }
+
+    }
+
   });
 
 
   $('historialMsg').textContent =
     `${lista.length} movimiento(s) encontrado(s).`;
+
+}
+
+
+/* =========================================================
+   ABRIR PANEL CORREGIR RECEPTOR
+========================================================= */
+
+function abrirCorreccionReceptor(datos) {
+
+  pagoCorreccionReceptor = {
+    pagoId:
+      Number(
+        datos.pagoId
+      ),
+
+    cliente:
+      datos.cliente ||
+      '—',
+
+    valor:
+      Number(
+        datos.valor ||
+        0
+      ),
+
+    socioActual:
+      Number(
+        datos.socioReceptorId
+      ),
+
+    recibidoPor:
+      datos.recibidoPor ||
+      '—'
+  };
+
+
+  $('corregirPagoNumero').textContent =
+    `Pago #${pagoCorreccionReceptor.pagoId}`;
+
+
+  $('corregirPagoCliente').textContent =
+    pagoCorreccionReceptor.cliente;
+
+
+  $('corregirPagoValor').textContent =
+    money(
+      pagoCorreccionReceptor.valor
+    );
+
+
+  $('corregirReceptorActual').textContent =
+    pagoCorreccionReceptor.recibidoPor;
+
+
+  /*
+    Como solamente existen Andrés y Juan,
+    dejamos preseleccionado automáticamente
+    el receptor contrario.
+  */
+
+  if (
+    pagoCorreccionReceptor.socioActual === 1
+  ) {
+
+    $('corregirNuevoReceptor').value =
+      '2';
+
+  } else if (
+    pagoCorreccionReceptor.socioActual === 2
+  ) {
+
+    $('corregirNuevoReceptor').value =
+      '1';
+
+  } else {
+
+    $('corregirNuevoReceptor').value =
+      '';
+
+  }
+
+
+  $('corregirReceptorMsg').textContent =
+    '';
+
+
+  $('corregirReceptorPanel')
+    .classList
+    .remove(
+      'hidden'
+    );
+
+
+  $('corregirReceptorPanel')
+    .scrollIntoView({
+      behavior: 'smooth',
+      block: 'start'
+    });
+
+}
+
+
+/* =========================================================
+   CERRAR PANEL CORREGIR RECEPTOR
+========================================================= */
+
+function cerrarCorreccionReceptor() {
+
+  pagoCorreccionReceptor =
+    null;
+
+
+  $('corregirNuevoReceptor').value =
+    '';
+
+
+  $('corregirReceptorMsg').textContent =
+    '';
+
+
+  $('corregirPagoNumero').textContent =
+    '—';
+
+
+  $('corregirPagoCliente').textContent =
+    '—';
+
+
+  $('corregirPagoValor').textContent =
+    '$0';
+
+
+  $('corregirReceptorActual').textContent =
+    '—';
+
+
+  $('corregirReceptorPanel')
+    .classList
+    .add(
+      'hidden'
+    );
+
+}
+
+
+/* =========================================================
+   DETECTAR BOTÓN CORREGIR RECEPTOR EN LA TABLA
+========================================================= */
+
+if ($('historialBody')) {
+
+  $('historialBody')
+    .addEventListener(
+      'click',
+      e => {
+
+        const boton =
+          e.target.closest(
+            '.corregir-receptor-btn'
+          );
+
+
+        if (!boton) {
+          return;
+        }
+
+
+        abrirCorreccionReceptor(
+          boton.dataset
+        );
+
+      }
+    );
+
+}
+
+
+/* =========================================================
+   CANCELAR CORRECCIÓN
+========================================================= */
+
+if ($('cancelarCorreccionReceptorBtn')) {
+
+  $('cancelarCorreccionReceptorBtn')
+    .addEventListener(
+      'click',
+      () => {
+
+        cerrarCorreccionReceptor();
+
+      }
+    );
+
+}
+
+
+/* =========================================================
+   GUARDAR CORRECCIÓN DE RECEPTOR
+========================================================= */
+
+if ($('guardarCorreccionReceptorBtn')) {
+
+  $('guardarCorreccionReceptorBtn')
+    .addEventListener(
+      'click',
+      async () => {
+
+        if (!pagoCorreccionReceptor) {
+
+          $('corregirReceptorMsg').textContent =
+            'No hay un pago seleccionado.';
+
+          return;
+
+        }
+
+
+        const nuevoSocioId =
+          Number(
+            $('corregirNuevoReceptor')
+              .value
+          );
+
+
+        if (
+          !nuevoSocioId ||
+          ![1, 2].includes(
+            nuevoSocioId
+          )
+        ) {
+
+          $('corregirReceptorMsg').textContent =
+            'Seleccione el receptor correcto.';
+
+          return;
+
+        }
+
+
+        if (
+          nuevoSocioId ===
+          pagoCorreccionReceptor.socioActual
+        ) {
+
+          $('corregirReceptorMsg').textContent =
+            'El receptor seleccionado ya es el receptor actual.';
+
+          return;
+
+        }
+
+
+        const nuevoNombre =
+          nuevoSocioId === 1
+            ? 'Andrés Urrego'
+            : 'Juan';
+
+
+        const confirmar =
+          confirm(
+            `¿Confirma la corrección del Pago #${pagoCorreccionReceptor.pagoId}?\n\n` +
+            `Cliente: ${pagoCorreccionReceptor.cliente}\n` +
+            `Valor: ${money(pagoCorreccionReceptor.valor)}\n` +
+            `Receptor actual: ${pagoCorreccionReceptor.recibidoPor}\n` +
+            `Receptor correcto: ${nuevoNombre}\n\n` +
+            `Esta operación NO modifica el capital ni el valor del pago.`
+          );
+
+
+        if (!confirmar) {
+          return;
+        }
+
+
+        const botonGuardar =
+          $('guardarCorreccionReceptorBtn');
+
+
+        botonGuardar.disabled =
+          true;
+
+
+        $('corregirReceptorMsg').textContent =
+          'Corrigiendo receptor...';
+
+
+        const {
+          error
+        } =
+        await supabase.rpc(
+          'corregir_receptor_pago_aj',
+          {
+            p_pago_id:
+              pagoCorreccionReceptor.pagoId,
+
+            p_nuevo_socio_id:
+              nuevoSocioId
+          }
+        );
+
+
+        if (error) {
+
+          botonGuardar.disabled =
+            false;
+
+
+          $('corregirReceptorMsg').textContent =
+            'No fue posible corregir el receptor: ' +
+            error.message;
+
+
+          return;
+
+        }
+
+
+        $('corregirReceptorMsg').textContent =
+          'Receptor corregido correctamente.';
+
+
+        /*
+          Recargamos el historial para reflejar
+          inmediatamente el cambio.
+        */
+
+        await cargarHistorial();
+
+
+        /*
+          Si estas funciones existen en la aplicación,
+          actualizamos también los demás módulos.
+          typeof evita generar error si alguna tiene
+          otro nombre o no existe.
+        */
+
+        if (
+          typeof cargarDashboard ===
+          'function'
+        ) {
+
+          await cargarDashboard();
+
+        }
+
+
+        if (
+          typeof cargarCuentasSocios ===
+          'function'
+        ) {
+
+          await cargarCuentasSocios();
+
+        }
+
+
+        botonGuardar.disabled =
+          false;
+
+
+        /*
+          Cerramos el panel después de una pequeña
+          espera para que se alcance a ver el mensaje.
+        */
+
+        setTimeout(
+          () => {
+
+            cerrarCorreccionReceptor();
+
+          },
+          700
+        );
+
+      }
+    );
 
 }
 
@@ -5453,6 +5950,8 @@ if ($('consultarHistorialBtn')) {
     .addEventListener(
       'click',
       async () => {
+
+        cerrarCorreccionReceptor();
 
         await cargarHistorial();
 
@@ -5489,12 +5988,19 @@ if ($('limpiarHistorialBtn')) {
           '';
 
 
+        cerrarCorreccionReceptor();
+
+
         await cargarHistorial();
 
       }
     );
 
 }
+
+/* =========================================================
+   FIN HISTORIAL
+========================================================= */
 
 
 /* =========================================================
