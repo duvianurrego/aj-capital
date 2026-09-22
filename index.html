@@ -1713,116 +1713,395 @@
 
     </section>
 
-    <!-- HISTORIAL -->
+    
+   <!-- =========================================================
+     HISTORIAL
+========================================================= -->
 
-    <section id="historial" class="page hidden">
+<section id="historial" class="page hidden">
 
-      <div class="page-head">
-        <div>
-          <h2>Historial</h2>
-          <p>Consulta de pagos, intereses y recuperación de capital.</p>
-        </div>
+  <div class="page-head">
+
+    <div>
+      <h2>Historial</h2>
+      <p>
+        Consulta de pagos, intereses y recuperación de capital.
+      </p>
+    </div>
+
+  </div>
+
+
+  <!-- =====================================================
+       FILTROS
+  ====================================================== -->
+
+  <section class="panel">
+
+    <div class="form-grid">
+
+      <div>
+        <label>Desde</label>
+        <input
+          id="historialDesde"
+          type="date"
+        >
       </div>
 
 
-      <section class="panel">
-
-        <div class="form-grid">
-
-          <div>
-            <label>Desde</label>
-            <input id="historialDesde" type="date">
-          </div>
-
-          <div>
-            <label>Hasta</label>
-            <input id="historialHasta" type="date">
-          </div>
-
-          <div>
-            <label>Cliente</label>
-            <select id="historialCliente">
-              <option value="">Todos los clientes</option>
-            </select>
-          </div>
-
-          <div>
-            <label>Recibido por</label>
-            <select id="historialReceptor">
-              <option value="">Todos</option>
-              <option value="1">Andrés Urrego</option>
-              <option value="2">Juan</option>
-            </select>
-          </div>
-
-          <div class="full form-actions">
-            <button id="limpiarHistorialBtn" type="button" class="secondary">
-              Limpiar filtros
-            </button>
-
-            <button id="consultarHistorialBtn" type="button" class="primary">
-              Consultar
-            </button>
-          </div>
-
-        </div>
-
-        <div id="historialMsg" class="msg"></div>
-
-      </section>
+      <div>
+        <label>Hasta</label>
+        <input
+          id="historialHasta"
+          type="date"
+        >
+      </div>
 
 
-      <div class="cards">
+      <div>
 
-        <article>
-          <span>Intereses cobrados</span>
-          <strong id="historialIntereses">$0</strong>
-        </article>
+        <label>Cliente</label>
 
-        <article>
-          <span>Capital recuperado</span>
-          <strong id="historialCapital">$0</strong>
-        </article>
+        <select id="historialCliente">
 
-        <article>
-          <span>Total recibido A&J</span>
-          <strong id="historialTotal">$0</strong>
-        </article>
+          <option value="">
+            Todos los clientes
+          </option>
 
-        <article>
-          <span>Movimientos</span>
-          <strong id="historialCantidad">0</strong>
-        </article>
+        </select>
 
       </div>
 
 
-      <section class="panel">
+      <div>
 
-        <h3>Movimientos registrados</h3>
+        <label>Recibido por</label>
 
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Fecha</th>
-                <th>Cliente</th>
-                <th>Interés</th>
-                <th>Capital</th>
-                <th>Total</th>
-                <th>Recibido por</th>
-                <th>Medio</th>
-                <th>Estado</th>
-              </tr>
-            </thead>
+        <select id="historialReceptor">
 
-            <tbody id="historialBody"></tbody>
-          </table>
+          <option value="">
+            Todos
+          </option>
+
+          <option value="1">
+            Andrés Urrego
+          </option>
+
+          <option value="2">
+            Juan
+          </option>
+
+        </select>
+
+      </div>
+
+
+      <div class="full form-actions">
+
+        <button
+          id="limpiarHistorialBtn"
+          type="button"
+          class="secondary"
+        >
+          Limpiar filtros
+        </button>
+
+
+        <button
+          id="consultarHistorialBtn"
+          type="button"
+          class="primary"
+        >
+          Consultar
+        </button>
+
+      </div>
+
+    </div>
+
+
+    <div
+      id="historialMsg"
+      class="msg"
+    ></div>
+
+  </section>
+
+
+  <!-- =====================================================
+       RESUMEN
+  ====================================================== -->
+
+  <div class="cards">
+
+    <article>
+
+      <span>
+        Intereses cobrados
+      </span>
+
+      <strong id="historialIntereses">
+        $0
+      </strong>
+
+    </article>
+
+
+    <article>
+
+      <span>
+        Capital recuperado
+      </span>
+
+      <strong id="historialCapital">
+        $0
+      </strong>
+
+    </article>
+
+
+    <article>
+
+      <span>
+        Total recibido A&J
+      </span>
+
+      <strong id="historialTotal">
+        $0
+      </strong>
+
+    </article>
+
+
+    <article>
+
+      <span>
+        Movimientos
+      </span>
+
+      <strong id="historialCantidad">
+        0
+      </strong>
+
+    </article>
+
+  </div>
+
+
+  <!-- =====================================================
+       MOVIMIENTOS REGISTRADOS
+  ====================================================== -->
+
+  <section class="panel">
+
+    <h3>
+      Movimientos registrados
+    </h3>
+
+
+    <div class="table-wrap">
+
+      <table>
+
+        <thead>
+
+          <tr>
+
+            <th>Fecha</th>
+
+            <th>Cliente</th>
+
+            <th>Interés</th>
+
+            <th>Capital</th>
+
+            <th>Total</th>
+
+            <th>Recibido por</th>
+
+            <th>Medio</th>
+
+            <th>Estado</th>
+
+            <th>Acciones</th>
+
+          </tr>
+
+        </thead>
+
+
+        <tbody id="historialBody">
+
+          <tr>
+
+            <td colspan="9">
+              Cargando movimientos...
+            </td>
+
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </section>
+
+
+  <!-- =====================================================
+       PANEL PARA CORREGIR RECEPTOR
+  ====================================================== -->
+
+  <section
+    id="corregirReceptorPanel"
+    class="panel hidden"
+  >
+
+    <h3>
+      Corregir receptor del pago
+    </h3>
+
+
+    <div class="warning-box">
+
+      Esta herramienta únicamente cambia quién recibió
+      físicamente el dinero.
+
+      No modifica el interés, el capital abonado,
+      el saldo del préstamo ni el valor total del pago.
+
+    </div>
+
+
+    <div class="form-grid">
+
+
+      <div>
+
+        <label>
+          Pago
+        </label>
+
+        <div
+          id="corregirPagoNumero"
+          class="total-pago"
+        >
+          —
         </div>
 
-      </section>
+      </div>
 
-    </section>
+
+      <div>
+
+        <label>
+          Cliente
+        </label>
+
+        <div
+          id="corregirPagoCliente"
+          class="total-pago"
+        >
+          —
+        </div>
+
+      </div>
+
+
+      <div>
+
+        <label>
+          Valor del pago
+        </label>
+
+        <div
+          id="corregirPagoValor"
+          class="total-pago"
+        >
+          $0
+        </div>
+
+      </div>
+
+
+      <div>
+
+        <label>
+          Receptor actual
+        </label>
+
+        <div
+          id="corregirReceptorActual"
+          class="total-pago"
+        >
+          —
+        </div>
+
+      </div>
+
+
+      <div class="full">
+
+        <label>
+          Receptor correcto *
+        </label>
+
+        <select id="corregirNuevoReceptor">
+
+          <option value="">
+            Seleccione el receptor correcto
+          </option>
+
+          <option value="1">
+            Andrés Urrego
+          </option>
+
+          <option value="2">
+            Juan
+          </option>
+
+        </select>
+
+      </div>
+
+
+      <div class="full form-actions">
+
+        <button
+          id="cancelarCorreccionReceptorBtn"
+          type="button"
+          class="secondary"
+        >
+          Cancelar
+        </button>
+
+
+        <button
+          id="guardarCorreccionReceptorBtn"
+          type="button"
+          class="primary"
+        >
+          Confirmar corrección
+        </button>
+
+      </div>
+
+    </div>
+
+
+    <div
+      id="corregirReceptorMsg"
+      class="msg"
+    ></div>
+
+  </section>
+
+</section>
+
+<!-- =========================================================
+     FIN HISTORIAL
+========================================================= -->
 
 
     <!-- PLACEHOLDER CARTERA -->
