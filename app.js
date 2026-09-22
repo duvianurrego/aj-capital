@@ -8311,6 +8311,131 @@ const paginasReales = [
 ];
 
 
+/* =========================================================
+   PÁGINAS AUTORIZADAS PARA USUARIO CONSULTA
+========================================================= */
+
+const paginasConsulta = [
+  'inicio',
+  'clientes',
+  'cartera',
+  'caja',
+  'cuentas-socios',
+  'historial'
+];
+
+
+/* =========================================================
+   APLICAR PERMISOS AL MENÚ SEGÚN EL ROL
+========================================================= */
+
+function aplicarPermisosNavegacion() {
+
+  const esConsulta =
+    perfilUsuarioActual?.rol ===
+    'CONSULTA';
+
+
+  document
+    .querySelectorAll('.nav')
+    .forEach(boton => {
+
+      const pagina =
+        boton.dataset.page;
+
+
+      /*
+        ADMIN:
+        muestra todos los módulos.
+
+        CONSULTA:
+        muestra únicamente las páginas
+        incluidas en paginasConsulta.
+      */
+
+      if (
+        esConsulta &&
+        !paginasConsulta.includes(pagina)
+      ) {
+
+        boton.classList.add(
+          'hidden'
+        );
+
+      } else {
+
+        boton.classList.remove(
+          'hidden'
+        );
+
+      }
+
+    });
+
+}
+
+
+/* =========================================================
+   VALIDAR SI EL USUARIO PUEDE ABRIR UNA PÁGINA
+========================================================= */
+
+function puedeAbrirPagina(pagina) {
+
+  /*
+    Si todavía no existe perfil,
+    no permitimos navegación.
+  */
+
+  if (!perfilUsuarioActual) {
+    return false;
+  }
+
+
+  /*
+    ADMIN puede ingresar a todas
+    las páginas reales.
+  */
+
+  if (
+    perfilUsuarioActual.rol ===
+    'ADMIN'
+  ) {
+
+    return true;
+
+  }
+
+
+  /*
+    CONSULTA solamente puede ingresar
+    a las páginas autorizadas.
+  */
+
+  if (
+    perfilUsuarioActual.rol ===
+    'CONSULTA'
+  ) {
+
+    return paginasConsulta.includes(
+      pagina
+    );
+
+  }
+
+
+  /*
+    Cualquier otro rol queda bloqueado.
+  */
+
+  return false;
+
+}
+
+
+/* =========================================================
+   EVENTOS DE NAVEGACIÓN
+========================================================= */
+
 document
   .querySelectorAll('.nav')
   .forEach(boton => {
@@ -8318,6 +8443,30 @@ document
     boton.addEventListener(
       'click',
       async () => {
+
+        const pagina =
+          boton.dataset.page;
+
+
+        /* =================================================
+           SEGURIDAD DE NAVEGACIÓN
+        ================================================= */
+
+        if (
+          !puedeAbrirPagina(
+            pagina
+          )
+        ) {
+
+          console.warn(
+            'Acceso no autorizado al módulo:',
+            pagina
+          );
+
+          return;
+
+        }
+
 
         /*
           Quitamos el estado activo de todos
@@ -8376,10 +8525,6 @@ document
             .add('hidden');
 
         }
-
-
-        const pagina =
-          boton.dataset.page;
 
 
         /* ===============================================
@@ -8515,7 +8660,7 @@ document
         }
 
 
-       /* ===============================================
+        /* ===============================================
            CIERRES
         =============================================== */
 
@@ -8533,7 +8678,7 @@ document
 
         }
 
-           
+
         /* ===============================================
            HISTORIAL
         =============================================== */
