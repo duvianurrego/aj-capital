@@ -8376,6 +8376,71 @@ function aplicarPermisosNavegacion() {
 
 
 /* =========================================================
+   APLICAR PERMISOS DE EDICIÓN SEGÚN EL ROL
+========================================================= */
+
+function aplicarPermisosEdicion() {
+
+  const esConsulta =
+    perfilUsuarioActual?.rol ===
+    'CONSULTA';
+
+
+  /* =====================================================
+     CLIENTES
+  ===================================================== */
+
+  const nuevoClienteBtn =
+    $('nuevoClienteBtn');
+
+  const clienteFormPanel =
+    $('clienteFormPanel');
+
+
+  /*
+    Botón NUEVO CLIENTE
+  */
+
+  if (nuevoClienteBtn) {
+
+    if (esConsulta) {
+
+      nuevoClienteBtn
+        .classList
+        .add('hidden');
+
+    } else {
+
+      nuevoClienteBtn
+        .classList
+        .remove('hidden');
+
+    }
+
+  }
+
+
+  /*
+    El usuario CONSULTA nunca debe
+    tener visible el formulario
+    para registrar clientes.
+  */
+
+  if (
+    esConsulta &&
+    clienteFormPanel
+  ) {
+
+    clienteFormPanel
+      .classList
+      .add('hidden');
+
+  }
+
+}
+
+
+/* =========================================================
    VALIDAR SI EL USUARIO PUEDE ABRIR UNA PÁGINA
 ========================================================= */
 
