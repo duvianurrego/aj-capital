@@ -208,11 +208,20 @@ mostrarSesion(session);
 
 async function cargarDashboard() {
 
-  try {
+  /*
+    Este bloque alimenta únicamente la pantalla INICIO.
 
-    /* =====================================================
-       1. CONSULTAS PRINCIPALES
-    ===================================================== */
+    Fuentes:
+    - capital_operativo_aj
+    - ciclo_actual_aj
+    - prestamos
+    - semaforo_operativo_aj
+    - resumen_caja_socios
+    - resumen_cuentas_socios_aj
+    - resumen_dinero_terceros
+  */
+
+  try {
 
     const [
       capitalRes,
@@ -220,23 +229,23 @@ async function cargarDashboard() {
       prestamosRes,
       semaforoRes,
       cajaRes,
-      tercerosRes,
-      deudasRes
+      deudasRes,
+      tercerosRes
     ] = await Promise.all([
 
-      /* Capital operativo oficial */
+      /* CAPITAL OPERATIVO */
       supabase
         .from('capital_operativo_aj')
         .select('*')
         .single(),
 
-      /* Ciclo actual */
+      /* CICLO ACTUAL */
       supabase
         .from('ciclo_actual_aj')
         .select('*')
         .single(),
 
-      /* Préstamos con saldo pendiente */
+      /* PRÉSTAMOS CON SALDO */
       supabase
         .from('prestamos')
         .select(`
@@ -258,31 +267,31 @@ async function cargarDashboard() {
           }
         ),
 
-      /* Semáforo operativo */
+      /* SEMÁFORO */
       supabase
         .from('semaforo_operativo_aj')
         .select('*'),
 
-      /* Caja A&J por socio */
+      /* CAJA A&J */
       supabase
         .from('resumen_caja_socios')
         .select('*'),
 
-      /* Dinero de terceros */
-      supabase
-        .from('resumen_dinero_terceros')
-        .select('*'),
-
-      /* Deudas de A&J con socios */
+      /* DEUDAS DE A&J CON SOCIOS */
       supabase
         .from('resumen_cuentas_socios_aj')
+        .select('*'),
+
+      /* DINERO DE TERCEROS */
+      supabase
+        .from('resumen_dinero_terceros')
         .select('*')
 
     ]);
 
 
     /* =====================================================
-       2. MOSTRAR ERRORES EN CONSOLA
+       CONTROL DE ERRORES
     ===================================================== */
 
     if (capitalRes.error) {
@@ -320,6 +329,13 @@ async function cargarDashboard() {
       );
     }
 
+    if (deudasRes.error) {
+      console.error(
+        'Error deudas socios:',
+        deudasRes.error
+      );
+    }
+
     if (tercerosRes.error) {
       console.error(
         'Error dinero terceros:',
@@ -327,16 +343,9 @@ async function cargarDashboard() {
       );
     }
 
-    if (deudasRes.error) {
-      console.error(
-        'Error cuentas socios:',
-        deudasRes.error
-      );
-    }
-
 
     /* =====================================================
-       3. CAPITAL OPERATIVO
+       CAPITAL OPERATIVO
     ===================================================== */
 
     const capital =
@@ -402,12 +411,81 @@ async function cargarDashboard() {
 
 
     /* =====================================================
-       4. CICLO ACTUAL
+       CICLO ACTUAL
     ===================================================== */
 
     const ciclo =
       cicloRes.data || {};
 
+
+    const fechaInicioCiclo =
+      ciclo.fecha_inicio || null;
+
+
+    const fechaFinCiclo =
+      ciclo.fecha_fin || null;
+
+
+    /*
+      ENCABEZADO SUPERIOR
+
+      En index.html este elemento debe existir:
+
+      <div id="cycleText">Cargando ciclo...</div>
+
+      o puede ser <p>, <small>, etc.
+      Lo importante es el id="cycleText".
+    */
+
+    if ($('cycleText')) {
+
+      if (
+        fechaInicioCiclo &&
+        fechaFinCiclo
+      ) {
+
+        $('cycleText').textContent =
+          `Ciclo actual: ${mostrarFecha(fechaInicioCiclo)} → ${mostrarFecha(fechaFinCiclo)}`;
+
+      } else {
+
+        $('cycleText').textContent =
+          'Ciclo actual no disponible';
+
+      }
+
+    }
+
+
+    /*
+      TÍTULO DEL PANEL DEL CICLO.
+
+      Si existe inicioTituloCiclo lo actualizamos.
+      Si todavía no existe en HTML, simplemente
+      no produce error.
+    */
+
+    if ($('inicioTituloCiclo')) {
+
+      if (
+        fechaInicioCiclo &&
+        fechaFinCiclo
+      ) {
+
+        $('inicioTituloCiclo').textContent =
+          `Ciclo actual · ${mostrarFecha(fechaInicioCiclo)} → ${mostrarFecha(fechaFinCiclo)}`;
+
+      } else {
+
+        $('inicioTituloCiclo').textContent =
+          'Ciclo actual';
+
+      }
+
+    }
+
+
+    /* INTERESES */
 
     if ($('interesesCiclo')) {
       $('interesesCiclo').textContent =
@@ -418,6 +496,8 @@ async function cargarDashboard() {
     }
 
 
+    /* RESULTADO */
+
     if ($('resultadoCiclo')) {
       $('resultadoCiclo').textContent =
         money(
@@ -426,6 +506,8 @@ async function cargarDashboard() {
         );
     }
 
+
+    /* CUOTA BANCARIA */
 
     if ($('cuotaCiclo')) {
       $('cuotaCiclo').textContent =
@@ -436,6 +518,8 @@ async function cargarDashboard() {
     }
 
 
+    /* PARTICIPACIÓN ANDRÉS */
+
     if ($('andresProv')) {
       $('andresProv').textContent =
         money(
@@ -444,6 +528,8 @@ async function cargarDashboard() {
         );
     }
 
+
+    /* PARTICIPACIÓN JUAN */
 
     if ($('juanProv')) {
       $('juanProv').textContent =
@@ -455,15 +541,15 @@ async function cargarDashboard() {
 
 
     /* =====================================================
-       5. CAJA A&J DISPONIBLE
+       CAJA A&J DISPONIBLE
     ===================================================== */
 
-    const caja =
+    const cajas =
       cajaRes.data || [];
 
 
-    const cajaEmpresa =
-      caja.reduce(
+    const cajaTotal =
+      cajas.reduce(
         (total, fila) =>
           total +
           Number(
@@ -476,19 +562,19 @@ async function cargarDashboard() {
 
     if ($('inicioCajaEmpresa')) {
       $('inicioCajaEmpresa').textContent =
-        money(cajaEmpresa);
+        money(cajaTotal);
     }
 
 
     /* =====================================================
-       6. DEUDA DE A&J CON SOCIOS
+       A&J DEBE A SOCIOS
     ===================================================== */
 
     const deudas =
       deudasRes.data || [];
 
 
-    const deudaSocios =
+    const deudaTotal =
       deudas.reduce(
         (total, fila) =>
           total +
@@ -502,19 +588,19 @@ async function cargarDashboard() {
 
     if ($('inicioDeudaSocios')) {
       $('inicioDeudaSocios').textContent =
-        money(deudaSocios);
+        money(deudaTotal);
     }
 
 
     /* =====================================================
-       7. DINERO DE TERCEROS
+       DINERO DE TERCEROS
     ===================================================== */
 
     const terceros =
       tercerosRes.data || [];
 
 
-    const dineroTerceros =
+    const tercerosTotal =
       terceros.reduce(
         (total, fila) =>
           total +
@@ -528,12 +614,12 @@ async function cargarDashboard() {
 
     if ($('inicioDineroTerceros')) {
       $('inicioDineroTerceros').textContent =
-        money(dineroTerceros);
+        money(tercerosTotal);
     }
 
 
     /* =====================================================
-       8. PRÉSTAMOS Y SEMÁFOROS
+       CARTERA / SEMÁFORO
     ===================================================== */
 
     const prestamos =
@@ -545,10 +631,10 @@ async function cargarDashboard() {
 
 
     /* =====================================================
-       9. CAPITAL VENCIDO
+       CAPITAL VENCIDO
     ===================================================== */
 
-    let vencido = 0;
+    let capitalVencido = 0;
 
 
     semaforos.forEach(s => {
@@ -566,15 +652,11 @@ async function cargarDashboard() {
           );
 
 
-        if (prestamo) {
-
-          vencido +=
-            Number(
-              prestamo.capital_pendiente ||
-              0
-            );
-
-        }
+        capitalVencido +=
+          Number(
+            prestamo?.capital_pendiente ||
+            0
+          );
 
       }
 
@@ -583,37 +665,39 @@ async function cargarDashboard() {
 
     if ($('capitalVencido')) {
       $('capitalVencido').textContent =
-        money(vencido);
+        money(capitalVencido);
     }
 
 
     /* =====================================================
-       10. TABLA SEGUIMIENTO DE CARTERA
+       TABLA DE SEGUIMIENTO
     ===================================================== */
 
-    const carteraBody =
+    const body =
       $('carteraBody');
 
 
-    if (!carteraBody) {
+    if (!body) {
       return;
     }
 
 
-    carteraBody.innerHTML = '';
+    body.innerHTML = '';
 
 
     if (!prestamos.length) {
 
-      carteraBody.innerHTML = `
+      body.innerHTML =
+        `
         <tr>
           <td colspan="5">
             No hay cartera pendiente.
           </td>
         </tr>
-      `;
+        `;
 
       return;
+
     }
 
 
@@ -648,7 +732,8 @@ async function cargarDashboard() {
 
 
       if (
-        estado === 'MORA_PROLONGADA'
+        estado ===
+        'MORA_PROLONGADA'
       ) {
 
         clase =
@@ -660,7 +745,8 @@ async function cargarDashboard() {
       }
 
       else if (
-        estado === 'VENCIDO'
+        estado ===
+        'VENCIDO'
       ) {
 
         clase =
@@ -672,7 +758,8 @@ async function cargarDashboard() {
       }
 
       else if (
-        estado === 'PROXIMO'
+        estado ===
+        'PROXIMO'
       ) {
 
         clase =
@@ -684,7 +771,8 @@ async function cargarDashboard() {
       }
 
       else if (
-        estado === 'AL_DIA'
+        estado ===
+        'AL_DIA'
       ) {
 
         clase =
@@ -696,7 +784,8 @@ async function cargarDashboard() {
       }
 
       else if (
-        estado === 'PAGADO'
+        estado ===
+        'PAGADO'
       ) {
 
         clase =
@@ -708,7 +797,8 @@ async function cargarDashboard() {
       }
 
       else if (
-        estado === 'SIN_FECHA'
+        estado ===
+        'SIN_FECHA'
       ) {
 
         clase =
@@ -720,7 +810,7 @@ async function cargarDashboard() {
       }
 
 
-      carteraBody.insertAdjacentHTML(
+      body.insertAdjacentHTML(
         'beforeend',
         `
         <tr>
@@ -750,7 +840,7 @@ async function cargarDashboard() {
 
           <td>
             <span class="badge ${clase}">
-              ${etiqueta}
+              ${escapeHtml(etiqueta)}
             </span>
           </td>
 
@@ -777,11 +867,9 @@ async function cargarDashboard() {
     );
 
 
-    if ($('clientesSaldo')) {
-
-      $('clientesSaldo').textContent =
-        'Error al cargar información';
-
+    if ($('cycleText')) {
+      $('cycleText').textContent =
+        'Error cargando ciclo';
     }
 
   }
