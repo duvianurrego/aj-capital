@@ -8406,10 +8406,6 @@ function aplicarPermisosEdicion() {
     $('clienteFormPanel');
 
 
-  /*
-    Botón NUEVO CLIENTE
-  */
-
   if (nuevoClienteBtn) {
 
     if (esConsulta) {
@@ -8429,11 +8425,6 @@ function aplicarPermisosEdicion() {
   }
 
 
-  /*
-    CONSULTA nunca puede tener visible
-    el formulario para crear clientes.
-  */
-
   if (
     esConsulta &&
     clienteFormPanel
@@ -8449,11 +8440,6 @@ function aplicarPermisosEdicion() {
   /* =====================================================
      CAJA
   ===================================================== */
-
-  /*
-    Estos cuatro formularios generan movimientos
-    y solamente deben estar disponibles para ADMIN.
-  */
 
   const formulariosCaja = [
     'cuotaBancoForm',
@@ -8475,11 +8461,6 @@ function aplicarPermisosEdicion() {
       }
 
 
-      /*
-        Buscamos el panel completo que contiene
-        cada formulario.
-      */
-
       const panel =
         formulario.closest(
           '.panel'
@@ -8490,14 +8471,6 @@ function aplicarPermisosEdicion() {
         return;
       }
 
-
-      /*
-        CONSULTA:
-        ocultamos completamente el panel.
-
-        ADMIN:
-        garantizamos que vuelva a mostrarse.
-      */
 
       if (esConsulta) {
 
@@ -8515,6 +8488,43 @@ function aplicarPermisosEdicion() {
 
     }
   );
+
+
+  /* =====================================================
+     CUENTAS DE SOCIOS
+  ===================================================== */
+
+  const pagoDeudaSocioForm =
+    $('pagoDeudaSocioForm');
+
+
+  if (pagoDeudaSocioForm) {
+
+    const panelPagoDeuda =
+      pagoDeudaSocioForm.closest(
+        '.panel'
+      );
+
+
+    if (panelPagoDeuda) {
+
+      if (esConsulta) {
+
+        panelPagoDeuda
+          .classList
+          .add('hidden');
+
+      } else {
+
+        panelPagoDeuda
+          .classList
+          .remove('hidden');
+
+      }
+
+    }
+
+  }
 
 }
 
