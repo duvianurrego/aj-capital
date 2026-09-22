@@ -3768,6 +3768,7 @@ async function cargarCartera() {
 
 /* ---------------------------------------------------------
    FILTRAR Y PINTAR CARTERA
+   INCLUYE CONSOLIDADO FINAL
 --------------------------------------------------------- */
 
 function aplicarFiltrosCartera() {
@@ -3826,8 +3827,20 @@ function aplicarFiltrosCartera() {
 
 
   /* =====================================================
-     CAPITAL MOSTRADO SEGÚN FILTROS
+     TOTALES SEGÚN LOS REGISTROS VISIBLES
   ===================================================== */
+
+  const totalCapitalInicial =
+    filtrados.reduce(
+      (total, item) =>
+        total +
+        Number(
+          item.capital_inicial ||
+          0
+        ),
+      0
+    );
+
 
   const capitalMostrado =
     filtrados.reduce(
@@ -3840,6 +3853,10 @@ function aplicarFiltrosCartera() {
       0
     );
 
+
+  /* =====================================================
+     TARJETAS DE CONTROL
+  ===================================================== */
 
   if ($('carteraRegistrosVisibles')) {
 
@@ -3883,95 +3900,169 @@ function aplicarFiltrosCartera() {
   }
 
 
-   /* =====================================================
-     TABLA
+  /* =====================================================
+     FILAS DE LA CARTERA
   ===================================================== */
 
-  body.innerHTML = filtrados
-    .map(item => {
+  const filas =
+    filtrados
+      .map(item => {
 
-      const estadoVisual =
-        nombreSemaforoCartera(
-          item.semaforo
-        );
-
-      const clase =
-        claseSemaforoCartera(
-          item.semaforo
-        );
-
-      const diasMora =
-        item.semaforo === 'INICIO_CONTROL'
-          ? '—'
-          : Number(
-              item.dias_mora_control_nuevo || 0
-            );
-
-      const fechaPrestamo =
-        item.fecha_prestamo
-          ? mostrarFecha(
-              item.fecha_prestamo
-            )
-          : '—';
-
-      const fechaProximoPago =
-        item.fecha_proximo_pago
-          ? mostrarFecha(
-              item.fecha_proximo_pago
-            )
-          : '—';
+        const estadoVisual =
+          nombreSemaforoCartera(
+            item.semaforo
+          );
 
 
-      return `
-        <tr>
+        const clase =
+          claseSemaforoCartera(
+            item.semaforo
+          );
 
-          <td>
-            <strong>
-              ${escapeHtml(
-                item.nombre || 'Sin nombre'
-              )}
-            </strong>
-          </td>
 
-          <td>
-            ${fechaPrestamo}
-          </td>
+        const diasMora =
+          item.semaforo === 'INICIO_CONTROL'
+            ? '—'
+            : Number(
+                item.dias_mora_control_nuevo ||
+                0
+              );
 
-          <td>
-            ${money(
-              item.capital_inicial
-            )}
-          </td>
 
-          <td>
-            <strong>
+        const fechaPrestamo =
+          item.fecha_prestamo
+            ? mostrarFecha(
+                item.fecha_prestamo
+              )
+            : '—';
+
+
+        const fechaProximoPago =
+          item.fecha_proximo_pago
+            ? mostrarFecha(
+                item.fecha_proximo_pago
+              )
+            : '—';
+
+
+        return `
+          <tr>
+
+            <td>
+              <strong>
+                ${escapeHtml(
+                  item.nombre ||
+                  'Sin nombre'
+                )}
+              </strong>
+            </td>
+
+            <td>
+              ${fechaPrestamo}
+            </td>
+
+            <td>
               ${money(
-                item.saldo_historico_referencia
+                item.capital_inicial
               )}
-            </strong>
-          </td>
+            </td>
 
-          <td>
-            ${fechaProximoPago}
-          </td>
+            <td>
+              <strong>
+                ${money(
+                  item.saldo_historico_referencia
+                )}
+              </strong>
+            </td>
 
-          <td>
-            <span class="${clase}">
-              ${escapeHtml(
-                estadoVisual
-              )}
-            </span>
-          </td>
+            <td>
+              ${fechaProximoPago}
+            </td>
 
-          <td>
-            ${diasMora}
-          </td>
+            <td>
+              <span class="${clase}">
+                ${escapeHtml(
+                  estadoVisual
+                )}
+              </span>
+            </td>
 
-        </tr>
-      `;
+            <td>
+              ${diasMora}
+            </td>
 
-    })
-    .join('');
+          </tr>
+        `;
+
+      })
+      .join('');
+
+
+  /* =====================================================
+     FILA FINAL DE TOTALES
+  ===================================================== */
+
+  const filaTotales =
+    `
+      <tr class="fila-totales-cartera">
+
+        <td>
+          <strong>
+            TOTALES
+          </strong>
+
+          <br>
+
+          <small>
+            ${filtrados.length} préstamo(s)
+          </small>
+        </td>
+
+        <td>
+          —
+        </td>
+
+        <td>
+          <strong>
+            ${money(
+              totalCapitalInicial
+            )}
+          </strong>
+        </td>
+
+        <td>
+          <strong>
+            ${money(
+              capitalMostrado
+            )}
+          </strong>
+        </td>
+
+        <td>
+          —
+        </td>
+
+        <td>
+          <span class="badge green">
+            CONSOLIDADO
+          </span>
+        </td>
+
+        <td>
+          —
+        </td>
+
+      </tr>
+    `;
+
+
+  /* =====================================================
+     PINTAR TABLA + TOTALES
+  ===================================================== */
+
+  body.innerHTML =
+    filas +
+    filaTotales;
 
 }
 
