@@ -2097,13 +2097,336 @@
 
   </section>
 
+
+  <!-- =====================================================
+       PANEL PARA CORREGIR VALORES
+  ====================================================== -->
+
+  <section
+    id="corregirValoresPanel"
+    class="panel hidden"
+  >
+
+    <h3>
+      Corregir valores del pago
+    </h3>
+
+
+    <div class="warning-box">
+
+      Utilice esta herramienta únicamente cuando un pago
+      haya sido registrado con un valor incorrecto.
+
+      La corrección puede modificar el interés cobrado,
+      el capital abonado y el saldo pendiente del préstamo.
+
+      Antes de confirmar, verifique cuidadosamente
+      los valores actuales y los valores correctos.
+
+    </div>
+
+
+    <!-- ===================================================
+         IDENTIFICACIÓN DEL PAGO
+    ==================================================== -->
+
+    <div class="form-grid">
+
+
+      <div>
+
+        <label>
+          Pago
+        </label>
+
+        <div
+          id="corregirValoresPagoNumero"
+          class="total-pago"
+        >
+          —
+        </div>
+
+      </div>
+
+
+      <div>
+
+        <label>
+          Cliente
+        </label>
+
+        <div
+          id="corregirValoresCliente"
+          class="total-pago"
+        >
+          —
+        </div>
+
+      </div>
+
+
+      <div>
+
+        <label>
+          Receptor
+        </label>
+
+        <div
+          id="corregirValoresReceptor"
+          class="total-pago"
+        >
+          —
+        </div>
+
+      </div>
+
+
+      <div>
+
+        <label>
+          Fecha del pago
+        </label>
+
+        <div
+          id="corregirValoresFecha"
+          class="total-pago"
+        >
+          —
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- ===================================================
+         VALORES ACTUALES
+    ==================================================== -->
+
+    <h3>
+      Valores actualmente registrados
+    </h3>
+
+
+    <div class="form-grid">
+
+
+      <div>
+
+        <label>
+          Interés actual
+        </label>
+
+        <div
+          id="corregirInteresActual"
+          class="total-pago"
+        >
+          $0
+        </div>
+
+      </div>
+
+
+      <div>
+
+        <label>
+          Capital actual
+        </label>
+
+        <div
+          id="corregirCapitalActual"
+          class="total-pago"
+        >
+          $0
+        </div>
+
+      </div>
+
+
+      <div>
+
+        <label>
+          Total actual
+        </label>
+
+        <div
+          id="corregirTotalActual"
+          class="total-pago"
+        >
+          $0
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- ===================================================
+         VALORES CORRECTOS
+    ==================================================== -->
+
+    <h3>
+      Valores correctos
+    </h3>
+
+
+    <div class="form-grid">
+
+
+      <div>
+
+        <label>
+          Interés correcto *
+        </label>
+
+        <input
+          id="corregirNuevoInteres"
+          type="number"
+          min="0"
+          step="1"
+          value="0"
+        >
+
+      </div>
+
+
+      <div>
+
+        <label>
+          Capital correcto *
+        </label>
+
+        <input
+          id="corregirNuevoCapital"
+          type="number"
+          min="0"
+          step="1"
+          value="0"
+        >
+
+      </div>
+
+
+      <div>
+
+        <label>
+          Nuevo total
+        </label>
+
+        <div
+          id="corregirNuevoTotal"
+          class="total-pago"
+        >
+          $0
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- ===================================================
+         IMPACTO DE LA CORRECCIÓN
+    ==================================================== -->
+
+    <h3>
+      Impacto de la corrección
+    </h3>
+
+
+    <div class="form-grid">
+
+
+      <div>
+
+        <label>
+          Diferencia en interés
+        </label>
+
+        <div
+          id="corregirDiferenciaInteres"
+          class="total-pago"
+        >
+          $0
+        </div>
+
+      </div>
+
+
+      <div>
+
+        <label>
+          Diferencia en capital
+        </label>
+
+        <div
+          id="corregirDiferenciaCapital"
+          class="total-pago"
+        >
+          $0
+        </div>
+
+      </div>
+
+
+      <div>
+
+        <label>
+          Diferencia total
+        </label>
+
+        <div
+          id="corregirDiferenciaTotal"
+          class="total-pago"
+        >
+          $0
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- ===================================================
+         BOTONES
+    ==================================================== -->
+
+    <div class="form-actions">
+
+      <button
+        id="cancelarCorreccionValoresBtn"
+        type="button"
+        class="secondary"
+      >
+        Cancelar
+      </button>
+
+
+      <button
+        id="guardarCorreccionValoresBtn"
+        type="button"
+        class="primary"
+      >
+        Confirmar corrección de valores
+      </button>
+
+    </div>
+
+
+    <div
+      id="corregirValoresMsg"
+      class="msg"
+    ></div>
+
+  </section>
+
 </section>
 
 <!-- =========================================================
      FIN HISTORIAL
 ========================================================= -->
 
-
+    
     <!-- PLACEHOLDER CARTERA -->
 
     <section id="placeholder" class="page hidden">
