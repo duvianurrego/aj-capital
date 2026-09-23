@@ -6828,30 +6828,35 @@ function renderHistorial(lista) {
       );
 
 
-    const acciones =
-      x.anulado
-        ? '—'
-        : `
-          <div class="form-actions">
+    const esConsulta =
+  perfilUsuarioActual?.rol ===
+  'CONSULTA';
 
-            <button
-              type="button"
-              class="secondary corregir-receptor-btn"
-              data-pago-id="${pagoId}"
-            >
-              Corregir receptor
-            </button>
 
-            <button
-              type="button"
-              class="secondary corregir-valores-btn"
-              data-pago-id="${pagoId}"
-            >
-              Corregir valores
-            </button>
+const acciones =
+  x.anulado || esConsulta
+    ? '—'
+    : `
+        <div class="form-actions">
 
-          </div>
-        `;
+          <button
+            type="button"
+            class="secondary corregir-receptor-btn"
+            data-pago-id="${pagoId}"
+          >
+            Corregir receptor
+          </button>
+
+          <button
+            type="button"
+            class="secondary corregir-valores-btn"
+            data-pago-id="${pagoId}"
+          >
+            Corregir valores
+          </button>
+
+        </div>
+      `;
 
 
     $('historialBody')
