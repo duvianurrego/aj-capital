@@ -3884,9 +3884,27 @@ function aplicarFiltrosCartera() {
     '';
 
 
+  /* =====================================================
+     SOLO CARTERA ACTIVA
+     Los préstamos con saldo $0 permanecen en la base
+     de datos y en el historial, pero ya no aparecen
+     como cartera pendiente.
+  ===================================================== */
+
   const filtrados =
     carteraOperativaDatos.filter(
       item => {
+
+        const saldoPendiente =
+          Number(
+            item.saldo_historico_referencia ||
+            0
+          );
+
+
+        const tieneSaldo =
+          saldoPendiente > 0;
+
 
         const coincideTexto =
           !texto ||
@@ -3905,6 +3923,7 @@ function aplicarFiltrosCartera() {
 
 
         return (
+          tieneSaldo &&
           coincideTexto &&
           coincideEstado
         );
