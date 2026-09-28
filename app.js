@@ -4365,7 +4365,7 @@ function aplicarFiltrosCartera() {
   }
 
 
-  /* =====================================================
+    /* =====================================================
      FILAS DE LA CARTERA
   ===================================================== */
 
@@ -4373,26 +4373,10 @@ function aplicarFiltrosCartera() {
     filtrados
       .map(item => {
 
-        const estadoVisual =
-          nombreSemaforoCartera(
-            item.semaforo
-          );
 
-
-        const clase =
-          claseSemaforoCartera(
-            item.semaforo
-          );
-
-
-        const diasMora =
-          item.semaforo === 'INICIO_CONTROL'
-            ? '—'
-            : Number(
-                item.dias_mora_control_nuevo ||
-                0
-              );
-
+        /* =================================================
+           FECHAS
+        ================================================= */
 
         const fechaPrestamo =
           item.fecha_prestamo
@@ -4409,76 +4393,304 @@ function aplicarFiltrosCartera() {
               )
             : '—';
 
-         
-/* =====================================================
-   PAGO DEL CICLO ACTUAL
-===================================================== */
-
-const pagosPrestamoCiclo =
-  carteraPagosCiclo.filter(
-    pago =>
-      Number(pago.prestamo_id) ===
-      Number(item.prestamo_id)
-  );
 
 
-const totalPagadoCiclo =
-  pagosPrestamoCiclo.reduce(
-    (total, pago) =>
-      total +
-      Number(
-        pago.valor_total ||
-        0
-      ),
-    0
-  );
+        /* =================================================
+           PAGO REAL DEL CICLO
+        ================================================= */
+
+        const interesEsperado =
+          Number(
+            item.interes_esperado_ciclo ||
+            0
+          );
 
 
-const interesPagadoCiclo =
-  pagosPrestamoCiclo.reduce(
-    (total, pago) =>
-      total +
-      Number(
-        pago.valor_interes ||
-        0
-      ),
-    0
-  );
+        const interesPagado =
+          Number(
+            item.interes_pagado_ciclo ||
+            0
+          );
 
 
-const capitalPagadoCiclo =
-  pagosPrestamoCiclo.reduce(
-    (total, pago) =>
-      total +
-      Number(
-        pago.valor_capital ||
-        0
-      ),
-    0
-  );
+        const interesPendiente =
+          Number(
+            item.interes_pendiente_ciclo ||
+            0
+          );
 
 
-const pagoRealizadoCiclo =
-  pagosPrestamoCiclo.length > 0;
+        /*
+          También conservamos el total recibido
+          para mostrar información adicional.
+        */
+
+        const pagosPrestamoCiclo =
+          carteraPagosCiclo.filter(
+            pago =>
+              Number(pago.prestamo_id) ===
+              Number(item.prestamo_id)
+          );
 
 
-const estadoPagoCiclo =
-  pagoRealizadoCiclo
-    ? `
-        <span
-          class="badge green"
-          title="Total pagado: ${money(totalPagadoCiclo)} · Interés: ${money(interesPagadoCiclo)} · Capital: ${money(capitalPagadoCiclo)}"
-        >
-          ✓ PAGÓ
-        </span>
-      `
-    : `
-        <span class="badge yellow">
-          PENDIENTE
-        </span>
-      `;
-         
-         
+        const totalPagadoCiclo =
+          pagosPrestamoCiclo.reduce(
+            (total, pago) =>
+              total +
+              Number(
+                pago.valor_total ||
+                0
+              ),
+            0
+          );
+
+
+        const capitalPagadoCiclo =
+          pagosPrestamoCiclo.reduce(
+            (total, pago) =>
+              total +
+              Number(
+                pago.valor_capital ||
+                0
+              ),
+            0
+          );
+
+
+
+        /* =================================================
+           ESTADO VISUAL DEL CICLO
+        ================================================= */
+
+        const estadoCiclo =
+          item.estado_visual_ciclo;
+
+
+        let estadoPagoCiclo = `
+          <span class="badge gray">
+            SIN CONTROL
+          </span>
+        `;
+
+
+        if (
+          estadoCiclo ===
+          'PAGADO_CICLO'
+        ) {
+
+          estadoPagoCiclo = `
+            <span
+              class="badge green"
+              title="Interés esperado: ${money(interesEsperado)} · Interés pagado: ${money(interesPagado)} · Capital abonado: ${money(capitalPagadoCiclo)} · Total recibido: ${money(totalPagadoCiclo)}"
+            >
+              ✓ PAGÓ CICLO
+            </span>
+          `;
+
+        }
+
+
+        else if (
+          estadoCiclo ===
+          'SIN_PAGO_REGISTRADO'
+        ) {
+
+          estadoPagoCiclo = `
+            <span
+              class="badge red"
+              title="No existe pago registrado para este préstamo en la base actual. Interés pendiente del ciclo: ${money(interesPendiente)}"
+            >
+              SIN PAGO REGISTRADO
+            </span>
+          `;
+
+        }
+
+
+        else if (
+          estadoCiclo ===
+          'PARCIAL'
+        ) {
+
+          estadoPagoCiclo = `
+            <span
+              class="badge orange"
+              title="Interés esperado: ${money(interesEsperado)} · Pagado: ${money(interesPagado)} · Pendiente: ${money(interesPendiente)}"
+            >
+              PAGO PARCIAL
+            </span>
+          `;
+
+        }
+
+
+        else if (
+          estadoCiclo ===
+          'PENDIENTE_CICLO'
+        ) {
+
+          estadoPagoCiclo = `
+            <span
+              class="badge yellow"
+              title="Interés pendiente del ciclo: ${money(interesPendiente)}"
+            >
+              PENDIENTE CICLO
+            </span>
+          `;
+
+        }
+
+
+        else if (
+          estadoCiclo ===
+          'MORA_CRITICA'
+        ) {
+
+          estadoPagoCiclo = `
+            <span
+              class="badge red"
+              title="${Number(item.ciclos_mora || 0)} ciclos vencidos · ${Number(item.dias_mora_ciclo || 0)} días de mora"
+            >
+              MORA CRÍTICA
+            </span>
+          `;
+
+        }
+
+
+        else if (
+          estadoCiclo &&
+          estadoCiclo.startsWith(
+            'MORA_'
+          )
+        ) {
+
+          estadoPagoCiclo = `
+            <span
+              class="badge red"
+              title="${Number(item.dias_mora_ciclo || 0)} días de mora"
+            >
+              MORA ${Number(item.ciclos_mora || 0)} CICLO
+            </span>
+          `;
+
+        }
+
+
+
+        /* =================================================
+           ESTADO GENERAL
+        ================================================= */
+
+        const estadoVisual =
+          estadoCiclo
+            ? (
+                estadoCiclo === 'PAGADO_CICLO'
+                  ? 'Pagó ciclo'
+                  : estadoCiclo === 'SIN_PAGO_REGISTRADO'
+                    ? 'Sin pago registrado'
+                    : estadoCiclo === 'PENDIENTE_CICLO'
+                      ? 'Pendiente ciclo'
+                      : estadoCiclo === 'PARCIAL'
+                        ? 'Pago parcial'
+                        : estadoCiclo === 'MORA_CRITICA'
+                          ? 'Mora crítica'
+                          : estadoCiclo.startsWith('MORA_')
+                            ? `Mora ${Number(item.ciclos_mora || 0)} ciclo`
+                            : nombreSemaforoCartera(
+                                item.semaforo
+                              )
+              )
+            : nombreSemaforoCartera(
+                item.semaforo
+              );
+
+
+        let clase =
+          claseSemaforoCartera(
+            item.semaforo
+          );
+
+
+        if (
+          estadoCiclo ===
+          'PAGADO_CICLO'
+        ) {
+
+          clase =
+            'badge green';
+
+        }
+
+
+        else if (
+          estadoCiclo ===
+          'PENDIENTE_CICLO'
+        ) {
+
+          clase =
+            'badge yellow';
+
+        }
+
+
+        else if (
+          estadoCiclo ===
+          'PARCIAL'
+        ) {
+
+          clase =
+            'badge orange';
+
+        }
+
+
+        else if (
+          estadoCiclo ===
+          'SIN_PAGO_REGISTRADO' ||
+          estadoCiclo ===
+          'MORA_CRITICA' ||
+          (
+            estadoCiclo &&
+            estadoCiclo.startsWith(
+              'MORA_'
+            )
+          )
+        ) {
+
+          clase =
+            'badge red';
+
+        }
+
+
+
+        /* =================================================
+           DÍAS DE MORA
+        ================================================= */
+
+        let diasMora = '—';
+
+
+        if (
+          Number(
+            item.dias_mora_ciclo ||
+            0
+          ) > 0
+        ) {
+
+          diasMora =
+            Number(
+              item.dias_mora_ciclo
+            );
+
+        }
+
+
+        /* =================================================
+           FILA
+        ================================================= */
+
         return `
           <tr>
 
@@ -4491,15 +4703,18 @@ const estadoPagoCiclo =
               </strong>
             </td>
 
+
             <td>
               ${fechaPrestamo}
             </td>
+
 
             <td>
               ${money(
                 item.capital_inicial
               )}
             </td>
+
 
             <td>
               <strong>
@@ -4509,13 +4724,24 @@ const estadoPagoCiclo =
               </strong>
             </td>
 
+
             <td>
-            ${estadoPagoCiclo}
+              ${estadoPagoCiclo}
+
+              <br>
+
+              <small>
+                ${money(interesPagado)}
+                /
+                ${money(interesEsperado)}
+              </small>
             </td>
-            
+
+
             <td>
               ${fechaProximoPago}
             </td>
+
 
             <td>
               <span class="${clase}">
@@ -4524,6 +4750,7 @@ const estadoPagoCiclo =
                 )}
               </span>
             </td>
+
 
             <td>
               ${diasMora}
