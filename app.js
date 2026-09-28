@@ -3532,6 +3532,8 @@ $('salidaTercerosForm').addEventListener(
 
 let carteraOperativaDatos = [];
 let carteraResumenActual = null;
+let carteraPagosCiclo = [];
+let carteraCicloActual = null;
 
 
 /* ---------------------------------------------------------
