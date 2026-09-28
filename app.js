@@ -8708,6 +8708,36 @@ function aplicarPermisosEdicion() {
 
 
   /* =====================================================
+     RESPALDOS
+     Solo visible para ADMIN
+  ===================================================== */
+
+  const respaldosNav =
+    document.querySelector(
+      '.nav[data-page="respaldos"]'
+    );
+
+
+  if (respaldosNav) {
+
+    if (esConsulta) {
+
+      respaldosNav
+        .classList
+        .add('hidden');
+
+    } else {
+
+      respaldosNav
+        .classList
+        .remove('hidden');
+
+    }
+
+  }
+
+   
+  /* =====================================================
      CLIENTES
   ===================================================== */
 
