@@ -4614,45 +4614,83 @@ function aplicarFiltrosCartera() {
         }
 
 
-
-        /* =================================================
+         /* =================================================
            ESTADO GENERAL
+           PRIORIDAD: MORA DE CICLOS ANTERIORES
         ================================================= */
 
-        const estadoVisual =
-          estadoCiclo
-            ? (
-                estadoCiclo === 'PAGADO_CICLO'
-                  ? 'Pagó ciclo'
-                  : estadoCiclo === 'SIN_PAGO_REGISTRADO'
-                    ? 'Sin pago registrado'
-                    : estadoCiclo === 'PENDIENTE_CICLO'
-                      ? 'Pendiente ciclo'
-                      : estadoCiclo === 'PARCIAL'
-                        ? 'Pago parcial'
-                        : estadoCiclo === 'MORA_CRITICA'
-                          ? 'Mora crítica'
-                          : estadoCiclo.startsWith('MORA_')
-                            ? `Mora ${Number(item.ciclos_mora || 0)} ciclo`
-                            : nombreSemaforoCartera(
-                                item.semaforo
-                              )
-              )
-            : nombreSemaforoCartera(
-                item.semaforo
-              );
-
-
-        let clase =
-          claseSemaforoCartera(
-            item.semaforo
+        const ciclosVencidos =
+          Number(
+            item.ciclos_vencidos ||
+            0
           );
 
 
-        if (
+        const interesVencido =
+          Number(
+            item.interes_vencido_total ||
+            0
+          );
+
+
+        const diasMoraAcumulada =
+          Number(
+            item.dias_mora_acumulada ||
+            0
+          );
+
+
+        const tieneMoraAnterior =
+          ciclosVencidos > 0 &&
+          interesVencido > 0;
+
+
+        let estadoVisual = '';
+        let clase = 'badge';
+
+
+        /*
+          PRIMERO:
+          si existe deuda de ciclos anteriores,
+          esa alerta tiene prioridad.
+        */
+
+        if (tieneMoraAnterior) {
+
+          if (ciclosVencidos >= 3) {
+
+            estadoVisual =
+              `MORA CRÍTICA · ${ciclosVencidos} CICLOS · ${money(interesVencido)}`;
+
+          }
+
+          else {
+
+            estadoVisual =
+              `MORA ${ciclosVencidos} CICLO${ciclosVencidos > 1 ? 'S' : ''} · ${money(interesVencido)}`;
+
+          }
+
+
+          clase =
+            'badge red';
+
+        }
+
+
+        /*
+          SEGUNDO:
+          si no existe mora anterior,
+          mostramos el estado del ciclo actual.
+        */
+
+        else if (
           estadoCiclo ===
           'PAGADO_CICLO'
         ) {
+
+          estadoVisual =
+            'Sin mora';
 
           clase =
             'badge green';
@@ -4665,6 +4703,9 @@ function aplicarFiltrosCartera() {
           'PENDIENTE_CICLO'
         ) {
 
+          estadoVisual =
+            'Pendiente ciclo actual';
+
           clase =
             'badge yellow';
 
@@ -4676,6 +4717,9 @@ function aplicarFiltrosCartera() {
           'PARCIAL'
         ) {
 
+          estadoVisual =
+            'Pago parcial';
+
           clase =
             'badge orange';
 
@@ -4684,16 +4728,11 @@ function aplicarFiltrosCartera() {
 
         else if (
           estadoCiclo ===
-          'SIN_PAGO_REGISTRADO' ||
-          estadoCiclo ===
-          'MORA_CRITICA' ||
-          (
-            estadoCiclo &&
-            estadoCiclo.startsWith(
-              'MORA_'
-            )
-          )
+          'SIN_PAGO_REGISTRADO'
         ) {
+
+          estadoVisual =
+            'Sin pago registrado';
 
           clase =
             'badge red';
@@ -4701,15 +4740,36 @@ function aplicarFiltrosCartera() {
         }
 
 
+        else {
 
-        /* =================================================
+          estadoVisual =
+            nombreSemaforoCartera(
+              item.semaforo
+            );
+
+          clase =
+            claseSemaforoCartera(
+              item.semaforo
+            );
+
+        }
+
+
+       /* =================================================
            DÍAS DE MORA
         ================================================= */
 
         let diasMora = '—';
 
 
-        if (
+        if (tieneMoraAnterior) {
+
+          diasMora =
+            `${diasMoraAcumulada} días`;
+
+        }
+
+        else if (
           Number(
             item.dias_mora_ciclo ||
             0
@@ -4717,9 +4777,7 @@ function aplicarFiltrosCartera() {
         ) {
 
           diasMora =
-            Number(
-              item.dias_mora_ciclo
-            );
+            `${Number(item.dias_mora_ciclo)} días`;
 
         }
 
