@@ -9186,6 +9186,30 @@ else if (
 
 else {
 
+  if ($('placeholder')) {
+
+    $('placeholder')
+      .classList
+      .remove('hidden');
+
+  }
+
+
+  if ($('placeholderTitle')) {
+
+    $('placeholderTitle')
+      .textContent =
+      boton.textContent.trim();
+
+  }
+
+}
+
+      }
+    );
+
+  });
+
 
 /* =========================================================
    FIN DE APP.JS
