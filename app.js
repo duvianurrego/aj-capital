@@ -8899,6 +8899,379 @@ function puedeAbrirPagina(pagina) {
 
 
 /* =========================================================
+   RESPALDO GENERAL A&J CAPITAL
+========================================================= */
+
+async function generarRespaldoGeneral() {
+
+  const btn =
+    $('generarRespaldoBtn');
+
+  const msg =
+    $('respaldoMsg');
+
+
+  /*
+    SEGURIDAD:
+    solamente ADMIN puede generar respaldos.
+  */
+
+  if (
+    !perfilUsuarioActual ||
+    perfilUsuarioActual.rol !== 'ADMIN'
+  ) {
+
+    if (msg) {
+      msg.textContent =
+        'No tiene permisos para generar respaldos.';
+    }
+
+    return;
+
+  }
+
+
+  /*
+    Verificamos que la librería XLSX
+    se encuentre cargada.
+  */
+
+  if (
+    typeof XLSX === 'undefined'
+  ) {
+
+    if (msg) {
+      msg.textContent =
+        'No fue posible cargar el generador de Excel.';
+    }
+
+    return;
+
+  }
+
+
+  try {
+
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent =
+        'Generando respaldo...';
+    }
+
+
+    if ($('respaldoEstado')) {
+      $('respaldoEstado').textContent =
+        'Generando...';
+    }
+
+
+    if (msg) {
+      msg.textContent =
+        'Consultando información de A&J CAPITAL...';
+    }
+
+
+    /*
+      TABLAS PRINCIPALES.
+
+      No incluimos las vistas calculadas porque
+      pueden reconstruirse a partir de estos datos.
+    */
+
+    const tablas = [
+
+      {
+        tabla: 'clientes',
+        hoja: 'Clientes'
+      },
+
+      {
+        tabla: 'prestamos',
+        hoja: 'Prestamos'
+      },
+
+      {
+        tabla: 'pagos',
+        hoja: 'Pagos'
+      },
+
+      {
+        tabla: 'movimientos_caja',
+        hoja: 'Caja'
+      },
+
+      {
+        tabla: 'movimientos_control_nuevo',
+        hoja: 'Movimientos'
+      },
+
+      {
+        tabla: 'dinero_terceros',
+        hoja: 'Terceros'
+      },
+
+      {
+        tabla: 'cuentas_socios_aj',
+        hoja: 'Cuentas_Socios'
+      },
+
+      {
+        tabla: 'cierres',
+        hoja: 'Cierres'
+      },
+
+      {
+        tabla: 'saldos_caja_cierre',
+        hoja: 'Saldos_Cierre'
+      },
+
+      {
+        tabla: 'intereses_historicos',
+        hoja: 'Intereses'
+      },
+
+      {
+        tabla: 'punto_cero',
+        hoja: 'Punto_Cero'
+      },
+
+      {
+        tabla: 'configuracion',
+        hoja: 'Configuracion'
+      },
+
+      {
+        tabla: 'socios',
+        hoja: 'Socios'
+      },
+
+      {
+        tabla: 'auditoria',
+        hoja: 'Auditoria'
+      }
+
+    ];
+
+
+    const libro =
+      XLSX.utils.book_new();
+
+
+    let totalRegistros =
+      0;
+
+
+    /*
+      Consultamos cada tabla.
+      Solamente hacemos SELECT.
+      No se modifica ningún dato.
+    */
+
+    for (
+      const item of tablas
+    ) {
+
+      const {
+        data,
+        error
+      } =
+      await supabase
+        .from(item.tabla)
+        .select('*');
+
+
+      if (error) {
+        throw new Error(
+          `Error consultando ${item.tabla}: ${error.message}`
+        );
+      }
+
+
+      const registros =
+        data || [];
+
+
+      totalRegistros +=
+        registros.length;
+
+
+      /*
+        Si una tabla está vacía dejamos
+        constancia dentro del Excel.
+      */
+
+      const datosHoja =
+        registros.length > 0
+          ? registros
+          : [
+              {
+                informacion:
+                  'Sin registros'
+              }
+            ];
+
+
+      const hoja =
+        XLSX.utils.json_to_sheet(
+          datosHoja
+        );
+
+
+      XLSX.utils.book_append_sheet(
+        libro,
+        hoja,
+        item.hoja
+      );
+
+    }
+
+
+    /*
+      Generamos nombre del archivo.
+    */
+
+    const ahora =
+      new Date();
+
+
+    const fechaArchivo =
+      [
+        ahora.getFullYear(),
+        String(
+          ahora.getMonth() + 1
+        ).padStart(2, '0'),
+        String(
+          ahora.getDate()
+        ).padStart(2, '0')
+      ].join('-');
+
+
+    const horaArchivo =
+      [
+        String(
+          ahora.getHours()
+        ).padStart(2, '0'),
+        String(
+          ahora.getMinutes()
+        ).padStart(2, '0')
+      ].join('-');
+
+
+    const nombreArchivo =
+      `AJ_CAPITAL_RESPALDO_${fechaArchivo}_${horaArchivo}.xlsx`;
+
+
+    /*
+      DESCARGAR EXCEL
+    */
+
+    XLSX.writeFile(
+      libro,
+      nombreArchivo
+    );
+
+
+    /*
+      ACTUALIZAMOS INFORMACIÓN VISUAL.
+    */
+
+    if ($('respaldoUltimaFecha')) {
+
+      $('respaldoUltimaFecha').textContent =
+        ahora.toLocaleString(
+          'es-CO'
+        );
+
+    }
+
+
+    if ($('respaldoEstado')) {
+
+      $('respaldoEstado').textContent =
+        'Completado';
+
+    }
+
+
+    if ($('respaldoRegistros')) {
+
+      $('respaldoRegistros').textContent =
+        String(
+          totalRegistros
+        );
+
+    }
+
+
+    if (msg) {
+
+      msg.textContent =
+        `Respaldo generado correctamente. ${totalRegistros} registros exportados.`;
+
+    }
+
+
+  } catch (error) {
+
+    console.error(
+      'Error generando respaldo:',
+      error
+    );
+
+
+    if ($('respaldoEstado')) {
+
+      $('respaldoEstado').textContent =
+        'Error';
+
+    }
+
+
+    if (msg) {
+
+      msg.textContent =
+        'No fue posible generar el respaldo: ' +
+        (
+          error?.message ||
+          'Error desconocido'
+        );
+
+    }
+
+
+  } finally {
+
+    if (btn) {
+
+      btn.disabled =
+        false;
+
+      btn.textContent =
+        'Generar respaldo';
+
+    }
+
+  }
+
+}
+
+
+/* ---------------------------------------------------------
+   BOTÓN GENERAR RESPALDO
+--------------------------------------------------------- */
+
+if ($('generarRespaldoBtn')) {
+
+  $('generarRespaldoBtn')
+    .addEventListener(
+      'click',
+      generarRespaldoGeneral
+    );
+
+}
+
+
+/* =========================================================
    EVENTOS DE NAVEGACIÓN
 ========================================================= */
 
