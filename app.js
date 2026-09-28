@@ -3825,6 +3825,42 @@ async function cargarCartera() {
         )
       );
 
+
+   /* =====================================================
+       3.3 MORA HISTÓRICA COMPROBADA
+    ===================================================== */
+
+    const {
+      data: moraHistoricaData,
+      error: moraHistoricaError
+    } =
+    await supabase
+      .from('mora_historica_aj')
+      .select(`
+        prestamo_id,
+        ultimo_pago_confirmado,
+        mensualidades_vencidas,
+        interes_mensual,
+        interes_historico_pendiente,
+        estado_mora_historica
+      `);
+
+
+    if (moraHistoricaError) {
+      throw moraHistoricaError;
+    }
+
+
+    const moraHistoricaPorPrestamo =
+      new Map(
+        (moraHistoricaData || []).map(
+          item => [
+            Number(item.prestamo_id),
+            item
+          ]
+        )
+      );
+
      
     /* =====================================================
        4. SEGUIMIENTO INDIVIDUAL DE LOS PRÉSTAMOS
