@@ -3635,7 +3635,88 @@ async function cargarCartera() {
 
 
     /* =====================================================
-       2. SEGUIMIENTO INDIVIDUAL DE LOS PRÉSTAMOS
+       2. CICLO ACTUAL
+    ===================================================== */
+
+    const {
+      data: cicloData,
+      error: cicloError
+    } =
+    await supabase
+      .from('ciclo_actual_aj')
+      .select(`
+        fecha_inicio,
+        fecha_fin
+      `)
+      .limit(1);
+
+
+    if (cicloError) {
+      throw cicloError;
+    }
+
+
+    carteraCicloActual =
+      cicloData &&
+      cicloData.length > 0
+        ? cicloData[0]
+        : null;
+
+
+    /* =====================================================
+       3. PAGOS DEL CICLO ACTUAL
+    ===================================================== */
+
+    carteraPagosCiclo = [];
+
+
+    if (
+      carteraCicloActual?.fecha_inicio &&
+      carteraCicloActual?.fecha_fin
+    ) {
+
+      const {
+        data: pagosData,
+        error: pagosError
+      } =
+      await supabase
+        .from('pagos')
+        .select(`
+          id,
+          prestamo_id,
+          fecha_pago,
+          valor_total,
+          valor_interes,
+          valor_capital,
+          anulado
+        `)
+        .gte(
+          'fecha_pago',
+          carteraCicloActual.fecha_inicio
+        )
+        .lte(
+          'fecha_pago',
+          carteraCicloActual.fecha_fin
+        )
+        .eq(
+          'anulado',
+          false
+        );
+
+
+      if (pagosError) {
+        throw pagosError;
+      }
+
+
+      carteraPagosCiclo =
+        pagosData || [];
+
+    }
+
+
+    /* =====================================================
+       4. SEGUIMIENTO INDIVIDUAL DE LOS PRÉSTAMOS
     ===================================================== */
 
     const {
@@ -3680,7 +3761,7 @@ async function cargarCartera() {
 
 
     /* =====================================================
-       3. TARJETAS PRINCIPALES
+       5. TARJETAS PRINCIPALES
     ===================================================== */
 
     const capitalActual =
@@ -3740,7 +3821,7 @@ async function cargarCartera() {
 
 
     /* =====================================================
-       4. CONTADORES DEL SEMÁFORO
+       6. CONTADORES DEL SEMÁFORO
     ===================================================== */
 
     const contar =
@@ -3816,7 +3897,7 @@ async function cargarCartera() {
 
 
     /* =====================================================
-       5. PINTAR TABLA
+       7. PINTAR TABLA
     ===================================================== */
 
     aplicarFiltrosCartera();
