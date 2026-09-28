@@ -4265,57 +4265,61 @@ const estadoPagoCiclo =
   ===================================================== */
 
   const filaTotales =
-    `
-      <tr class="fila-totales-cartera">
+  `
+    <tr class="fila-totales-cartera">
 
-        <td>
-          <strong>
-            TOTALES
-          </strong>
+      <td>
+        <strong>
+          TOTALES
+        </strong>
 
-          <br>
+        <br>
 
-          <small>
-            ${filtrados.length} préstamo(s)
-          </small>
-        </td>
+        <small>
+          ${filtrados.length} préstamo(s)
+        </small>
+      </td>
 
-        <td>
-          —
-        </td>
+      <td>
+        —
+      </td>
 
-        <td>
-          <strong>
-            ${money(
-              totalCapitalInicial
-            )}
-          </strong>
-        </td>
+      <td>
+        <strong>
+          ${money(
+            totalCapitalInicial
+          )}
+        </strong>
+      </td>
 
-        <td>
-          <strong>
-            ${money(
-              capitalMostrado
-            )}
-          </strong>
-        </td>
+      <td>
+        <strong>
+          ${money(
+            capitalMostrado
+          )}
+        </strong>
+      </td>
 
-        <td>
-          —
-        </td>
+      <td>
+        —
+      </td>
 
-        <td>
-          <span class="badge green">
-            CONSOLIDADO
-          </span>
-        </td>
+      <td>
+        —
+      </td>
 
-        <td>
-          —
-        </td>
+      <td>
+        <span class="badge green">
+          CONSOLIDADO
+        </span>
+      </td>
 
-      </tr>
-    `;
+      <td>
+        —
+      </td>
+
+    </tr>
+  `;
 
 
   /* =====================================================
