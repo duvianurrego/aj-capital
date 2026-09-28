@@ -3596,7 +3596,7 @@ async function cargarCartera() {
 
   body.innerHTML = `
     <tr>
-      <td colspan="7">
+      <td colspan="8">
         Cargando cartera...
       </td>
     </tr>
@@ -3913,7 +3913,7 @@ async function cargarCartera() {
 
     body.innerHTML = `
       <tr>
-        <td colspan="7">
+        <td colspan="8">
           No fue posible cargar la cartera.
         </td>
       </tr>
@@ -4078,7 +4078,7 @@ function aplicarFiltrosCartera() {
 
     body.innerHTML = `
       <tr>
-        <td colspan="7">
+        <td colspan="8">
           No existen registros con los filtros seleccionados.
         </td>
       </tr>
