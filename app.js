@@ -3881,9 +3881,11 @@ async function cargarCartera() {
       - último pago registrado
     */
 
-    carteraOperativaDatos =
+       carteraOperativaDatos =
       (carteraData || []).map(
         item => {
+
+          /* CONTROL DEL CICLO ACTUAL */
 
           const control =
             controlCicloPorPrestamo.get(
@@ -3891,9 +3893,22 @@ async function cargarCartera() {
             );
 
 
+          /* MORA DE CICLOS ANTERIORES */
+
+          const mora =
+            moraPorPrestamo.get(
+              Number(item.prestamo_id)
+            );
+
+
           return {
 
             ...item,
+
+
+            /* ===============================
+               CICLO ACTUAL
+            =============================== */
 
             interes_esperado_ciclo:
               Number(
@@ -3939,7 +3954,34 @@ async function cargarCartera() {
 
             tiene_pago_registrado:
               control?.tiene_pago_registrado ??
-              false
+              false,
+
+
+            /* ===============================
+               MORA ACUMULADA
+            =============================== */
+
+            ciclos_vencidos:
+              Number(
+                mora?.ciclos_vencidos ||
+                0
+              ),
+
+            interes_vencido_total:
+              Number(
+                mora?.interes_vencido_total ||
+                0
+              ),
+
+            estado_mora_acumulada:
+              mora?.estado_mora ||
+              'SIN_MORA',
+
+            dias_mora_acumulada:
+              Number(
+                mora?.dias_mora ||
+                0
+              )
 
           };
 
