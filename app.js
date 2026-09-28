@@ -9145,54 +9145,46 @@ document
         }
 
 
-        /* ===============================================
-           HISTORIAL
-        =============================================== */
+/* ===============================================
+   HISTORIAL
+=============================================== */
 
-        else if (
-          pagina ===
-          'historial'
-        ) {
+else if (
+  pagina ===
+  'historial'
+) {
 
-          $('historial')
-            .classList
-            .remove('hidden');
-
-
-          await prepararHistorial();
-
-        }
+  $('historial')
+    .classList
+    .remove('hidden');
 
 
-        /* ===============================================
-           PLACEHOLDER
-        =============================================== */
+  await prepararHistorial();
 
-        else {
-
-          if ($('placeholder')) {
-
-            $('placeholder')
-              .classList
-              .remove('hidden');
-
-          }
+}
 
 
-          if ($('placeholderTitle')) {
+/* ===============================================
+   RESPALDOS
+=============================================== */
 
-            $('placeholderTitle')
-              .textContent =
-              boton.textContent.trim();
+else if (
+  pagina ===
+  'respaldos'
+) {
 
-          }
+  $('respaldos')
+    .classList
+    .remove('hidden');
 
-        }
+}
 
-      }
-    );
 
-  });
+/* ===============================================
+   PLACEHOLDER
+=============================================== */
+
+else {
 
 
 /* =========================================================
