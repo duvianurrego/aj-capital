@@ -8627,7 +8627,8 @@ const paginasReales = [
   'caja',
   'cuentas-socios',
   'cierres',
-  'historial'
+  'historial',
+  'respaldos'
 ];
 
 
