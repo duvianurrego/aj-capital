@@ -4540,7 +4540,7 @@ function aplicarFiltrosCartera() {
       .map(item => {
 
 
-        /* =================================================
+       /* =================================================
            FECHAS
         ================================================= */
 
@@ -4552,13 +4552,125 @@ function aplicarFiltrosCartera() {
             : '—';
 
 
-        const fechaProximoPago =
-          item.fecha_proximo_pago
-            ? mostrarFecha(
-                item.fecha_proximo_pago
-              )
-            : '—';
+        /*
+          FECHA DE PRÓXIMO PAGO
 
+          Para préstamos normales:
+          usamos fecha_proximo_pago.
+
+          Para mora histórica:
+          calculamos automáticamente el próximo
+          vencimiento usando el día original
+          del préstamo.
+        */
+
+        let fechaProximoPago = '—';
+
+
+        if (
+          item.mensualidades_mora_historica > 0 &&
+          item.fecha_prestamo
+        ) {
+
+          const partesFecha =
+            item.fecha_prestamo
+              .split('-');
+
+
+          const diaPago =
+            Number(
+              partesFecha[2]
+            );
+
+
+          const hoy =
+            new Date();
+
+
+          let anio =
+            hoy.getFullYear();
+
+
+          let mes =
+            hoy.getMonth();
+
+
+          /*
+            Si el día de pago de este mes
+            ya pasó o es hoy,
+            buscamos el próximo mes.
+          */
+
+          if (
+            hoy.getDate() >=
+            diaPago
+          ) {
+
+            mes += 1;
+
+
+            if (mes > 11) {
+
+              mes = 0;
+              anio += 1;
+
+            }
+
+          }
+
+
+          /*
+            Evitamos problemas con días 29, 30 o 31
+            en meses que no tienen esos días.
+          */
+
+          const ultimoDiaMes =
+            new Date(
+              anio,
+              mes + 1,
+              0
+            ).getDate();
+
+
+          const diaFinal =
+            Math.min(
+              diaPago,
+              ultimoDiaMes
+            );
+
+
+          const proximoPagoHistorico =
+            new Date(
+              anio,
+              mes,
+              diaFinal
+            );
+
+
+          fechaProximoPago =
+            proximoPagoHistorico
+              .toLocaleDateString(
+                'es-CO',
+                {
+                  day: '2-digit',
+                  month: '2-digit',
+                  year: 'numeric'
+                }
+              );
+
+        }
+
+
+        else if (
+          item.fecha_proximo_pago
+        ) {
+
+          fechaProximoPago =
+            mostrarFecha(
+              item.fecha_proximo_pago
+            );
+
+        }
 
 
         /* =================================================
