@@ -4921,19 +4921,49 @@ function aplicarFiltrosCartera() {
         }
 
 
-       /* =================================================
-           DÍAS DE MORA
+               /* =================================================
+           DÍAS DE MORA / REFERENCIA HISTÓRICA
         ================================================= */
 
         let diasMora = '—';
 
 
-        if (tieneMoraAnterior) {
+        /*
+          PRIMERO:
+          Si existe mora histórica comprobada,
+          mostramos el último pago conocido.
+        */
+
+        if (tieneMoraHistorica) {
+
+          diasMora =
+            item.ultimo_pago_historico
+              ? `Último pago: ${mostrarFecha(
+                  item.ultimo_pago_historico
+                )}`
+              : 'Mora histórica';
+
+        }
+
+
+        /*
+          SEGUNDO:
+          Mora de ciclos anteriores
+          controlados por el sistema.
+        */
+
+        else if (tieneMoraAnterior) {
 
           diasMora =
             `${diasMoraAcumulada} días`;
 
         }
+
+
+        /*
+          TERCERO:
+          Mora correspondiente al ciclo actual.
+        */
 
         else if (
           Number(
@@ -4943,7 +4973,9 @@ function aplicarFiltrosCartera() {
         ) {
 
           diasMora =
-            `${Number(item.dias_mora_ciclo)} días`;
+            `${Number(
+              item.dias_mora_ciclo
+            )} días`;
 
         }
 
