@@ -3820,6 +3820,140 @@ async function cargarCartera() {
     }
 
 
+     /* =====================================================
+   RESUMEN DE PAGOS DEL CICLO ACTUAL
+===================================================== */
+
+/*
+  Identificamos qué préstamos tienen
+  al menos un pago válido en el ciclo.
+*/
+
+const prestamosPagadosCiclo =
+  new Set(
+    carteraPagosCiclo.map(
+      pago =>
+        Number(
+          pago.prestamo_id
+        )
+    )
+  );
+
+
+/*
+  Para PAGARON / PENDIENTES usamos únicamente
+  préstamos que todavía tienen saldo pendiente.
+*/
+
+const prestamosActivosCiclo =
+  carteraOperativaDatos.filter(
+    item =>
+      Number(
+        item.saldo_historico_referencia ||
+        0
+      ) > 0
+  );
+
+
+const pagaronCiclo =
+  prestamosActivosCiclo.filter(
+    item =>
+      prestamosPagadosCiclo.has(
+        Number(
+          item.prestamo_id
+        )
+      )
+  ).length;
+
+
+const pendientesCiclo =
+  prestamosActivosCiclo.filter(
+    item =>
+      !prestamosPagadosCiclo.has(
+        Number(
+          item.prestamo_id
+        )
+      )
+  ).length;
+
+
+/*
+  Dinero total recibido durante el ciclo.
+*/
+
+const recaudadoCiclo =
+  carteraPagosCiclo.reduce(
+    (total, pago) =>
+      total +
+      Number(
+        pago.valor_total ||
+        0
+      ),
+    0
+  );
+
+
+/*
+  Intereses efectivamente cobrados
+  durante el ciclo.
+*/
+
+const interesesCiclo =
+  carteraPagosCiclo.reduce(
+    (total, pago) =>
+      total +
+      Number(
+        pago.valor_interes ||
+        0
+      ),
+    0
+  );
+
+
+/*
+  Pintamos las cuatro tarjetas.
+*/
+
+if ($('carteraPagaronCiclo')) {
+
+  $('carteraPagaronCiclo').textContent =
+    String(
+      pagaronCiclo
+    );
+
+}
+
+
+if ($('carteraPendientesCiclo')) {
+
+  $('carteraPendientesCiclo').textContent =
+    String(
+      pendientesCiclo
+    );
+
+}
+
+
+if ($('carteraRecaudadoCiclo')) {
+
+  $('carteraRecaudadoCiclo').textContent =
+    money(
+      recaudadoCiclo
+    );
+
+}
+
+
+if ($('carteraInteresesCiclo')) {
+
+  $('carteraInteresesCiclo').textContent =
+    money(
+      interesesCiclo
+    );
+
+}
+
+     
     /* =====================================================
        6. CONTADORES DEL SEMÁFORO
     ===================================================== */
