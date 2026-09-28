@@ -4234,6 +4234,10 @@ const estadoPagoCiclo =
             </td>
 
             <td>
+            ${estadoPagoCiclo}
+            </td>
+            
+            <td>
               ${fechaProximoPago}
             </td>
 
