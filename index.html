@@ -958,419 +958,257 @@
     </section>
 
     
-        <!-- CARTERA -->
+       <!-- CARTERA -->
 
-    <section id="cartera" class="page hidden">
+<section id="cartera" class="page hidden">
 
-      <div class="page-head">
-        <div>
-          <h2>Cartera</h2>
-          <p>
-            Control del capital prestado y seguimiento individual
-            de los préstamos de A&J CAPITAL.
-          </p>
-        </div>
+  <div class="page-head">
+    <div>
+      <h2>Cartera</h2>
+      <p>
+        Control del capital prestado y seguimiento individual
+        de los préstamos de A&J CAPITAL.
+      </p>
+    </div>
+  </div>
+
+
+  <!-- RESUMEN DE CARTERA -->
+
+  <div class="cards">
+
+    <article>
+      <span>Capital actualmente prestado</span>
+      <strong id="carteraCapitalActual">$0</strong>
+      <small>Cartera operativa actual</small>
+    </article>
+
+    <article>
+      <span>Capital Punto Cero</span>
+      <strong id="carteraPuntoCero">$0</strong>
+      <small>Base inicial del nuevo control</small>
+    </article>
+
+    <article>
+      <span>Nuevos desembolsos</span>
+      <strong id="carteraNuevosDesembolsos">$0</strong>
+      <small>Desde el nuevo control</small>
+    </article>
+
+    <article>
+      <span>Capital recuperado</span>
+      <strong id="carteraCapitalRecuperado">$0</strong>
+      <small>Abonos a capital desde Punto Cero</small>
+    </article>
+
+  </div>
+
+
+  <!-- RESUMEN DEL CICLO ACTUAL -->
+
+  <div class="cards">
+
+    <article>
+      <span>Pagaron este ciclo</span>
+      <strong id="carteraPagaronCiclo">0</strong>
+      <small>Préstamos con pago registrado</small>
+    </article>
+
+    <article>
+      <span>Pendientes este ciclo</span>
+      <strong id="carteraPendientesCiclo">0</strong>
+      <small>Préstamos activos sin pago</small>
+    </article>
+
+    <article>
+      <span>Recaudado este ciclo</span>
+      <strong id="carteraRecaudadoCiclo">$0</strong>
+      <small>Interés + capital recibido</small>
+    </article>
+
+    <article>
+      <span>Intereses cobrados</span>
+      <strong id="carteraInteresesCiclo">$0</strong>
+      <small>Ingreso por intereses del ciclo</small>
+    </article>
+
+  </div>
+
+
+  <!-- CONTROL -->
+
+  <div class="grid2">
+
+    <section class="panel">
+
+      <h3>Estado de la cartera</h3>
+
+      <div class="metric">
+        <span>Préstamos con saldo</span>
+        <b id="carteraPrestamosConSaldo">0</b>
       </div>
 
-
-      <!-- RESUMEN DE CARTERA -->
-
-      <div class="cards">
-
-        <article>
-          <span>Capital actualmente prestado</span>
-          <strong id="carteraCapitalActual">$0</strong>
-          <small>Cartera operativa actual</small>
-        </article>
-
-        <article>
-          <span>Capital Punto Cero</span>
-          <strong id="carteraPuntoCero">$0</strong>
-          <small>Base inicial del nuevo control</small>
-        </article>
-
-        <article>
-          <span>Nuevos desembolsos</span>
-          <strong id="carteraNuevosDesembolsos">$0</strong>
-          <small>Desde el nuevo control</small>
-        </article>
-
-        <article>
-          <span>Capital recuperado</span>
-          <strong id="carteraCapitalRecuperado">$0</strong>
-          <small>Abonos a capital desde Punto Cero</small>
-        </article>
-
+      <div class="metric">
+        <span>Inicio control</span>
+        <b id="carteraInicioControl">0</b>
       </div>
 
-
-      <!-- CONTROL -->
-
-      <div class="grid2">
-
-        <section class="panel">
-
-          <h3>Estado de la cartera</h3>
-
-          <div class="metric">
-            <span>Préstamos con saldo</span>
-            <b id="carteraPrestamosConSaldo">0</b>
-          </div>
-
-          <div class="metric">
-            <span>Inicio control</span>
-            <b id="carteraInicioControl">0</b>
-          </div>
-
-          <div class="metric">
-            <span>Al día</span>
-            <b id="carteraAlDia">0</b>
-          </div>
-
-          <div class="metric">
-            <span>Próximos</span>
-            <b id="carteraProximos">0</b>
-          </div>
-
-        </section>
-
-
-        <section class="panel">
-
-          <h3>Alertas</h3>
-
-          <div class="metric">
-            <span>Vencidos</span>
-            <b id="carteraVencidos">0</b>
-          </div>
-
-          <div class="metric">
-            <span>Mora prolongada</span>
-            <b id="carteraMoraProlongada">0</b>
-          </div>
-
-          <div class="metric">
-            <span>Pagados</span>
-            <b id="carteraPagados">0</b>
-          </div>
-
-          <div class="metric">
-            <span>Capital mostrado</span>
-            <b id="carteraCapitalMostrado">$0</b>
-          </div>
-
-        </section>
-
+      <div class="metric">
+        <span>Al día</span>
+        <b id="carteraAlDia">0</b>
       </div>
 
-
-      <!-- FILTROS -->
-
-      <section class="panel">
-
-        <div class="search-row">
-
-          <div>
-            <h3>Detalle de cartera</h3>
-            <p class="help-text">
-              Los préstamos anteriores al nuevo control se identifican
-              como Inicio control y no heredan mora histórica.
-            </p>
-          </div>
-
-          <input
-            id="buscarCartera"
-            placeholder="Buscar cliente"
-          >
-
-        </div>
-
-
-        <div class="form-grid">
-
-          <div>
-            <label>Filtrar por estado</label>
-
-            <select id="filtroCarteraEstado">
-              <option value="">Todos</option>
-              <option value="INICIO_CONTROL">Inicio control</option>
-              <option value="AL_DIA">Al día</option>
-              <option value="PROXIMO">Próximo</option>
-              <option value="VENCIDO">Vencido</option>
-              <option value="MORA_PROLONGADA">Mora prolongada</option>
-              <option value="PAGADO">Pagado</option>
-              <option value="SIN_FECHA">Sin fecha</option>
-            </select>
-          </div>
-
-          <div>
-            <label>Registros visibles</label>
-            <div id="carteraRegistrosVisibles" class="total-pago">0</div>
-          </div>
-
-        </div>
-
-      </section>
-
-
-      <!-- TABLA -->
-
-      <section class="panel">
-
-        <div class="table-wrap">
-
-          <table>
-
-            <thead>
-              <tr>
-                <th>Cliente</th>
-                <th>Fecha préstamo</th>
-                <th>Capital inicial</th>
-                <th>Saldo referencia</th>
-                <th>Pago del ciclo</th>
-                <th>Próximo pago</th>
-                <th>Estado</th>
-                <th>Días mora</th>
-              </tr>
-            </thead>
-
-            <tbody id="carteraDetalleBody">
-
-              <tr>
-                <td colspan="7">
-                  Cargando cartera...
-                </td>
-              </tr>
-
-            </tbody>
-
-          </table>
-
-        </div>
-
-        <div id="carteraMsg" class="msg"></div>
-
-      </section>
+      <div class="metric">
+        <span>Próximos</span>
+        <b id="carteraProximos">0</b>
+      </div>
 
     </section>
 
-        <!-- CUENTAS DE SOCIOS -->
 
-    <section id="cuentas-socios" class="page hidden">
+    <section class="panel">
 
-      <div class="page-head">
-        <div>
-          <h2>Cuentas de socios</h2>
-          <p>
-            Control de los valores que A&J CAPITAL adeuda a Andrés y Juan
-            por dinero personal aportado a la operación.
-          </p>
-        </div>
+      <h3>Alertas</h3>
+
+      <div class="metric">
+        <span>Vencidos</span>
+        <b id="carteraVencidos">0</b>
       </div>
 
-
-      <!-- RESUMEN -->
-
-      <div class="cards">
-
-        <article>
-          <span>A&J debe a Andrés</span>
-          <strong id="cuentasDeudaAndres">$0</strong>
-          <small>Cuenta por pagar</small>
-        </article>
-
-        <article>
-          <span>A&J debe a Juan</span>
-          <strong id="cuentasDeudaJuan">$0</strong>
-          <small>Cuenta por pagar</small>
-        </article>
-
-        <article>
-          <span>Deuda total con socios</span>
-          <strong id="cuentasDeudaTotal">$0</strong>
-          <small>Obligación actual de A&J</small>
-        </article>
-
-        <article>
-          <span>Caja A&J disponible</span>
-          <strong id="cuentasCajaTotal">$0</strong>
-          <small>Dinero empresarial actual</small>
-        </article>
-
+      <div class="metric">
+        <span>Mora prolongada</span>
+        <b id="carteraMoraProlongada">0</b>
       </div>
 
-
-      <div class="grid2">
-
-        <!-- ANDRÉS -->
-
-        <section class="panel">
-
-          <h3>Andrés Urrego</h3>
-
-          <div class="metric">
-            <span>Deuda pendiente</span>
-            <b id="cuentasAndresDeudaDetalle">$0</b>
-          </div>
-
-          <div class="metric">
-            <span>Caja A&J bajo responsabilidad</span>
-            <b id="cuentasAndresCaja">$0</b>
-          </div>
-
-          <div class="metric">
-            <span>Máximo reembolsable actualmente</span>
-            <b id="cuentasAndresReembolsable">$0</b>
-          </div>
-
-        </section>
-
-
-        <!-- JUAN -->
-
-        <section class="panel">
-
-          <h3>Juan</h3>
-
-          <div class="metric">
-            <span>Deuda pendiente</span>
-            <b id="cuentasJuanDeudaDetalle">$0</b>
-          </div>
-
-          <div class="metric">
-            <span>Caja A&J bajo responsabilidad</span>
-            <b id="cuentasJuanCaja">$0</b>
-          </div>
-
-          <div class="metric">
-            <span>Máximo reembolsable actualmente</span>
-            <b id="cuentasJuanReembolsable">$0</b>
-          </div>
-
-        </section>
-
+      <div class="metric">
+        <span>Pagados</span>
+        <b id="carteraPagados">0</b>
       </div>
 
+      <div class="metric">
+        <span>Capital mostrado</span>
+        <b id="carteraCapitalMostrado">$0</b>
+      </div>
 
-      <!-- REEMBOLSO -->
+    </section>
 
-      <section class="panel">
+  </div>
 
-        <h3>Registrar reembolso a socio</h3>
+
+  <!-- FILTROS -->
+
+  <section class="panel">
+
+    <div class="search-row">
+
+      <div>
+        <h3>Detalle de cartera</h3>
 
         <p class="help-text">
-          Utilice esta opción únicamente cuando A&J CAPITAL entregue
-          realmente dinero empresarial para pagar una deuda pendiente
-          con uno de los socios.
+          Los préstamos anteriores al nuevo control se identifican
+          como Inicio control y no heredan mora histórica.
         </p>
+      </div>
 
-        <form id="pagoDeudaSocioForm" class="form-grid">
+      <input
+        id="buscarCartera"
+        placeholder="Buscar cliente"
+      >
 
-          <div>
-            <label>Socio *</label>
-
-            <select id="pagoDeudaSocio" required>
-              <option value="">Seleccione</option>
-              <option value="1">Andrés Urrego</option>
-              <option value="2">Juan</option>
-            </select>
-          </div>
+    </div>
 
 
-          <div>
-            <label>Fecha *</label>
+    <div class="form-grid">
 
-            <input
-              id="pagoDeudaFecha"
-              type="date"
-              required
-            >
-          </div>
+      <div>
 
+        <label>Filtrar por estado</label>
 
-          <div>
-            <label>Valor a reembolsar *</label>
+        <select id="filtroCarteraEstado">
 
-            <input
-              id="pagoDeudaValor"
-              type="number"
-              min="1"
-              step="1"
-              required
-            >
-          </div>
+          <option value="">Todos</option>
+          <option value="INICIO_CONTROL">Inicio control</option>
+          <option value="AL_DIA">Al día</option>
+          <option value="PROXIMO">Próximo</option>
+          <option value="VENCIDO">Vencido</option>
+          <option value="MORA_PROLONGADA">Mora prolongada</option>
+          <option value="PAGADO">Pagado</option>
+          <option value="SIN_FECHA">Sin fecha</option>
+
+        </select>
+
+      </div>
 
 
-          <div>
-            <label>Deuda pendiente</label>
+      <div>
 
-            <div
-              id="pagoDeudaDisponible"
-              class="total-pago"
-            >
-              $0
-            </div>
-          </div>
+        <label>Registros visibles</label>
 
+        <div
+          id="carteraRegistrosVisibles"
+          class="total-pago"
+        >
+          0
+        </div>
 
-          <div>
-            <label>Caja A&J disponible</label>
+      </div>
 
-            <div
-              id="pagoDeudaCajaDisponible"
-              class="total-pago"
-            >
-              $0
-            </div>
-          </div>
+    </div>
+
+  </section>
 
 
-          <div>
-            <label>Máximo que puede reembolsarse</label>
+  <!-- TABLA -->
 
-            <div
-              id="pagoDeudaMaximo"
-              class="total-pago"
-            >
-              $0
-            </div>
-          </div>
+  <section class="panel">
 
+    <div class="table-wrap">
 
-          <div
-            id="pagoDeudaAdvertencia"
-            class="full warning-box hidden"
-          ></div>
+      <table>
 
+        <thead>
 
-          <div class="full">
-            <label>Observaciones</label>
+          <tr>
 
-            <textarea
-              id="pagoDeudaObservaciones"
-              rows="3"
-              placeholder="Detalle opcional del reembolso"
-            ></textarea>
-          </div>
+            <th>Cliente</th>
+            <th>Fecha préstamo</th>
+            <th>Capital inicial</th>
+            <th>Saldo referencia</th>
+            <th>Pago del ciclo</th>
+            <th>Próximo pago</th>
+            <th>Estado</th>
+            <th>Días mora</th>
+
+          </tr>
+
+        </thead>
 
 
-          <div class="full form-actions">
+        <tbody id="carteraDetalleBody">
 
-            <button
-              type="submit"
-              id="guardarPagoDeudaBtn"
-              class="primary"
-            >
-              Registrar reembolso
-            </button>
+          <tr>
 
-          </div>
+            <td colspan="8">
+              Cargando cartera...
+            </td>
 
-        </form>
+          </tr>
 
-        <div id="pagoDeudaMsg" class="msg"></div>
+        </tbody>
 
-      </section>
+      </table>
+
+    </div>
+
+
+    <div
+      id="carteraMsg"
+      class="msg"
+    ></div>
+
+  </section>
+
+</section>
 
 
       <!-- HISTORIAL -->
