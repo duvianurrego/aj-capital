@@ -3830,9 +3830,84 @@ async function cargarCartera() {
         : null;
 
 
-    carteraOperativaDatos =
-      carteraData || [];
+        /*
+      Unimos la cartera operativa con el control
+      financiero del ciclo actual.
 
+      Así cada préstamo tendrá disponibles:
+      - interés esperado
+      - interés pagado
+      - interés pendiente
+      - estado del ciclo
+      - días de mora
+      - ciclos de mora
+      - último pago registrado
+    */
+
+    carteraOperativaDatos =
+      (carteraData || []).map(
+        item => {
+
+          const control =
+            controlCicloPorPrestamo.get(
+              Number(item.prestamo_id)
+            );
+
+
+          return {
+
+            ...item,
+
+            interes_esperado_ciclo:
+              Number(
+                control?.interes_esperado ||
+                0
+              ),
+
+            interes_pagado_ciclo:
+              Number(
+                control?.interes_pagado ||
+                0
+              ),
+
+            interes_pendiente_ciclo:
+              Number(
+                control?.interes_pendiente ||
+                0
+              ),
+
+            estado_ciclo:
+              control?.estado_ciclo ||
+              null,
+
+            estado_visual_ciclo:
+              control?.estado_visual ||
+              null,
+
+            dias_mora_ciclo:
+              Number(
+                control?.dias_mora ||
+                0
+              ),
+
+            ciclos_mora:
+              Number(
+                control?.ciclos_mora ||
+                0
+              ),
+
+            ultimo_pago:
+              control?.ultimo_pago ||
+              null,
+
+            tiene_pago_registrado:
+              control?.tiene_pago_registrado ??
+              false
+
+          };
+
+        }
+      );
 
     /* =====================================================
        5. TARJETAS PRINCIPALES
