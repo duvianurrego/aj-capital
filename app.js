@@ -4743,10 +4743,32 @@ function aplicarFiltrosCartera() {
         }
 
 
-         /* =================================================
+        /* =================================================
            ESTADO GENERAL
-           PRIORIDAD: MORA DE CICLOS ANTERIORES
+           PRIORIDAD:
+           1. MORA HISTÓRICA COMPROBADA
+           2. MORA DE CICLOS ANTERIORES
+           3. ESTADO DEL CICLO ACTUAL
         ================================================= */
+
+        const mesesMoraHistorica =
+          Number(
+            item.mensualidades_mora_historica ||
+            0
+          );
+
+
+        const interesHistorico =
+          Number(
+            item.interes_historico_pendiente ||
+            0
+          );
+
+
+        const tieneMoraHistorica =
+          mesesMoraHistorica > 0 &&
+          interesHistorico > 0;
+
 
         const ciclosVencidos =
           Number(
@@ -4780,11 +4802,26 @@ function aplicarFiltrosCartera() {
 
         /*
           PRIMERO:
-          si existe deuda de ciclos anteriores,
-          esa alerta tiene prioridad.
+          Mora histórica comprobada.
         */
 
-        if (tieneMoraAnterior) {
+        if (tieneMoraHistorica) {
+
+          estadoVisual =
+            `MORA HISTÓRICA · ${mesesMoraHistorica} MESES · ${money(interesHistorico)}`;
+
+          clase =
+            'badge red';
+
+        }
+
+
+        /*
+          SEGUNDO:
+          Mora registrada en ciclos anteriores.
+        */
+
+        else if (tieneMoraAnterior) {
 
           if (ciclosVencidos >= 3) {
 
@@ -4808,9 +4845,9 @@ function aplicarFiltrosCartera() {
 
 
         /*
-          SEGUNDO:
-          si no existe mora anterior,
-          mostramos el estado del ciclo actual.
+          TERCERO:
+          Sin mora anterior.
+          Mostramos el estado del ciclo actual.
         */
 
         else if (
