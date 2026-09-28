@@ -3715,6 +3715,80 @@ async function cargarCartera() {
     }
 
 
+   /* =====================================================
+       3.1 CONTROL DEL CICLO Y MORA
+    ===================================================== */
+
+    let carteraControlCiclo = [];
+
+
+    if (
+      carteraCicloActual?.fecha_inicio &&
+      carteraCicloActual?.fecha_fin
+    ) {
+
+      const {
+        data: controlData,
+        error: controlError
+      } =
+      await supabase
+        .from('control_mora_aj')
+        .select(`
+          prestamo_id,
+          cliente_id,
+          nombre,
+          fecha_inicio,
+          fecha_fin,
+          capital_base,
+          interes_esperado,
+          interes_pagado,
+          interes_pendiente,
+          estado_ciclo,
+          fecha_cumplimiento,
+          dias_mora,
+          ciclos_mora,
+          tiene_pago_registrado,
+          ultimo_pago,
+          estado_visual
+        `)
+        .eq(
+          'fecha_inicio',
+          carteraCicloActual.fecha_inicio
+        )
+        .eq(
+          'fecha_fin',
+          carteraCicloActual.fecha_fin
+        );
+
+
+      if (controlError) {
+        throw controlError;
+      }
+
+
+      carteraControlCiclo =
+        controlData || [];
+
+    }
+
+
+    /*
+      Creamos un mapa por préstamo para poder
+      relacionar rápidamente el control del ciclo
+      con cada fila de Cartera.
+    */
+
+    const controlCicloPorPrestamo =
+      new Map(
+        carteraControlCiclo.map(
+          item => [
+            Number(item.prestamo_id),
+            item
+          ]
+        )
+      );
+
+     
     /* =====================================================
        4. SEGUIMIENTO INDIVIDUAL DE LOS PRÉSTAMOS
     ===================================================== */
