@@ -4540,8 +4540,9 @@ function aplicarFiltrosCartera() {
       .map(item => {
 
 
-       /* =================================================
+         /* =================================================
            FECHAS
+           PRÓXIMO PAGO AUTOMÁTICO
         ================================================= */
 
         const fechaPrestamo =
@@ -4553,22 +4554,38 @@ function aplicarFiltrosCartera() {
 
 
         /*
-          FECHA DE PRÓXIMO PAGO
+          REGLA:
 
-          Para préstamos normales:
-          usamos fecha_proximo_pago.
+          1. Si existe fecha_proximo_pago en la base,
+             utilizamos esa fecha.
 
-          Para mora histórica:
-          calculamos automáticamente el próximo
-          vencimiento usando el día original
-          del préstamo.
+          2. Si no existe fecha_proximo_pago,
+             calculamos automáticamente el próximo
+             vencimiento tomando como día de pago
+             el día original del préstamo.
+
+          Ejemplo:
+          préstamo 10/08/2024
+          día de pago = 10
+          próximo vencimiento = próximo día 10.
         */
 
         let fechaProximoPago = '—';
 
 
         if (
-          item.mensualidades_mora_historica > 0 &&
+          item.fecha_proximo_pago
+        ) {
+
+          fechaProximoPago =
+            mostrarFecha(
+              item.fecha_proximo_pago
+            );
+
+        }
+
+
+        else if (
           item.fecha_prestamo
         ) {
 
@@ -4597,8 +4614,9 @@ function aplicarFiltrosCartera() {
 
           /*
             Si el día de pago de este mes
-            ya pasó o es hoy,
-            buscamos el próximo mes.
+            ya ocurrió o es hoy,
+            mostramos el vencimiento
+            del próximo mes.
           */
 
           if (
@@ -4609,7 +4627,9 @@ function aplicarFiltrosCartera() {
             mes += 1;
 
 
-            if (mes > 11) {
+            if (
+              mes > 11
+            ) {
 
               mes = 0;
               anio += 1;
@@ -4620,8 +4640,8 @@ function aplicarFiltrosCartera() {
 
 
           /*
-            Evitamos problemas con días 29, 30 o 31
-            en meses que no tienen esos días.
+            Control para préstamos realizados
+            los días 29, 30 o 31.
           */
 
           const ultimoDiaMes =
@@ -4639,7 +4659,7 @@ function aplicarFiltrosCartera() {
             );
 
 
-          const proximoPagoHistorico =
+          const proximoPagoCalculado =
             new Date(
               anio,
               mes,
@@ -4648,7 +4668,7 @@ function aplicarFiltrosCartera() {
 
 
           fechaProximoPago =
-            proximoPagoHistorico
+            proximoPagoCalculado
               .toLocaleDateString(
                 'es-CO',
                 {
@@ -4657,18 +4677,6 @@ function aplicarFiltrosCartera() {
                   year: 'numeric'
                 }
               );
-
-        }
-
-
-        else if (
-          item.fecha_proximo_pago
-        ) {
-
-          fechaProximoPago =
-            mostrarFecha(
-              item.fecha_proximo_pago
-            );
 
         }
 
