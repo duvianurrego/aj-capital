@@ -4133,7 +4133,76 @@ function aplicarFiltrosCartera() {
               )
             : '—';
 
+         
+/* =====================================================
+   PAGO DEL CICLO ACTUAL
+===================================================== */
 
+const pagosPrestamoCiclo =
+  carteraPagosCiclo.filter(
+    pago =>
+      Number(pago.prestamo_id) ===
+      Number(item.prestamo_id)
+  );
+
+
+const totalPagadoCiclo =
+  pagosPrestamoCiclo.reduce(
+    (total, pago) =>
+      total +
+      Number(
+        pago.valor_total ||
+        0
+      ),
+    0
+  );
+
+
+const interesPagadoCiclo =
+  pagosPrestamoCiclo.reduce(
+    (total, pago) =>
+      total +
+      Number(
+        pago.valor_interes ||
+        0
+      ),
+    0
+  );
+
+
+const capitalPagadoCiclo =
+  pagosPrestamoCiclo.reduce(
+    (total, pago) =>
+      total +
+      Number(
+        pago.valor_capital ||
+        0
+      ),
+    0
+  );
+
+
+const pagoRealizadoCiclo =
+  pagosPrestamoCiclo.length > 0;
+
+
+const estadoPagoCiclo =
+  pagoRealizadoCiclo
+    ? `
+        <span
+          class="badge green"
+          title="Total pagado: ${money(totalPagadoCiclo)} · Interés: ${money(interesPagadoCiclo)} · Capital: ${money(capitalPagadoCiclo)}"
+        >
+          ✓ PAGÓ
+        </span>
+      `
+    : `
+        <span class="badge yellow">
+          PENDIENTE
+        </span>
+      `;
+         
+         
         return `
           <tr>
 
