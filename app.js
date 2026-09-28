@@ -3862,7 +3862,7 @@ async function cargarCartera() {
       );
 
      
-    /* =====================================================
+        /* =====================================================
        4. SEGUIMIENTO INDIVIDUAL DE LOS PRÉSTAMOS
     ===================================================== */
 
@@ -3903,25 +3903,32 @@ async function cargarCartera() {
         : null;
 
 
-        /*
-      Unimos la cartera operativa con el control
-      financiero del ciclo actual.
+    /*
+      Unimos la cartera operativa con:
+
+      1. Control financiero del ciclo actual.
+      2. Mora de ciclos anteriores.
+      3. Mora histórica comprobada.
 
       Así cada préstamo tendrá disponibles:
-      - interés esperado
-      - interés pagado
-      - interés pendiente
+      - interés esperado del ciclo
+      - interés pagado del ciclo
+      - interés pendiente del ciclo
       - estado del ciclo
-      - días de mora
-      - ciclos de mora
-      - último pago registrado
+      - mora acumulada
+      - mora histórica comprobada
+      - mensualidades históricas vencidas
+      - último pago histórico confirmado
     */
 
-       carteraOperativaDatos =
+
+    carteraOperativaDatos =
       (carteraData || []).map(
         item => {
 
-          /* CONTROL DEL CICLO ACTUAL */
+          /* ==========================================
+             CONTROL DEL CICLO ACTUAL
+          ========================================== */
 
           const control =
             controlCicloPorPrestamo.get(
@@ -3929,10 +3936,22 @@ async function cargarCartera() {
             );
 
 
-          /* MORA DE CICLOS ANTERIORES */
+          /* ==========================================
+             MORA DE CICLOS ANTERIORES
+          ========================================== */
 
           const mora =
             moraPorPrestamo.get(
+              Number(item.prestamo_id)
+            );
+
+
+          /* ==========================================
+             MORA HISTÓRICA COMPROBADA
+          ========================================== */
+
+          const moraHistorica =
+            moraHistoricaPorPrestamo.get(
               Number(item.prestamo_id)
             );
 
@@ -3942,9 +3961,9 @@ async function cargarCartera() {
             ...item,
 
 
-            /* ===============================
+            /* ========================================
                CICLO ACTUAL
-            =============================== */
+            ======================================== */
 
             interes_esperado_ciclo:
               Number(
@@ -3993,9 +4012,9 @@ async function cargarCartera() {
               false,
 
 
-            /* ===============================
-               MORA ACUMULADA
-            =============================== */
+            /* ========================================
+               MORA ACUMULADA DE CICLOS ANTERIORES
+            ======================================== */
 
             ciclos_vencidos:
               Number(
@@ -4017,13 +4036,45 @@ async function cargarCartera() {
               Number(
                 mora?.dias_mora ||
                 0
-              )
+              ),
+
+
+            /* ========================================
+               MORA HISTÓRICA COMPROBADA
+            ======================================== */
+
+            mensualidades_mora_historica:
+              Number(
+                moraHistorica?.mensualidades_vencidas ||
+                0
+              ),
+
+            interes_historico_pendiente:
+              Number(
+                moraHistorica?.interes_historico_pendiente ||
+                0
+              ),
+
+            interes_mensual_historico:
+              Number(
+                moraHistorica?.interes_mensual ||
+                0
+              ),
+
+            ultimo_pago_historico:
+              moraHistorica?.ultimo_pago_confirmado ||
+              null,
+
+            estado_mora_historica:
+              moraHistorica?.estado_mora_historica ||
+              null
 
           };
 
         }
       );
 
+     
     /* =====================================================
        5. TARJETAS PRINCIPALES
     ===================================================== */
