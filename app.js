@@ -3788,6 +3788,43 @@ async function cargarCartera() {
         )
       );
 
+
+         /* =====================================================
+       3.2 MORA ACUMULADA DE CICLOS ANTERIORES
+    ===================================================== */
+
+    const {
+      data: moraAcumuladaData,
+      error: moraAcumuladaError
+    } =
+    await supabase
+      .from('resumen_mora_prestamos_aj')
+      .select(`
+        prestamo_id,
+        cliente_id,
+        nombre,
+        ciclos_vencidos,
+        interes_vencido_total,
+        estado_mora,
+        dias_mora
+      `);
+
+
+    if (moraAcumuladaError) {
+      throw moraAcumuladaError;
+    }
+
+
+    const moraPorPrestamo =
+      new Map(
+        (moraAcumuladaData || []).map(
+          item => [
+            Number(item.prestamo_id),
+            item
+          ]
+        )
+      );
+
      
     /* =====================================================
        4. SEGUIMIENTO INDIVIDUAL DE LOS PRÉSTAMOS
