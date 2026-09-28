@@ -3856,14 +3856,7 @@ const prestamosActivosCiclo =
 
 
 const pagaronCiclo =
-  prestamosActivosCiclo.filter(
-    item =>
-      prestamosPagadosCiclo.has(
-        Number(
-          item.prestamo_id
-        )
-      )
-  ).length;
+  prestamosPagadosCiclo.size;
 
 
 const pendientesCiclo =
