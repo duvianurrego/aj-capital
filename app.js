@@ -4766,8 +4766,9 @@ function aplicarFiltrosCartera() {
 
 
         const tieneMoraHistorica =
-          mesesMoraHistorica > 0 &&
-          interesHistorico > 0;
+        mesesMoraHistorica > 0 ||
+        Boolean(item.ultimo_pago_historico) ||
+        interesHistorico > 0;
 
 
         const ciclosVencidos =
