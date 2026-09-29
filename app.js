@@ -6171,6 +6171,238 @@ async function cargarCuentasSocios() {
     }
 
 
+   /* =====================================================
+       DETALLE DEL DINERO EN PODER DE SOCIOS
+    ===================================================== */
+
+    const cuerpoDineroPoder =
+      $('cuentasDineroPoderBody');
+
+
+    if (cuerpoDineroPoder) {
+
+      if (
+        movimientosFiltrados.length === 0
+      ) {
+
+        cuerpoDineroPoder.innerHTML = `
+          <tr>
+            <td colspan="7">
+              No hay movimientos para los filtros seleccionados.
+            </td>
+          </tr>
+        `;
+
+      }
+
+      else {
+
+        cuerpoDineroPoder.innerHTML =
+          movimientosFiltrados
+            .map(
+              movimiento => {
+
+                const socioNombre =
+                  Number(
+                    movimiento.socio_id
+                  ) === 1
+                    ? 'Andrés Urrego'
+                    : Number(
+                        movimiento.socio_id
+                      ) === 2
+                        ? 'Juan'
+                        : 'Socio';
+
+
+                let concepto =
+                  movimiento.tipo ||
+                  'Movimiento';
+
+
+                if (
+                  movimiento.tipo ===
+                  'SALDO_INICIAL'
+                ) {
+                  concepto =
+                    'Saldo inicial';
+                }
+
+                else if (
+                  movimiento.tipo ===
+                  'SALDO_INICIAL_NEGATIVO'
+                ) {
+                  concepto =
+                    'Saldo inicial negativo';
+                }
+
+                else if (
+                  movimiento.tipo ===
+                  'INGRESO_INTERES'
+                ) {
+                  concepto =
+                    'Interés recibido';
+                }
+
+                else if (
+                  movimiento.tipo ===
+                  'RECUPERACION_CAPITAL'
+                ) {
+                  concepto =
+                    'Capital recuperado';
+                }
+
+                else if (
+                  movimiento.tipo ===
+                  'DESEMBOLSO_PRESTAMO'
+                ) {
+                  concepto =
+                    'Préstamo entregado';
+                }
+
+                else if (
+                  movimiento.tipo ===
+                  'TRANSFERENCIA_ENTRADA'
+                ) {
+                  concepto =
+                    'Transferencia recibida';
+                }
+
+                else if (
+                  movimiento.tipo ===
+                  'TRANSFERENCIA_SALIDA'
+                ) {
+                  concepto =
+                    'Transferencia entregada';
+                }
+
+                else if (
+                  movimiento.tipo ===
+                  'RETIRO_UTILIDAD'
+                ) {
+                  concepto =
+                    'Retiro de utilidad';
+                }
+
+                else if (
+                  movimiento.tipo ===
+                  'PAGO_CUOTA_BANCO'
+                ) {
+                  concepto =
+                    'Pago cuota banco';
+                }
+
+                else if (
+                  movimiento.tipo ===
+                  'PAGO_DEUDA_SOCIO'
+                ) {
+                  concepto =
+                    'Pago deuda socio';
+                }
+
+                else if (
+                  movimiento.tipo ===
+                  'AJUSTE'
+                ) {
+                  concepto =
+                    'Ajuste';
+                }
+
+
+                const entrada =
+                  esEntradaMovimiento(
+                    movimiento
+                  )
+                    ? money(
+                        Math.abs(
+                          Number(
+                            movimiento.valor ||
+                            0
+                          )
+                        )
+                      )
+                    : '—';
+
+
+                const salida =
+                  esSalidaMovimiento(
+                    movimiento
+                  )
+                    ? money(
+                        Math.abs(
+                          Number(
+                            movimiento.valor ||
+                            0
+                          )
+                        )
+                      )
+                    : '—';
+
+
+                return `
+                  <tr>
+
+                    <td>
+                      ${mostrarFecha(
+                        movimiento.fecha
+                      )}
+                    </td>
+
+                    <td>
+                      <strong>
+                        ${escapeHtml(
+                          socioNombre
+                        )}
+                      </strong>
+                    </td>
+
+                    <td>
+                      ${escapeHtml(
+                        concepto
+                      )}
+                    </td>
+
+                    <td>
+                      ${escapeHtml(
+                        movimiento.referencia ||
+                        '—'
+                      )}
+                    </td>
+
+                    <td>
+                      ${
+                        entrada !== '—'
+                          ? `<strong>${entrada}</strong>`
+                          : '—'
+                      }
+                    </td>
+
+                    <td>
+                      ${
+                        salida !== '—'
+                          ? `<strong>${salida}</strong>`
+                          : '—'
+                      }
+                    </td>
+
+                    <td>
+                      ${escapeHtml(
+                        movimiento.observaciones ||
+                        '—'
+                      )}
+                    </td>
+
+                  </tr>
+                `;
+
+              }
+            )
+            .join('');
+
+      }
+
+    }
+
+     
     /* =====================================================
        HISTORIAL
     ===================================================== */
