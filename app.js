@@ -5636,9 +5636,10 @@ async function cargarCuentasSocios() {
     ===================================================== */
 
     cuentasSociosDatos = {
-      deudas: {},
-      cajas: {}
-    };
+  deudas: {},
+  cajas: {},
+  movimientos: movimientosCaja || []
+};
 
 
     (deudas || [])
@@ -5675,6 +5676,28 @@ async function cargarCuentasSocios() {
       );
 
 
+         /* =====================================================
+       MOVIMIENTOS DE CAJA PARA FILTROS
+    ===================================================== */
+
+    const movimientosSocios =
+      cuentasSociosDatos.movimientos || [];
+
+
+    const movimientosAndres =
+      movimientosSocios.filter(
+        movimiento =>
+          Number(movimiento.socio_id) === 1
+      );
+
+
+    const movimientosJuan =
+      movimientosSocios.filter(
+        movimiento =>
+          Number(movimiento.socio_id) === 2
+      );
+
+     
     /* =====================================================
        VALORES DE ANDRÉS Y JUAN
     ===================================================== */
