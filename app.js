@@ -5698,7 +5698,7 @@ async function cargarCuentasSocios() {
       );
 
 
-         /* =====================================================
+    /* =====================================================
        CLASIFICACIÓN DE MOVIMIENTOS DE CAJA
     ===================================================== */
 
@@ -5775,6 +5775,145 @@ async function cargarCuentasSocios() {
         return false;
 
       };
+
+
+   /* =====================================================
+       APLICAR FILTROS
+    ===================================================== */
+
+    const socioFiltro =
+      $('cuentasFiltroSocio')?.value ||
+      '';
+
+
+    const desdeFiltro =
+      $('cuentasFiltroDesde')?.value ||
+      '';
+
+
+    const hastaFiltro =
+      $('cuentasFiltroHasta')?.value ||
+      '';
+
+
+    const movimientoFiltro =
+      $('cuentasFiltroMovimiento')?.value ||
+      '';
+
+
+    const conceptoFiltro =
+      $('cuentasFiltroConcepto')?.value ||
+      '';
+
+
+    const movimientosFiltrados =
+      movimientosSocios.filter(
+        movimiento => {
+
+          /* SOCIO */
+
+          if (
+            socioFiltro &&
+            Number(movimiento.socio_id) !==
+            Number(socioFiltro)
+          ) {
+            return false;
+          }
+
+
+          /* FECHA DESDE */
+
+          if (
+            desdeFiltro &&
+            movimiento.fecha < desdeFiltro
+          ) {
+            return false;
+          }
+
+
+          /* FECHA HASTA */
+
+          if (
+            hastaFiltro &&
+            movimiento.fecha > hastaFiltro
+          ) {
+            return false;
+          }
+
+
+          /* ENTRADA / SALIDA */
+
+          if (
+            movimientoFiltro === 'ENTRADA' &&
+            !esEntradaMovimiento(movimiento)
+          ) {
+            return false;
+          }
+
+
+          if (
+            movimientoFiltro === 'SALIDA' &&
+            !esSalidaMovimiento(movimiento)
+          ) {
+            return false;
+          }
+
+
+          /* CONCEPTO */
+
+          if (
+            conceptoFiltro &&
+            movimiento.tipo !== conceptoFiltro
+          ) {
+            return false;
+          }
+
+
+          return true;
+
+        }
+      );
+
+
+    const totalEntradasPeriodo =
+      movimientosFiltrados
+        .filter(
+          esEntradaMovimiento
+        )
+        .reduce(
+          (total, movimiento) =>
+            total +
+            Math.abs(
+              Number(
+                movimiento.valor ||
+                0
+              )
+            ),
+          0
+        );
+
+
+    const totalSalidasPeriodo =
+      movimientosFiltrados
+        .filter(
+          esSalidaMovimiento
+        )
+        .reduce(
+          (total, movimiento) =>
+            total +
+            Math.abs(
+              Number(
+                movimiento.valor ||
+                0
+              )
+            ),
+          0
+        );
+
+
+    const netoPeriodo =
+      totalEntradasPeriodo -
+      totalSalidasPeriodo;
 
      
     /* =====================================================
