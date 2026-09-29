@@ -6387,6 +6387,70 @@ $('actualizarCuentasSociosBtn')
 
 
 /* =========================================================
+   FILTROS DE DINERO EN PODER DE SOCIOS
+========================================================= */
+
+[
+  'cuentasFiltroSocio',
+  'cuentasFiltroDesde',
+  'cuentasFiltroHasta',
+  'cuentasFiltroMovimiento',
+  'cuentasFiltroConcepto'
+]
+  .forEach(
+    id => {
+
+      $(id)
+        ?.addEventListener(
+          'change',
+          async () => {
+
+            await cargarCuentasSocios();
+
+          }
+        );
+
+    }
+  );
+
+
+/* =========================================================
+   LIMPIAR FILTROS DE CUENTAS DE SOCIOS
+========================================================= */
+
+$('cuentasLimpiarFiltrosBtn')
+  ?.addEventListener(
+    'click',
+    async () => {
+
+      if ($('cuentasFiltroSocio')) {
+        $('cuentasFiltroSocio').value = '';
+      }
+
+      if ($('cuentasFiltroDesde')) {
+        $('cuentasFiltroDesde').value = '';
+      }
+
+      if ($('cuentasFiltroHasta')) {
+        $('cuentasFiltroHasta').value = '';
+      }
+
+      if ($('cuentasFiltroMovimiento')) {
+        $('cuentasFiltroMovimiento').value = '';
+      }
+
+      if ($('cuentasFiltroConcepto')) {
+        $('cuentasFiltroConcepto').value = '';
+      }
+
+
+      await cargarCuentasSocios();
+
+    }
+  );
+
+
+/* =========================================================
    REGISTRAR REEMBOLSO AL SOCIO
 ========================================================= */
 
