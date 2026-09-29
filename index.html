@@ -1758,6 +1758,85 @@
 
         </div>
 
+            
+    <!-- FILTROS DE DINERO EN PODER DE SOCIOS -->
+
+    <div class="form-grid">
+
+      <div>
+        <label>Socio</label>
+
+        <select id="cuentasFiltroSocio">
+          <option value="">Todos</option>
+          <option value="1">Andrés Urrego</option>
+          <option value="2">Juan</option>
+        </select>
+      </div>
+
+
+      <div>
+        <label>Desde</label>
+
+        <input
+          id="cuentasFiltroDesde"
+          type="date"
+        >
+      </div>
+
+
+      <div>
+        <label>Hasta</label>
+
+        <input
+          id="cuentasFiltroHasta"
+          type="date"
+        >
+      </div>
+
+
+      <div>
+        <label>Movimiento</label>
+
+        <select id="cuentasFiltroMovimiento">
+          <option value="">Todos</option>
+          <option value="ENTRADA">Entradas</option>
+          <option value="SALIDA">Salidas</option>
+        </select>
+      </div>
+
+
+      <div>
+        <label>Concepto</label>
+
+        <select id="cuentasFiltroConcepto">
+          <option value="">Todos</option>
+          <option value="INGRESO_INTERES">Intereses recibidos</option>
+          <option value="RECUPERACION_CAPITAL">Capital recuperado</option>
+          <option value="DESEMBOLSO_PRESTAMO">Préstamos entregados</option>
+          <option value="TRANSFERENCIA_ENTRADA">Transferencias recibidas</option>
+          <option value="TRANSFERENCIA_SALIDA">Transferencias entregadas</option>
+          <option value="RETIRO_UTILIDAD">Utilidades retiradas</option>
+          <option value="PAGO_CUOTA_BANCO">Cuota bancaria</option>
+          <option value="PAGO_DEUDA_SOCIO">Pago deuda socio</option>
+          <option value="SALDO_INICIAL">Saldo inicial</option>
+          <option value="SALDO_INICIAL_NEGATIVO">Saldo inicial negativo</option>
+        </select>
+      </div>
+
+
+      <div class="form-actions">
+
+        <button
+          id="cuentasLimpiarFiltrosBtn"
+          type="button"
+          class="secondary"
+        >
+          Limpiar filtros
+        </button>
+
+      </div>
+
+    </div>
 
         <div class="table-wrap">
 
