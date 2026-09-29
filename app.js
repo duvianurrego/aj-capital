@@ -5516,9 +5516,14 @@ async function cargarCuentasSocios() {
         error: errorCajas
       },
 
-      {
+           {
         data: historial,
         error: errorHistorial
+      },
+
+      {
+        data: movimientosCaja,
+        error: errorMovimientosCaja
       }
 
     ] =
@@ -5560,6 +5565,34 @@ async function cargarCuentasSocios() {
           observaciones,
           origen,
           movimiento_caja_id,
+          creado_en
+        `)
+        .order(
+          'fecha',
+          {
+            ascending: false
+          }
+        )
+                .order(
+          'id',
+          {
+            ascending: false
+          }
+        ),
+
+      supabase
+        .from(
+          'movimientos_caja'
+        )
+        .select(`
+          id,
+          socio_id,
+          fecha,
+          tipo,
+          valor,
+          referencia,
+          observaciones,
+          origen,
           creado_en
         `)
         .order(
