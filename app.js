@@ -5978,6 +5978,93 @@ async function cargarCuentasSocios() {
       );
 
 
+         /* =====================================================
+       RESUMEN DEL FILTRO DE DINERO EN PODER
+    ===================================================== */
+
+    let saldoEsperadoFiltro =
+      cajaTotal;
+
+
+    let nombreSocioFiltro =
+      'Todos los socios';
+
+
+    if (socioFiltro === '1') {
+
+      saldoEsperadoFiltro =
+        cajaAndres;
+
+      nombreSocioFiltro =
+        'Andrés Urrego';
+
+    }
+
+
+    else if (socioFiltro === '2') {
+
+      saldoEsperadoFiltro =
+        cajaJuan;
+
+      nombreSocioFiltro =
+        'Juan';
+
+    }
+
+
+    if ($('cuentasSaldoEsperado')) {
+
+      $('cuentasSaldoEsperado')
+        .textContent =
+        money(
+          saldoEsperadoFiltro
+        );
+
+    }
+
+
+    if ($('cuentasSaldoSocio')) {
+
+      $('cuentasSaldoSocio')
+        .textContent =
+        nombreSocioFiltro;
+
+    }
+
+
+    if ($('cuentasEntradasPeriodo')) {
+
+      $('cuentasEntradasPeriodo')
+        .textContent =
+        money(
+          totalEntradasPeriodo
+        );
+
+    }
+
+
+    if ($('cuentasSalidasPeriodo')) {
+
+      $('cuentasSalidasPeriodo')
+        .textContent =
+        money(
+          totalSalidasPeriodo
+        );
+
+    }
+
+
+    if ($('cuentasNetoPeriodo')) {
+
+      $('cuentasNetoPeriodo')
+        .textContent =
+        money(
+          netoPeriodo
+        );
+
+    }
+
+     
     /* =====================================================
        TARJETAS GENERALES
     ===================================================== */
