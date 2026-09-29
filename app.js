@@ -5625,6 +5625,11 @@ async function cargarCuentasSocios() {
       throw errorHistorial;
     }
 
+     
+         if (errorMovimientosCaja) {
+      throw errorMovimientosCaja;
+    }
+
 
     /* =====================================================
        RECONSTRUIR DATOS LOCALES
