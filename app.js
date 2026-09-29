@@ -5697,6 +5697,85 @@ async function cargarCuentasSocios() {
           Number(movimiento.socio_id) === 2
       );
 
+
+         /* =====================================================
+       CLASIFICACIÓN DE MOVIMIENTOS DE CAJA
+    ===================================================== */
+
+    const tiposEntrada = [
+      'SALDO_INICIAL',
+      'INGRESO_INTERES',
+      'RECUPERACION_CAPITAL',
+      'TRANSFERENCIA_ENTRADA'
+    ];
+
+
+    const tiposSalida = [
+      'SALDO_INICIAL_NEGATIVO',
+      'DESEMBOLSO_PRESTAMO',
+      'TRANSFERENCIA_SALIDA',
+      'RETIRO_UTILIDAD',
+      'PAGO_DEUDA_SOCIO'
+    ];
+
+
+    const esEntradaMovimiento =
+      movimiento => {
+
+        if (
+          tiposEntrada.includes(
+            movimiento.tipo
+          )
+        ) {
+          return true;
+        }
+
+
+        if (
+          movimiento.tipo === 'AJUSTE' &&
+          Number(movimiento.valor || 0) > 0
+        ) {
+          return true;
+        }
+
+
+        return false;
+
+      };
+
+
+    const esSalidaMovimiento =
+      movimiento => {
+
+        if (
+          tiposSalida.includes(
+            movimiento.tipo
+          )
+        ) {
+          return true;
+        }
+
+
+        if (
+          movimiento.tipo === 'PAGO_CUOTA_BANCO' &&
+          movimiento.origen !== 'DINERO_PERSONAL_SOCIO'
+        ) {
+          return true;
+        }
+
+
+        if (
+          movimiento.tipo === 'AJUSTE' &&
+          Number(movimiento.valor || 0) < 0
+        ) {
+          return true;
+        }
+
+
+        return false;
+
+      };
+
      
     /* =====================================================
        VALORES DE ANDRÉS Y JUAN
