@@ -6175,6 +6175,43 @@ async function cargarCuentasSocios() {
        DETALLE DEL DINERO EN PODER DE SOCIOS
     ===================================================== */
 
+         let saldoAcumuladoDinero = 0;
+
+    const movimientosConSaldo =
+      [...movimientosFiltrados]
+        .sort((a, b) => {
+
+          if (a.fecha !== b.fecha) {
+            return a.fecha.localeCompare(b.fecha);
+          }
+
+          return Number(a.id) - Number(b.id);
+
+        })
+        .map(movimiento => {
+
+          if (esEntradaMovimiento(movimiento)) {
+
+            saldoAcumuladoDinero +=
+              Math.abs(Number(movimiento.valor || 0));
+
+          }
+
+          else if (esSalidaMovimiento(movimiento)) {
+
+            saldoAcumuladoDinero -=
+              Math.abs(Number(movimiento.valor || 0));
+
+          }
+
+          return {
+            ...movimiento,
+            saldo_acumulado: saldoAcumuladoDinero
+          };
+
+        })
+        .reverse();
+     
     const cuerpoDineroPoder =
       $('cuentasDineroPoderBody');
 
@@ -6198,7 +6235,7 @@ async function cargarCuentasSocios() {
       else {
 
         cuerpoDineroPoder.innerHTML =
-          movimientosFiltrados
+          movimientosConSaldo
             .map(
               movimiento => {
 
