@@ -6197,7 +6197,7 @@ async function cargarCuentasSocios() {
 
       else {
 
-        cuerpoDineroPoder.innerHTML =
+        movimientosConSaldo.innerHTML =
           movimientosFiltrados
             .map(
               movimiento => {
