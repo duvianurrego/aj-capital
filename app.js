@@ -6383,6 +6383,14 @@ async function cargarCuentasSocios() {
                           : '—'
                       }
                     </td>
+                    
+                    <td>
+                      <strong>
+                       ${money(
+                        movimiento.saldo_acumulado
+                        )}
+                         </strong>
+                       </td>
 
                     <td>
                       ${escapeHtml(
