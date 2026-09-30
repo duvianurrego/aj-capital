@@ -1495,6 +1495,90 @@
 
       <tbody id="cuentasDineroPoderBody">
 
+            /* =====================================================
+       SALDO ACUMULADO POR MOVIMIENTO
+    ===================================================== */
+
+    let saldoAcumuladoDinero =
+      0;
+
+
+    const movimientosConSaldo =
+      [...movimientosFiltrados]
+        .sort(
+          (a, b) => {
+
+            const fechaA =
+              `${a.fecha || ''}-${String(a.id || 0).padStart(10, '0')}`;
+
+            const fechaB =
+              `${b.fecha || ''}-${String(b.id || 0).padStart(10, '0')}`;
+
+
+            return fechaA.localeCompare(
+              fechaB
+            );
+
+          }
+        )
+        .map(
+          movimiento => {
+
+            let impacto =
+              0;
+
+
+            if (
+              esEntradaMovimiento(
+                movimiento
+              )
+            ) {
+
+              impacto =
+                Math.abs(
+                  Number(
+                    movimiento.valor ||
+                    0
+                  )
+                );
+
+            }
+
+
+            else if (
+              esSalidaMovimiento(
+                movimiento
+              )
+            ) {
+
+              impacto =
+                -Math.abs(
+                  Number(
+                    movimiento.valor ||
+                    0
+                  )
+                );
+
+            }
+
+
+            saldoAcumuladoDinero +=
+              impacto;
+
+
+            return {
+
+              ...movimiento,
+
+              saldo_acumulado:
+                saldoAcumuladoDinero
+
+            };
+
+          }
+        )
+        .reverse();
+
         <tr>
 
           <td colspan="8">
